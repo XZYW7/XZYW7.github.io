@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://xzyw7.github.io/</id>
+    <title>XZYW</title>
+    <updated>2022-10-05T16:56:51.634Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://xzyw7.github.io/"/>
+    <link rel="self" href="https://xzyw7.github.io/atom.xml"/>
+    <subtitle>温故而知新</subtitle>
+    <logo>https://xzyw7.github.io/images/avatar.png</logo>
+    <icon>https://xzyw7.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2022, XZYW</rights>
+    <entry>
+        <title type="html"><![CDATA[【笔记】【百人计划】图形 4.3 实时阴影算法]]></title>
+        <id>https://xzyw7.github.io/post/bi-ji-bai-ren-ji-hua-tu-xing-43-shi-shi-yin-ying-suan-fa/</id>
+        <link href="https://xzyw7.github.io/post/bi-ji-bai-ren-ji-hua-tu-xing-43-shi-shi-yin-ying-suan-fa/">
+        </link>
+        <updated>2022-10-05T16:52:45.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[【过程记录】【GAMES202】环境配置与实时阴影]]></title>
+        <id>https://xzyw7.github.io/post/guo-cheng-ji-lu-games202-huan-jing-pei-zhi-yu-shi-shi-yin-ying/</id>
+        <link href="https://xzyw7.github.io/post/guo-cheng-ji-lu-games202-huan-jing-pei-zhi-yu-shi-shi-yin-ying/">
+        </link>
+        <updated>2022-10-05T16:45:04.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[【笔记】【GAMES202】A Glimpse of Industrial Solutions]]></title>
+        <id>https://xzyw7.github.io/post/bi-ji-games202-a-glimpse-of-industrial-solutions/</id>
+        <link href="https://xzyw7.github.io/post/bi-ji-games202-a-glimpse-of-industrial-solutions/">
+        </link>
+        <updated>2022-10-02T17:41:51.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[【笔记】【GAMES202】Real-time Ray Tracing实时光线追踪]]></title>
+        <id>https://xzyw7.github.io/post/bi-ji-games202-real-time-ray-tracing-shi-shi-guang-xian-zhui-zong/</id>
+        <link href="https://xzyw7.github.io/post/bi-ji-games202-real-time-ray-tracing-shi-shi-guang-xian-zhui-zong/">
+        </link>
+        <updated>2022-10-02T17:41:22.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[【笔记】【GAMES202】Real-time Physically-Based Materials(Surface models)]]></title>
+        <id>https://xzyw7.github.io/post/games-real-time-physically-based-materialssurface-models/</id>
+        <link href="https://xzyw7.github.io/post/games-real-time-physically-based-materialssurface-models/">
+        </link>
+        <updated>2022-10-02T05:58:43.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[【笔记】Cherno Opengl Tutorial note 04]]></title>
+        <id>https://xzyw7.github.io/post/bi-ji-cherno-opengl-tutorial-note-04/</id>
+        <link href="https://xzyw7.github.io/post/bi-ji-cherno-opengl-tutorial-note-04/">
+        </link>
+        <updated>2022-09-24T08:54:56.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[【笔记】Cherno Opengl Tutorial note 03]]></title>
+        <id>https://xzyw7.github.io/post/MBt3ojVPh/</id>
+        <link href="https://xzyw7.github.io/post/MBt3ojVPh/">
+        </link>
+        <updated>2022-09-12T04:05:40.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[【笔记】Cherno Opengl Tutorial note 02]]></title>
+        <id>https://xzyw7.github.io/post/HYrGifH4P/</id>
+        <link href="https://xzyw7.github.io/post/HYrGifH4P/">
+        </link>
+        <updated>2022-09-10T15:04:12.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[【笔记】【百人计划】图形 4.1 Bloom算法]]></title>
+        <id>https://xzyw7.github.io/post/OGITN9R02/</id>
+        <link href="https://xzyw7.github.io/post/OGITN9R02/">
+        </link>
+        <updated>2022-08-26T09:08:36.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[【笔记】Cherno Opengl Tutorial note 01]]></title>
+        <id>https://xzyw7.github.io/post/6XHy6kMO6/</id>
+        <link href="https://xzyw7.github.io/post/6XHy6kMO6/">
+        </link>
+        <updated>2022-08-24T13:58:56.000Z</updated>
+    </entry>
+</feed>

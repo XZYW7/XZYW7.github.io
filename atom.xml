@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://xzyw7.github.io</id>
+    <title>XZYW&apos;s Blog</title>
+    <updated>2025-02-12T08:08:44.066Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://xzyw7.github.io"/>
+    <link rel="self" href="https://xzyw7.github.io/atom.xml"/>
+    <subtitle>Nothing left</subtitle>
+    <logo>https://xzyw7.github.io/images/avatar.png</logo>
+    <icon>https://xzyw7.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2025, XZYW&apos;s Blog</rights>
+</feed>

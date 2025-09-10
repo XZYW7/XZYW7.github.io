@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    【笔记】Progressive Photon Mapping渐进式光子映射 |
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/Graphics/Progressive Photon Mapping" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    【笔记】Progressive Photon Mapping渐进式光子映射
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/05/14/TA/Graphics/Progressive%20Photon%20Mapping/" class="article-date">
+  <time datetime="2022-05-14T15:52:46.000Z" itemprop="datePublished">2022-05-14</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="渐进式光子映射Progressive-Photon-Mapping"><a href="#渐进式光子映射Progressive-Photon-Mapping" class="headerlink" title="渐进式光子映射Progressive Photon Mapping"></a>渐进式光子映射Progressive Photon Mapping</h2><p>感觉有点难找到合适的教程。</p>
+<p>直接看pbrt有点头大，于是选择了从论文开始。这里的内容主要是论文翻译</p>
+<p>PPM相对于其他无偏的离线渲染方法（主要指PT，BPT，MLT）和一些有偏的方法（PM），解决的是SDS的问题（SDS中的caustic现象）。</p>
+<h3 id="光子映射Photon-mapping"><a href="#光子映射Photon-mapping" class="headerlink" title="光子映射Photon mapping"></a>光子映射Photon mapping</h3><p>是一个2pass 的方法</p>
+<ul>
+<li>1st pass<ul>
+<li>photon tracing</li>
+</ul>
+</li>
+<li>2nd pass<ul>
+<li>rendering using photon map</li>
+</ul>
+</li>
+</ul>
+<p>对于一个photon map，任何一个表面位置x的exitant radiance估计为<br>$$<br>L(x,\overrightarrow w)\approx\sum_{p&#x3D;1}^n\frac{f_r(x,\overrightarrow w,\overrightarrow w_p)\phi_p(x_p,\overrightarrow w_p)}{\pi r^2}<br>$$<br>$n$ :邻近的光子数量，用来估计incoming radiance</p>
+<p>$\phi_p$ :第p个光子的flux（power）</p>
+<p>这种估计假设了局部的光子代表了x接收到的radiance,并且x周围的表面是平坦（flat）的。</p>
+<p>这也是Photon mapping方法偏差的来源。photon tracing过程本身是无偏的，但是photon分布的结果在radiance estimate的过程中进行平均（blurred）。</p>
+<p>光子密度（photon density）增加，radiance的估计也会收敛到正确的结果，这说明光子映射是一致的(consistent)。</p>
+<p>为了保证收敛到正确结果，需要在photon map中储存无限的光子，并且radius半径需要收敛到0。我们可以通过一种操作满足这些要求：</p>
+<p>在photon map 中使用$N$个光子，但是只有$N^\beta$ ($\beta\in [0,1]$)个光子用来进行radiance 估计，当$N$趋近无穷时，$N$和$N^\beta$ 都趋近无穷，但是$N^\beta$是N的高阶无穷小，保证了r收敛到0，以下会把它称为辐射度估计方程。<br>$$<br>L(x,\overrightarrow w)\approx \lim <em>{N\to\infin}\sum</em>{p&#x3D;1}^{N^\beta}\frac{f_r(x,\overrightarrow w,\overrightarrow w_p)\phi_p(x_p,\overrightarrow w_p)}{\pi r^2}<br>$$<br>在标准的光子映射中，这个结果是理论正确的，但是光子储存在内存中，这使得无法获得精确的结果。</p>
+<p>渐进式光子映射将解决这个问题。</p>
+<h3 id="渐进式光子映射Progressive-Photon-Mapping-1"><a href="#渐进式光子映射Progressive-Photon-Mapping-1" class="headerlink" title="渐进式光子映射Progressive Photon Mapping"></a>渐进式光子映射Progressive Photon Mapping</h3><p>刚才又去浏览了一下PBRT，我知道我为什么看起来难受了，Literate Programming是什么鬼啊……文学编程……从零开始直接跳去看PM的内容着实有点难受了。还是接着从论文开始吧。</p>
+<p>PPM是多pass的算法，先是ray tracing，然后子序列的pass用来做photon tracing，每一次的photon tracing pass 都会提升全局光照结果的准确性。</p>
+<h4 id="Ray-Tracing-Pass"><a href="#Ray-Tracing-Pass" class="headerlink" title="Ray Tracing Pass"></a>Ray Tracing Pass</h4><p>使用标准的ray tracing通过图像中的每个像素找到场景中所有可见表面，每一条ray path都包含了所有specular的反弹，直到遇到第一个non-specular的表面。</p>
+<p>场景中specular表面比较多时，也可以用俄罗斯轮盘赌（Russian Roulette）来停止。而如果击中的表面BRDF有non-specular的部分，对于每个ray path我们都储存路径上所有的hit points（对于这句话我的理解是，如果不是完全镜面的表面，就会有能量的吸收，有一部分光子停留在这里）</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span>  <span class="title class_">hitpoint</span> &#123;</span><br><span class="line">    position x;<span class="comment">//击中位置</span></span><br><span class="line">    normal   n;<span class="comment">//x所在的法线</span></span><br><span class="line">    vector   w;<span class="comment">//入射光线方向</span></span><br><span class="line">    integer BRDF;<span class="comment">//BRDF的index</span></span><br><span class="line">    <span class="type">float</span>    x,y;<span class="comment">//像素位置</span></span><br><span class="line">    color    wgt;<span class="comment">//像素权重</span></span><br><span class="line">    <span class="type">float</span>    R;<span class="comment">//当前的光子查找半径</span></span><br><span class="line">    integer  N;<span class="comment">//累计光子数</span></span><br><span class="line">    color    t;<span class="comment">//累计反射的flux能量</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Photon-Tracing-Pass"><a href="#Photon-Tracing-Pass" class="headerlink" title="Photon Tracing Pass"></a>Photon Tracing Pass</h4><p>这个步骤是用来累计光子能量的。可以分成很多的pass去做，每个pass追踪一系列光子，每个 photon tracing pass结束后，就去查看所有hit points，找到半径区域的光子。使用新加入的光子来修正光照计算。光子的贡献一经记录，就可以把光子丢掉了，然后再去处理下一个photon tracing pass。直到累积了足够数量的光子。</p>
+<p>我们甚至可以在每个PTP后渲染一遍场景，累积的光子越多，场景的质量就越高。</p>
+<h4 id="Progressive-Radiance-Estimate渐进的辐射度估计"><a href="#Progressive-Radiance-Estimate渐进的辐射度估计" class="headerlink" title="Progressive Radiance Estimate渐进的辐射度估计"></a>Progressive Radiance Estimate渐进的辐射度估计</h4><p>传统的PM算法估计着色点的局部光子密度<br>$$<br>d(x) &#x3D; \frac{n}{\pi r^2}<br>$$<br>这个估计的假设是周围是平面，在一个半径为r的圆盘上去估计。如果我们在新的光子图上，要产生新的光子，在同样的圆盘上去估计密度，那就是<br>$$<br>d’(x)&#x3D;\frac{n’}{\pi r^2}<br>$$<br>把$d(x)$ 和$d’(x)$ 进行平均，我们可以获得半径 r上更准确的估计。这种方法可以获得更加平滑的radiance估计，但是最终结果由于平均计算会失去很多细节。并且平均过程会破坏一致性，使得无法收敛到正确结果。</p>
+<p>渐进式的辐射度估计结合多个光子图，能够收敛到正确结果，也能解决细节问题。关键方法是在每个hit point的辐射度估计中，随着光子数量的累计减少半径。这有效地保证了光子密度在极限估计趋于无穷。</p>
+<p>接下来会描述光子密度是如何渐进式增长的。我们在ray tracing pass生成的每个hit points上都会计算辐射度估计。初始化时，x对应的半径R(x)会设置一个非零值，比如说对应像素的footprint（虎书中对像素footprint的解释是，屏幕空间像素映射到纹理空间的形状，这里可以看作世界空间）。也可以第一次photon tracing pass后，通过使用光子图来估计半径。 </p>
+<h5 id="Radius-Reduction半径缩减"><a href="#Radius-Reduction半径缩减" class="headerlink" title="Radius Reduction半径缩减"></a>Radius Reduction半径缩减</h5><p>每个hit point都有一个半径R(x)，我们的目标是，半径内的光子数量累计增加时，减少半径。</p>
+<p><img src="/PPM%20Note/image-20220515211027302.png" alt="image-20220515211027302"></p>
+<p>hit point x的密度d(x)，使用上面的公式就可以算，假设已经做了一些photon tracing了，在x处累计了N(x)的光子，如果这个时候在做一个photon tracing pass，并且在R(x)范围内又找到M(x)个光子，我们可以把新的M(x)个光子加上去<br>$$<br>\hat d(x)&#x3D;\frac{N(x)+M(x)}{\pi R(x)^2}<br>$$<br>下一步就是用dR(x)来减少半径R(x)，如果我们假设半径R(x)内的光子密度是常数，我们可以算出新的圆盘半径$\hat R(x)&#x3D;R(x)-dR(x)$ 内光子总数<br>$$<br>\hat N(x) &#x3D; \pi\hat R(x)^2\hat d(x) &#x3D; \pi(R(x)-dR(x))^2\hat d(x)<br>$$<br>为了满足辐射度估计方程中的条件 ，每一次迭代的光子总数都需要有增加的($\hat N(x)&gt;N(x)$，为了简便，使用了一个系数$\alpha \in [0,1]$ 来控制光子的比例<br>$$<br>\hat N(x) &#x3D; N(x) + \alpha M(x)<br>$$<br>也就是说，我们每次迭代可以把$\alpha M(x)$ 个新的光子加上去，可以计算出对应需要减少的半径$dR(x)$<br>$$<br>\pi(R(x)-dR(x))^2\hat d(x) &#x3D; \hat N(x)<br>\\Leftrightarrow \pi(R(x)-dR(x))^2\frac{N(x)+M(x)}{\pi R(x)^2} &#x3D; N(x) + \alpha M(x)<br>\\Leftrightarrow dR(x)  &#x3D; R(x) - R(x)\sqrt{\frac{N(x) + \alpha M(x)}{N(x)+M(x)}}<br>$$<br>所以更新的$\hat R(x)$<br>$$<br>\hat R(x)&#x3D;R(x)-dR(x)&#x3D;R(x)\sqrt{\frac{N(x) + \alpha M(x)}{N(x)+M(x)}}<br>$$<br>注意，在每个hit point，这个公式都是独立计算的。</p>
+<h5 id="Flux-Correction能量修正"><a href="#Flux-Correction能量修正" class="headerlink" title="Flux Correction能量修正"></a>Flux Correction能量修正</h5><p>当hit point接收到新的M(x)个光子，我们还需要加上这些光子所携带的能量。还需要把前面计算的半径缩减考虑在内。每个hit point储存接收到的BRDF预乘后未归一化的能量。把它叫做$\tau(x,\vec w)$ ,对于N(x)个光子<br>$$<br>\tau_N(x,\vec w) &#x3D; \sum_{p&#x3D;1}^{N(x)}f_r(x,\vec w,\vec w_p)\phi_p’(x_p,\vec w_p)<br>$$<br>$\vec w$是hit point的入射光线的方向，$\vec w_p$是入射光子的方向，$\phi_p’(x_p,\vec w_p)$ 是光子p携带的未归一化的能量。注意！这个阶段的能量在标准光子映射中，是没有被发出光子的数量除掉的。</p>
+<p>同样的，新的M(x)个光子提供的能量<br>$$<br>\tau_M(x,\vec w) &#x3D; \sum_{p&#x3D;1}^{M(x)}f_r(x,\vec w,\vec w_p)\phi_p’(x_p,\vec w_p)<br>$$<br>如果半径是常数，那我们可以干嘛，直接把这两个能量加起来了。但是半径减少了，我们还要考虑到已经变成在半径外面的那些光子。</p>
+<p>一种方法是，维护一个圆盘内所有光子的列表，半径衰减后，不在圆盘内的，就把它们移出去。 但是这个方法不实用，因为光子列表消耗太多内存了。因此，我们假设圆盘内的光照和光子密度是常数，会有以下的结果<br>$$<br>\tau_{\hat N}(x,\vec w) &#x3D; (\tau_N(x,\vec w)+\tau_M(x,\vec w))\frac{\pi \hat R(x)^2}{\pi R(x)^2}<br>\&#x3D;\tau_{N+M}(x,\vec w)\frac{\pi(R(x)\sqrt{\frac{N(x)+\alpha M(x)}{N(x)+M(x)}})^2}{\pi R(x)^2}<br>\&#x3D;\tau_{N+M}(x,\vec w)\frac{N(x)+\alpha M(x)}{N(x)+M(x)}<br>$$<br>$\tau_{\hat N}$ 就是半径缩减后$\hat N$ 个光子相关的缩减后的能量。最开始的时候，假设的是半径内的光子密度和光照是常数，这可能不正确，但是随着半径越来越小，这个结果会变得越来越正确，除了恰好位于照明不连续处的点。但这不构成问题，因为不连续的光照是未定义的，击中点恰好在不连续的位置的概率是0。</p>
+<h5 id="Radiance-Evaluation辐射度估计"><a href="#Radiance-Evaluation辐射度估计" class="headerlink" title="Radiance Evaluation辐射度估计"></a>Radiance Evaluation辐射度估计</h5><p>每一次光子追踪后，我们都可以估计击中点的辐射度。回调储存的数据，包括当前半径、当前的乘以BRDF后的截断能量。估计的辐射度要乘以对应像素的权重，再加到对应像素上。</p>
+<p>为了估计辐射度，我们还需要知道发射出的光子总数$N_{emitted}$ 用来归一化$\tau (x,\vec w)$ </p>
+<p>辐射度估计如下<br>$$<br>L(x,\vec w) &#x3D; \int_{2\pi}f_r(x,\vec w,\vec w’)L(x,\vec w’)(\vec n\cdot\vec w’)dw’<br>\\approx\frac{1}{\Delta A}\sum_{p&#x3D;1}^nf_r(x,\vec w,\vec w’)\Delta\phi_p(x_p,\vec w_p)<br>\&#x3D;\frac{1}{\pi R(x)^2}\frac{\tau(x,\vec w)}{N_{emitted}}<br>$$<br>和正常的光子映射相似，这个公式没有限制为Lambertian材质，因为我们要把能量预先乘上BRDF再储存为$\tau(x,\vec w)$ 。</p>
+<p>如果R（x）定义的圆盘位于未照明区域内，则半径R（x）不会减小（因为M（x）&#x3D; 0 ）。虽然这种情况看起来破坏了一致性，它仍然会收敛到正确的结果$L(x,\vec w) &#x3D; 0$ ，因为随着$N_{emitted}\to \infin,  \tau(x,\vec w)也不会增加，L(x,\vec w)\to0$ ，</p>
+<p>总之论文根据实验数据给出N(x)和R(x)是正确收敛的，半径衰减至0，光子数量增长至无穷，辐射度也会正确收敛。渐进式的辐射度估计保证了每次迭代中每个击中点光子密度的增加，和辐射度估计方程是一致的。</p>
+<p>再往后就是论文对不同方法的效果的比较了，差不多到这里就结束了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/05/14/TA/Graphics/Progressive%20Photon%20Mapping/" data-id="cmfe8hf3v00139wuh7kjeddyf" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG-Advanced/" rel="tag">CG Advanced</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag">笔记</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2022/05/15/TA/Graphics/GAMES/Real-time%20Global%20Illumination/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      【笔记】【GAMES202】Real-time Global Illumination实时全局光照
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2022/05/12/Diary/2022-05-12/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title">2022年5月12日 周四 小雨</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

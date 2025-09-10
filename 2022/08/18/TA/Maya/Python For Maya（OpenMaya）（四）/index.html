@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    【笔记】【Maya工具】Python For Maya（OpenMaya）（四）Locator &amp; CallBack for IK |
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/Maya/Python For Maya（OpenMaya）（四）" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    【笔记】【Maya工具】Python For Maya（OpenMaya）（四）Locator &amp; CallBack for IK
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/08/18/TA/Maya/Python%20For%20Maya%EF%BC%88OpenMaya%EF%BC%89%EF%BC%88%E5%9B%9B%EF%BC%89/" class="article-date">
+  <time datetime="2022-08-18T10:54:18.000Z" itemprop="datePublished">2022-08-18</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="一、Creating-Custom-Locator"><a href="#一、Creating-Custom-Locator" class="headerlink" title="一、Creating Custom Locator"></a><strong>一、Creating Custom Locator</strong></h2><p>maya提供标准locator定位器，我们也可以自定义定位器</p>
+<ol>
+<li>Draw&#x2F;Define a shape(Opengl-function-&gt;MGLFunctionTable)</li>
+<li>Define a Bounding Box?<ol>
+<li>isBounded()</li>
+</ol>
+</li>
+<li>Define size of Bounding Box(Size of the locator)<ol>
+<li>boundingBox()</li>
+</ol>
+</li>
+</ol>
+<h3 id="1-1-Locators"><a href="#1-1-Locators" class="headerlink" title="1.1 Locators"></a><strong>1.1 Locators</strong></h3><ul>
+<li><p>MPxLocatorNode</p>
+<ul>
+<li>draw()</li>
+<li>isBounded()</li>
+<li>boundingBox()</li>
+</ul>
+</li>
+<li><p>MGLFunctionTable</p>
+<ul>
+<li>为OpenGL的api提供了包装器</li>
+<li>我们不用自己进行实例化，只需要获取maya中的一个指针</li>
+<li>MHardwareRenderer() &lt;&lt;OpenMaya Render\</li>
+<li>ptr &#x3D; OpenMayaRender.MHardwareRenderer.theRenderer()</li>
+<li>ptr link to HardwareRenderer<ul>
+<li>glFunctionTable()-&gt;Opengl functions</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="1-2-实现结果"><a href="#1-2-实现结果" class="headerlink" title="1.2 实现结果"></a><strong>1.2 实现结果</strong></h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#locators.py</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> maya.OpenMaya <span class="keyword">as</span> OpenMaya</span><br><span class="line"><span class="keyword">import</span> maya.OpenMayaMPx <span class="keyword">as</span> OpenMayaMPx</span><br><span class="line"><span class="keyword">import</span> maya.OpenMayaRender <span class="keyword">as</span> OpenMayaRender</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">nodeName = <span class="string">&quot;LeftFoot&quot;</span></span><br><span class="line">nodeId = OpenMaya.MTypeId(<span class="number">0x100fff</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ptr to gl function table</span></span><br><span class="line">glRenderer = OpenMayaRender.MHardwareRenderer.theRenderer()</span><br><span class="line">glFT = glRenderer.glFunctionTable()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LocatorNode</span>(OpenMayaMPx.MPxLocatorNode):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        OpenMayaMPx.MPxLocatorNode.__init__(<span class="variable language_">self</span>)</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">compute</span>(<span class="params">self, plug, dataBlock</span>):</span><br><span class="line">        <span class="keyword">return</span> OpenMaya.kUnknownParameter</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">draw</span>(<span class="params">self, view, path, style, status</span>):<span class="comment"># drawing View,dagpath,(wireframe...)</span></span><br><span class="line">        view.beginGL()<span class="comment">#这里的opengl依然是状态机</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># Pushed current state</span></span><br><span class="line">        glFT.glPushAttrib(OpenMayaRender.MGL_CURRENT_BIT)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># Enable blend mode(to enable transparency)</span></span><br><span class="line">        glFT.glEnable(OpenMayaRender.MGL_BLEND)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># Defined Blend function</span></span><br><span class="line">        glFT.glBlendFunc(OpenMayaRender.MGL_SRC_ALPHA, OpenMayaRender.MGL_ONE_MINUS_SRC_ALPHA)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Define colors for different selection modes</span></span><br><span class="line">        <span class="keyword">if</span> status == view.kActive:</span><br><span class="line">            glFT.glColor4f(<span class="number">0.2</span>, <span class="number">0.5</span>, <span class="number">0.1</span>, <span class="number">0.3</span>)</span><br><span class="line">        <span class="keyword">elif</span> status == view.kLead:</span><br><span class="line">            glFT.glColor4f(<span class="number">0.5</span>, <span class="number">0.2</span>, <span class="number">0.1</span>, <span class="number">0.3</span>)</span><br><span class="line">        <span class="keyword">else</span>:<span class="comment"># status == view.kDormant:</span></span><br><span class="line">            glFT.glColor4f(<span class="number">0.1</span>, <span class="number">0.1</span>, <span class="number">0.1</span>, <span class="number">0.3</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Draw a shape</span></span><br><span class="line">        glFT.glBegin(OpenMayaRender.MGL_POLYGON)</span><br><span class="line">        glFT.glVertex3f(-<span class="number">0.031</span>, <span class="number">0.0</span>, -<span class="number">2.875</span>)</span><br><span class="line">        glFT.glVertex3f(-<span class="number">0.939</span>, <span class="number">0.1</span>, -<span class="number">2.370</span>)</span><br><span class="line">        glFT.glVertex3f(-<span class="number">1.175</span>, <span class="number">0.2</span>, -<span class="number">1.731</span>)</span><br><span class="line">        glFT.glVertex3f(-<span class="number">0.60</span>, <span class="number">0.3</span>, <span class="number">1.060</span>)</span><br><span class="line">        glFT.glVertex3f(<span class="number">0.473</span>, <span class="number">0.3</span>, <span class="number">1.026</span>)</span><br><span class="line">        glFT.glVertex3f(<span class="number">0.977</span>, <span class="number">0.2</span>,-<span class="number">1.731</span>)</span><br><span class="line">        glFT.glVertex3f(<span class="number">0.809</span>, <span class="number">0.1</span>, -<span class="number">2.337</span>)</span><br><span class="line">        glFT.glVertex3f(<span class="number">0.035</span>, <span class="number">0.0</span>, -<span class="number">2.807</span>)</span><br><span class="line">        glFT.glEnd()</span><br><span class="line"></span><br><span class="line">        glFT.glBegin(OpenMayaRender.MGL_POLYGON)</span><br><span class="line">        glFT.glVertex3f(-<span class="number">0.587</span>, <span class="number">0.3</span>, <span class="number">1.33</span>)</span><br><span class="line">        glFT.glVertex3f(<span class="number">0.442</span>, <span class="number">0.3</span>, <span class="number">1.33</span>)</span><br><span class="line">        glFT.glVertex3f(<span class="number">0.442</span>, <span class="number">0.3</span>, <span class="number">1.92</span>)</span><br><span class="line">        glFT.glVertex3f(<span class="number">0.230</span>, <span class="number">0.3</span>, <span class="number">2.24</span>)</span><br><span class="line">        glFT.glVertex3f(-<span class="number">0.442</span>, <span class="number">0.3</span>, <span class="number">2.25</span>)</span><br><span class="line">        glFT.glVertex3f(-<span class="number">0.635</span>, <span class="number">0.3</span>, <span class="number">1.92</span>)</span><br><span class="line">        glFT.glVertex3f(-<span class="number">0.567</span>, <span class="number">0.3</span>, <span class="number">1.35</span>)</span><br><span class="line">        </span><br><span class="line">        glFT.glEnd()</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> status == view.kActive:</span><br><span class="line">            glFT.glColor4f(<span class="number">0.2</span>, <span class="number">0.5</span>, <span class="number">0.1</span>, <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">elif</span> status == view.kLead:</span><br><span class="line">            glFT.glColor4f(<span class="number">0.5</span>, <span class="number">0.2</span>, <span class="number">0.1</span>, <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">else</span>:<span class="comment"># status == view.kDormant:</span></span><br><span class="line">            glFT.glColor4f(<span class="number">0.1</span>, <span class="number">0.1</span>, <span class="number">0.1</span>, <span class="number">1</span>)</span><br><span class="line">        view.drawText(<span class="string">&quot;Left Foot&quot;</span>, OpenMaya.MPoint(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>), view.kLeft)</span><br><span class="line">        <span class="comment"># Disable Blend mode</span></span><br><span class="line">        glFT.glDisable(OpenMayaRender.MGL_BLEND)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Restore the state</span></span><br><span class="line">        glFT.glPopAttrib()</span><br><span class="line"></span><br><span class="line">        view.endGL()</span><br><span class="line">             </span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">nodeCreator</span>():</span><br><span class="line">    <span class="keyword">return</span> OpenMayaMPx.asMPxPtr(LocatorNode())</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">nodeInitializer</span>():</span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line"><span class="comment"># 初始化,和maya pluginCommand是一样的</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">initializePlugin</span>(<span class="params">mobject</span>):</span><br><span class="line">    mplugin = OpenMayaMPx.MFnPlugin(mobject)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        mplugin.registerNode(nodeName, nodeId, nodeCreator, nodeInitializer, OpenMayaMPx.MPxNode.kLocatorNode)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        sys.stderr.write(<span class="string">&quot;Failed to register node:&quot;</span> + nodeName)</span><br><span class="line">        </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">uninitializePlugin</span>(<span class="params">mobject</span>):</span><br><span class="line">    mplugin = OpenMayaMPx.MFnPlugin(mobject)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        mplugin.deregisterNode(nodeId)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        sys.stderr.write(<span class="string">&quot;Failed to deregister node&quot;</span> + nodeName)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> maya.cmds <span class="keyword">as</span> cmds</span><br><span class="line">cmds.loadPlugin(<span class="string">&quot;D:\\Autodesk\\plugin\\locators.py&quot;</span>)</span><br><span class="line">cmds.createNode(<span class="string">&quot;LeftFoot&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>有组件，但是无显示，查阅api后发现，其实这个有给出例程，但是也是分了api1.0和api2.0版本的，教程写的大概是api1.0版本，1.0在maya2023、python3.9.3版本上大概不能使用，因此只能后面参考api2.0版的例程了。</p>
+<p>而后面的IK部分也是完全无法使用了，需要学习新版本的api。只能笔记记录下思路</p>
+<h2 id="二、Maya-Callbacks"><a href="#二、Maya-Callbacks" class="headerlink" title="二、Maya Callbacks"></a><strong>二、Maya Callbacks</strong></h2><p>回调是一种链接方式，链接特定事件的特定函数，并时刻关注这个函数的发生</p>
+<p>回调允许我们针对特定的事件注册该函数（和java中的listener、Oracle中的Trigger相似）</p>
+<p>OpenMaya中基于事件类别，对回调进行了分类</p>
+<p>基类【MMessage】，其他回调的类都是这个基类的派生类callback(event, function)</p>
+<h3 id="2-1-Message消息"><a href="#2-1-Message消息" class="headerlink" title="2.1 Message消息"></a><strong>2.1 Message消息</strong></h3><ul>
+<li><p>Message[eg MAnim Message]</p>
+</li>
+<li><p>Message[eg MCommand Message]</p>
+</li>
+</ul>
+<h3 id="2-2-Callback回调"><a href="#2-2-Callback回调" class="headerlink" title="2.2 Callback回调"></a><strong>2.2 Callback回调</strong></h3><ul>
+<li><p>Removable</p>
+</li>
+<li><p>Id（callback create）</p>
+</li>
+<li><p>MAnim Message</p>
+<ul>
+<li>Animation Message Callback<ul>
+<li>animation curve editing</li>
+<li>keyframe editing</li>
+<li>baked result change</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>MCommand Message</p>
+<ul>
+<li>Command Message Callback<ul>
+<li>MEL command excution</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>MDG Message</p>
+<ul>
+<li>for Dependency Graph Message</li>
+<li>Node added&#x2F;removed</li>
+<li>Connection established&#x2F;removed</li>
+</ul>
+</li>
+<li><p>MDAG Message</p>
+<ul>
+<li>for dependency Graph Message</li>
+<li>(主要跟踪或检查dag节点的切换)</li>
+<li>Parent&#x2F;child&#x2F;Instance&#x2F;added&#x2F;removed</li>
+</ul>
+</li>
+<li><p>Event Message</p>
+<ul>
+<li>“script Job”</li>
+<li><code>OpenMaya.MEventMessage.getEventNames()</code></li>
+</ul>
+</li>
+<li><p>Lock Message</p>
+<ul>
+<li>for lock message</li>
+<li>plug locked&#x2F;unlocked<ul>
+<li>values cannot be changed</li>
+</ul>
+</li>
+<li>Node locked&#x2F;unlocked<ul>
+<li>cannot Re-parented&#x2F;Renamed&#x2F;deleted</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Node Message</p>
+<ul>
+<li>for Dependency Node Message</li>
+<li>Attribute added&#x2F;removed</li>
+<li>plug of a Node is dirty</li>
+<li>name of a Node is changed</li>
+</ul>
+</li>
+<li><p>Scene Message</p>
+<ul>
+<li>Scene related Message</li>
+<li>Before&#x2F;After<ul>
+<li>New scene</li>
+<li>Existing scene</li>
+<li>Reference is loaded&#x2F;unloaded</li>
+<li>Maya is initialized&#x2F;exist</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Timer Message</p>
+</li>
+<li><p>UI Message</p>
+</li>
+<li><p>User-event message</p>
+</li>
+</ul>
+<h2 id="三、Inverse-Forward-Kinematics-Solution"><a href="#三、Inverse-Forward-Kinematics-Solution" class="headerlink" title="三、Inverse-Forward Kinematics Solution"></a><strong>三、Inverse-Forward Kinematics Solution</strong></h2><p><strong>在这个插件中使用回调将IK和FK的功能结合起来</strong></p>
+<ul>
+<li><p>FK mode</p>
+<ul>
+<li>移动父节点，驱动子结点</li>
+</ul>
+</li>
+<li><p>IK mode</p>
+<ul>
+<li>移动子节点，在约束的条件下，自动解算父节点位置</li>
+</ul>
+</li>
+</ul>
+<ol>
+<li>在IK和FK中切换<ol>
+<li>选择polar vector&#x2F;IK handle&#x2F;子结点关节时，IK mode</li>
+<li>选择任意一个父节点关节时，FK mode</li>
+</ol>
+</li>
+<li>施加约束</li>
+</ol>
+<p>Custom-Node (IK FK)&lt;-&gt; Event Callback &lt;-&gt; Selection Change</p>
+<p>Custom-Node (delete)&lt;-&gt;DG Callback &lt;-&gt; addition&#x2F;creation&#x2F;deletion the DG nodes</p>
+<h3 id="Creating-I-F-K-solution"><a href="#Creating-I-F-K-solution" class="headerlink" title="Creating I-F K solution"></a><strong>Creating I-F K solution</strong></h3><h4 id="Auto-IK-FK-Switching"><a href="#Auto-IK-FK-Switching" class="headerlink" title="Auto IK-FK Switching"></a><strong>Auto IK-FK Switching</strong></h4><ol>
+<li>Find out which “Mode” we want to switch to</li>
+<li>Find information of all seven objects of 3-joint chain IK-system</li>
+<li>Perform operation based on the “Mode” we are at</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220705144129456.png" alt="image-20220705144129456"></p>
+<p>我这里暂时没有poleVectorControl</p>
+<p>默认Mode &#x3D;FK(joint1,joint2)</p>
+<ul>
+<li>Mode &#x3D; IK<ol>
+<li>IK -Handle selected</li>
+<li>Joint3 selected</li>
+<li>Pole-vectorcontrol selected</li>
+</ol>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220705201445310.png" alt="image-20220705201445310"></p>
+<ul>
+<li><p>If Mode &#x3D; FK</p>
+<ol>
+<li>set ikBlend &#x3D; 0</li>
+<li>set visibility of Pole Vector Control &#x3D; 0</li>
+</ol>
+</li>
+<li><p>If Mode &#x3D; IK</p>
+<ol>
+<li>set ikBlend &#x3D; 1</li>
+<li>snap Pole Vector Control to Joint2</li>
+</ol>
+</li>
+<li><p>set attribute of IK handle to non-Keyable</p>
+</li>
+<li><p>ikBlend</p>
+</li>
+<li><p>ikBlend- non-Keyable</p>
+</li>
+<li><p>Add translation after snapping Pole Vector Control</p>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/08/18/TA/Maya/Python%20For%20Maya%EF%BC%88OpenMaya%EF%BC%89%EF%BC%88%E5%9B%9B%EF%BC%89/" data-id="cmfe8hf3x001h9wuh21lobfv6" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7/" rel="tag">工具</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag">笔记</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2022/08/20/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.1%E6%B7%B1%E5%BA%A6%E4%B8%8E%E6%A8%A1%E6%9D%BF%E6%B5%8B%E8%AF%95/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      【笔记】【百人计划】图形3.1 深度与模板测试
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2022/08/18/TA/Maya/Python%20For%20Maya%EF%BC%88OpenMaya%EF%BC%89%EF%BC%88%E4%B8%89%EF%BC%89/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title">【笔记】【maya工具】Python For Maya（OpenMaya）（三）Structure of a Deformer</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

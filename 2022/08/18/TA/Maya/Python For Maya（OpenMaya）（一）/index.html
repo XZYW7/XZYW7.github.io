@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    【笔记】【Maya工具】Python For Maya（OpenMaya）（一）API基础与插件 |
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/Maya/Python For Maya（OpenMaya）（一）" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    【笔记】【Maya工具】Python For Maya（OpenMaya）（一）API基础与插件
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/08/18/TA/Maya/Python%20For%20Maya%EF%BC%88OpenMaya%EF%BC%89%EF%BC%88%E4%B8%80%EF%BC%89/" class="article-date">
+  <time datetime="2022-08-18T09:44:29.000Z" itemprop="datePublished">2022-08-18</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="Python-Programming-in-maya"><a href="#Python-Programming-in-maya" class="headerlink" title="Python Programming in maya"></a>Python Programming in maya</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> maya.cmds <span class="keyword">as</span> cmd</span><br><span class="line">cmds.select(<span class="built_in">all</span>=<span class="literal">True</span>)</span><br><span class="line">cmds.delete()</span><br><span class="line"><span class="keyword">for</span> step <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">40</span>):</span><br><span class="line">    cmds.polyCube(w=<span class="number">10</span>,d=<span class="number">3</span>,h=<span class="number">0.5</span>)</span><br><span class="line">    cmds.move(<span class="number">3</span>,step*<span class="number">0.5</span>,<span class="number">0</span>)</span><br><span class="line">    cmds.xform(ws = <span class="literal">True</span>,rotatePivot=(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>))</span><br><span class="line">    cmds.rotate(<span class="number">0</span>,step*<span class="number">10</span>,<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="1-DAG——描述Maya中的功能节点："><a href="#1-DAG——描述Maya中的功能节点：" class="headerlink" title="1. DAG——描述Maya中的功能节点："></a><strong>1. DAG——描述Maya中的功能节点：</strong></h3><p>DAG（Directed Acyclic Graph有向无环图）</p>
+<ul>
+<li>Dag Node:Transform</li>
+<li>Dag Node:Shape</li>
+</ul>
+<p>DG:Dependency Graph依赖图</p>
+<p>DAG path，某个对象的DAG path描述从根节点到物体的完整查找路径</p>
+<p>MObject（Model Object）</p>
+<ul>
+<li>maya.OpenMaya.MObject</li>
+</ul>
+<p>MSelectionList（选择的模型对象列表）</p>
+<ul>
+<li>maya.OpenMaya.MSelectionList<ul>
+<li>创建一个选择列表</li>
+<li>在选择列表中添加、移除对象</li>
+<li>可遍历</li>
+<li>etc</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> maya.OpenMaya <span class="keyword">as</span> OpenMaya</span><br><span class="line">mSelectionList = OpenMaya.MSelectionList()</span><br><span class="line">mSelectionList.add(<span class="string">&quot;&lt;something_Name&gt;&quot;</span>)</span><br><span class="line"></span><br><span class="line">mDagPath = OpenMaya.MDagPath()</span><br><span class="line">mSelectionList.getDagPath(<span class="number">0</span>,mDagPath)<span class="comment">#返回0位置的path</span></span><br><span class="line"><span class="built_in">print</span>(mDagPath.fullPathName())</span><br><span class="line"></span><br><span class="line">mObj = OpenMaya.MObject()</span><br><span class="line">mSelectionList.getDependNode(<span class="number">0</span>,mObj)</span><br><span class="line"><span class="built_in">print</span>(mObj.apiTypeStr())<span class="comment">#kTransform</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="2-Traversing-Hyper-Graph-in-Maya-Scene"><a href="#2-Traversing-Hyper-Graph-in-Maya-Scene" class="headerlink" title="2. Traversing Hyper Graph in Maya Scene"></a><strong>2. Traversing Hyper Graph in Maya Scene</strong></h3><p>MFn &#x3D; Model Function Set</p>
+<p>MFnMesh表示接收Mesh类型的函数集</p>
+<ul>
+<li>create</li>
+<li>modify</li>
+<li>retrave</li>
+<li>add Edge\face,subdivision</li>
+</ul>
+<p>MFnDependencyNode：一组函数需要Dependency Node Type的数据，提供函数</p>
+<ul>
+<li>create（dependency graph）</li>
+<li>modify（dependency graph）</li>
+<li>retrave（dependency graph）</li>
+</ul>
+<p>可以通过MObj和MDagpath来提供到函数集的接口</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> maya.OpenMaya <span class="keyword">as</span> OpenMaya</span><br><span class="line"><span class="comment"># Create a Selection List</span></span><br><span class="line">mSel = OpenMaya.MSelectionList()</span><br><span class="line">mSel.add(<span class="string">&quot;pPlane1&quot;</span>)</span><br><span class="line"><span class="comment"># Create MObject</span></span><br><span class="line">mObj = OpenMaya.MObject()</span><br><span class="line">mDagPath = OpenMaya.MDagPath()</span><br><span class="line"><span class="comment"># Request Dependency Node and DagPath of the Obj</span></span><br><span class="line">mSel.getDependNode(<span class="number">0</span>,mObj)</span><br><span class="line">mSel.getDagPath(<span class="number">0</span>,mDagPath)</span><br><span class="line"><span class="comment"># Create Mesh function set</span></span><br><span class="line">mFnMesh = OpenMaya.MFnMesh(mDagPath)<span class="comment">#可以用mObj和mDagpath两种</span></span><br><span class="line"><span class="built_in">print</span>(mFnMesh.fullPathName())<span class="comment">#|pPlane1|pPlaneShape1</span></span><br><span class="line"><span class="comment">#说明mFnMesh是在ShapeNode下运作的</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Dependency function set</span></span><br><span class="line">mFnDependNode = OpenMaya.MFnDependencyNode(mObj)<span class="comment">#只能用mObj</span></span><br><span class="line"><span class="built_in">print</span>(mFnDependNode.name())</span><br></pre></td></tr></table></figure>
+
+<p>MPlug提供操作功能的类（操作Plug Type）</p>
+<p>Plug：节点属性的接口</p>
+<ul>
+<li>create</li>
+<li>modify</li>
+<li>access（通过plug访问属性）</li>
+</ul>
+<ol>
+<li><p>Network Plug: Dependency Node Plug</p>
+</li>
+<li><p>Non-Network Plug: User Defined Plug</p>
+</li>
+</ol>
+<p>MPlugArray</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627211430302.png" alt="image-20220627211430302" style="zoom: 33%;" />
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Get all the connections of a Shape node</span></span><br><span class="line">mPlugArray = OpenMaya.MPlugArray()</span><br><span class="line">mFnMesh.getConnections(mPlugArray)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(mPlugArray.length())<span class="comment">#2</span></span><br><span class="line"><span class="built_in">print</span>(mPlugArray[<span class="number">0</span>].name())<span class="comment">#pPlaneShape1.instObjGroups[0]</span></span><br><span class="line"><span class="built_in">print</span>(mPlugArray[<span class="number">1</span>].name())<span class="comment">#pPlaneShape1.inMesh</span></span><br></pre></td></tr></table></figure>
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627212637049.png" alt="image-20220627212637049" style="zoom: 33%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627212705325.png" alt="image-20220627212705325" style="zoom:33%;" />
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627213320170.png" alt="image-20220627213320170"></p>
+<p>看看这个就知道是在干嘛了，我们的最终目的是操纵polyPlane1进行细分</p>
+<p>通过pPlaneShape1的plug接口，就可以完成</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mPlugArray2 = OpenMaya.MPlugArray()</span><br><span class="line">mPlugArray[<span class="number">1</span>].connectedTo(mPlugArray2,<span class="literal">True</span>,<span class="literal">False</span>)<span class="comment">#后面这两个bool值不太明白</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(mPlugArray2.length())<span class="comment">#1</span></span><br><span class="line"><span class="comment">#len()不能用在这个对象上</span></span><br><span class="line"><span class="built_in">print</span>(mPlugArray2[<span class="number">0</span>].name())<span class="comment">#polyPlane1.output</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627214040508.png" alt="image-20220627214040508"></p>
+<p>完整代码</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> maya.OpenMaya <span class="keyword">as</span> OpenMaya</span><br><span class="line"><span class="comment"># Create a Selection List</span></span><br><span class="line">mSel = OpenMaya.MSelectionList()</span><br><span class="line">mSel.add(<span class="string">&quot;pPlane1&quot;</span>)</span><br><span class="line"><span class="comment"># Create MObject</span></span><br><span class="line">mObj = OpenMaya.MObject()</span><br><span class="line">mDagPath = OpenMaya.MDagPath()</span><br><span class="line"><span class="comment"># Request Dependency Node and DagPath of the Obj</span></span><br><span class="line">mSel.getDependNode(<span class="number">0</span>,mObj)</span><br><span class="line">mSel.getDagPath(<span class="number">0</span>,mDagPath)</span><br><span class="line"><span class="comment"># Create Mesh function set</span></span><br><span class="line">mFnMesh = OpenMaya.MFnMesh(mDagPath)<span class="comment">#可以用mObj和mDagpath两种</span></span><br><span class="line"><span class="built_in">print</span>(mFnMesh.fullPathName())<span class="comment">#|pPlane1|pPlaneShape1</span></span><br><span class="line"><span class="comment">#说明mFnMesh是在ShapeNode下运作的</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Dependency function set</span></span><br><span class="line">mFnDependNode = OpenMaya.MFnDependencyNode(mObj)<span class="comment">#只能用mObj</span></span><br><span class="line"><span class="built_in">print</span>(mFnDependNode.name())</span><br><span class="line"></span><br><span class="line"><span class="comment"># Get all the connections of a Shape node</span></span><br><span class="line">mPlugArray = OpenMaya.MPlugArray()</span><br><span class="line">mFnMesh.getConnections(mPlugArray)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(mPlugArray.length())</span><br><span class="line"><span class="built_in">print</span>(mPlugArray[<span class="number">0</span>].name())</span><br><span class="line"><span class="built_in">print</span>(mPlugArray[<span class="number">1</span>].name())</span><br><span class="line"></span><br><span class="line">mPlugArray2 = OpenMaya.MPlugArray()</span><br><span class="line">mPlugArray[<span class="number">1</span>].connectedTo(mPlugArray2,<span class="literal">True</span>,<span class="literal">False</span>)<span class="comment">#后面这两个bool值不太明白</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(mPlugArray2.length())<span class="comment">#len()不能用在这个对象上</span></span><br><span class="line"><span class="built_in">print</span>(mPlugArray2[<span class="number">0</span>].name())</span><br><span class="line"></span><br><span class="line">mObj2 = mPlugArray2[<span class="number">0</span>].node()</span><br><span class="line">mFnDependNode2 = OpenMaya.MFnDependencyNode(mObj2)</span><br><span class="line"><span class="built_in">print</span>(mFnDependNode2.name())</span><br><span class="line"></span><br><span class="line">mPlug_width = mFnDependNode2.findPlug(<span class="string">&quot;width&quot;</span>)</span><br><span class="line">mPlug_height = mFnDependNode2.findPlug(<span class="string">&quot;height&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(mPlug_width.asInt(),mPlug_height.asInt())</span><br><span class="line"></span><br><span class="line">mPlug_subWidth = mFnDependNode2.findPlug(<span class="string">&quot;subdivisionsWidth&quot;</span>)</span><br><span class="line">mPlug_subHeight = mFnDependNode2.findPlug(<span class="string">&quot;subdivisionsHeight&quot;</span>)</span><br><span class="line"></span><br><span class="line">mPlug_subWidth.setInt(<span class="number">20</span>)</span><br><span class="line">mPlug_subHeight.setInt(<span class="number">20</span>)</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-Command-Communication-Flow"><a href="#3-Command-Communication-Flow" class="headerlink" title="3. Command Communication Flow"></a><strong>3. Command Communication Flow</strong></h3><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627220119395.png" alt="image-20220627220119395" style="zoom:50%;" />
+
+<ul>
+<li>Command Plugin<ul>
+<li>函数</li>
+<li>初始化&#x2F;注册Initialization，Registration</li>
+<li>Uninitialization&#x2F;De-registration</li>
+</ul>
+</li>
+</ul>
+<p>把东西注入到Maya core，就是注册</p>
+<ul>
+<li>命令插件编写基本流程<ul>
+<li>定义一个类</li>
+<li>创建一个实例</li>
+<li>用一个指针指向这个实例</li>
+<li>Maya获取这个指针</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-Writing-command-plugin"><a href="#4-Writing-command-plugin" class="headerlink" title="4. Writing command plugin"></a><strong>4. Writing command plugin</strong></h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> maya.OpenMaya <span class="keyword">as</span> OpenMaya</span><br><span class="line"><span class="keyword">import</span> maya.OpenMayaMPx <span class="keyword">as</span> OpenMayaMPx</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line">commandName = <span class="string">&quot;pluginCommand&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">pluginCommand</span>(OpenMayaMPx.MPxCommand):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        OpenMayaMPx.MPxCommand.__init__(<span class="variable language_">self</span>)</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">doIt</span>(<span class="params">self,argList</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;doIt&quot;</span>)</span><br><span class="line"><span class="comment">#创建实例并添加指针</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">cmdCreator</span>():</span><br><span class="line">    <span class="keyword">return</span> OpenMayaMPx.asMPxPtr(pluginCommand())</span><br><span class="line"></span><br><span class="line"><span class="comment">#初始化</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">initializePlugin</span>(<span class="params">mobject</span>):</span><br><span class="line">    mplugin = OpenMayaMPx.MFnPlugin(mobject)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        mplugin.registerCommand(commandName,cmdCreator)<span class="comment">#mayaCore handle</span></span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        sys.stderr.write(<span class="string">&quot;Failed to register command:&quot;</span> + commandName)</span><br><span class="line">        </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">uninitializePlugin</span>(<span class="params">mobject</span>):</span><br><span class="line">    mplugin = OpenMayaMPx.MFnPlugin(mobject)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        mplugin.deregisterCommand(commandName)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        sys.stderr.write(<span class="string">&quot;Failed to deregister command&quot;</span> + commandName)</span><br></pre></td></tr></table></figure>
+
+<p>保存脚本后，在maya中加载插件</p>
+<p>Mel，python，mayaUI三种方法</p>
+<p>window-setting preferences-pluginManager</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627222747095.png" alt="image-20220627222747095"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627222850467.png" alt="image-20220627222850467"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmds.loadPlugin(&quot;./pluginCommand.py&quot;)</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="5-Maya-API-Iterators"><a href="#5-Maya-API-Iterators" class="headerlink" title="5. Maya API Iterators"></a><strong>5. Maya API Iterators</strong></h3><p>Iterator是一个对象，对数据结构进行遍历</p>
+<ul>
+<li>MItDag<ul>
+<li>Dag上的iterator</li>
+<li>深度优先</li>
+<li>广度优先</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627230758404.png" alt="image-20220627230758404" style="zoom:50%;" />
+
+
+
+<ul>
+<li>MItDependencyGraph</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627230836150.png" alt="image-20220627230836150" style="zoom:50%;" />
+
+<ul>
+<li>MItMeshEdge</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627230927076.png" alt="image-20220627230927076" style="zoom:50%;" />
+
+<ul>
+<li>MItMeshVertex</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627231006974.png" alt="image-20220627231006974" style="zoom:50%;" />
+
+<ul>
+<li>MItMeshPolygon(face)</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627231033010.png" alt="image-20220627231033010" style="zoom:50%;" />
+
+<ul>
+<li>MItSurfaceCV(CVs of Nurbs)</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220627231104357.png" alt="image-20220627231104357" style="zoom:50%;" />
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> maya.OpenMaya <span class="keyword">as</span> OpenMaya</span><br><span class="line"></span><br><span class="line">dagIterator = OpenMaya.MItDag(OpenMaya.MItDag.kDepthFirst, OpenMaya.MFn.kInvalid)<span class="comment">#arg1=树搜索算法,arg2 = Filtering</span></span><br><span class="line">dagNodeFn = OpenMaya.MFnDagNode()</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="keyword">not</span> dagIterator.isDone()):</span><br><span class="line">    currentObj = dagIterator.currentItem()<span class="comment">#return dagNode</span></span><br><span class="line">    depth = dagIterator.depth()</span><br><span class="line">    dagNodeFn.setObject(currentObj)</span><br><span class="line">    </span><br><span class="line">    name = dagNodeFn.name()</span><br><span class="line">    <span class="built_in">type</span> = currentObj.apiTypeStr()</span><br><span class="line">    path = dagNodeFn.fullPathName()</span><br><span class="line">    </span><br><span class="line">    printOut = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>,depth):</span><br><span class="line">        printOut += <span class="string">&quot;-----&gt;&quot;</span></span><br><span class="line">    printOut += name + <span class="string">&quot; : &quot;</span> + <span class="built_in">type</span></span><br><span class="line">    <span class="built_in">print</span>(printOut)</span><br><span class="line">    dagIterator.<span class="built_in">next</span>()</span><br><span class="line">    </span><br><span class="line">===========</span><br><span class="line">World : kWorld</span><br><span class="line">-----&gt;persp : kTransform</span><br><span class="line">-----&gt;-----&gt;perspShape : kCamera</span><br><span class="line">-----&gt;top : kTransform</span><br><span class="line">-----&gt;-----&gt;topShape : kCamera</span><br><span class="line">-----&gt;front : kTransform</span><br><span class="line">-----&gt;-----&gt;frontShape : kCamera</span><br><span class="line">-----&gt;side : kTransform</span><br><span class="line">-----&gt;-----&gt;sideShape : kCamera</span><br><span class="line">-----&gt;pCube1 : kTransform</span><br><span class="line">-----&gt;-----&gt;pCubeShape1 : kMesh</span><br><span class="line">-----&gt;-----&gt;pCylinder1 : kTransform</span><br><span class="line">-----&gt;-----&gt;-----&gt;pCylinderShape1 : kMesh</span><br><span class="line">-----&gt;-----&gt;-----&gt;pCone1 : kTransform</span><br><span class="line">-----&gt;-----&gt;-----&gt;-----&gt;pConeShape1 : kMesh</span><br><span class="line">-----&gt;-----&gt;-----&gt;-----&gt;pPlane1 : kTransform</span><br><span class="line">-----&gt;-----&gt;-----&gt;-----&gt;-----&gt;pPlaneShape1 : kMesh</span><br><span class="line">-----&gt;-----&gt;-----&gt;-----&gt;-----&gt;pPipe1 : kTransform</span><br><span class="line">-----&gt;-----&gt;-----&gt;-----&gt;-----&gt;-----&gt;pPipeShape1 : kMesh</span><br></pre></td></tr></table></figure>
+
+<p>放到插件的doIt方法里面</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> maya.OpenMaya <span class="keyword">as</span> OpenMaya</span><br><span class="line"><span class="keyword">import</span> maya.OpenMayaMPx <span class="keyword">as</span> OpenMayaMPx</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line">commandName = <span class="string">&quot;printHierarchy&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">pluginCommand</span>(OpenMayaMPx.MPxCommand):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        OpenMayaMPx.MPxCommand.__init__(<span class="variable language_">self</span>)</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">doIt</span>(<span class="params">self,argList</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Scene Heirarchy&quot;</span>)</span><br><span class="line">        dagIterator = OpenMaya.MItDag(OpenMaya.MItDag.kDepthFirst, OpenMaya.MFn.kInvalid)<span class="comment">#arg1=树搜索算法,arg2 = Filtering</span></span><br><span class="line">        dagNodeFn = OpenMaya.MFnDagNode()</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">not</span> dagIterator.isDone()):</span><br><span class="line">            currentObj = dagIterator.currentItem()<span class="comment">#return dagNode</span></span><br><span class="line">            depth = dagIterator.depth()</span><br><span class="line">            dagNodeFn.setObject(currentObj)</span><br><span class="line">            </span><br><span class="line">            name = dagNodeFn.name()</span><br><span class="line">            <span class="built_in">type</span> = currentObj.apiTypeStr()</span><br><span class="line">            path = dagNodeFn.fullPathName()</span><br><span class="line">            </span><br><span class="line">            printOut = <span class="string">&quot;&quot;</span></span><br><span class="line">            <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>,depth):</span><br><span class="line">                printOut += <span class="string">&quot;-----&gt;&quot;</span></span><br><span class="line">            printOut += name + <span class="string">&quot; : &quot;</span> + <span class="built_in">type</span></span><br><span class="line">            <span class="built_in">print</span>(printOut)</span><br><span class="line">            dagIterator.<span class="built_in">next</span>()</span><br><span class="line"><span class="comment">#创建实例并添加指针</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">cmdCreator</span>():</span><br><span class="line">    <span class="keyword">return</span> OpenMayaMPx.asMPxPtr(pluginCommand())</span><br><span class="line"></span><br><span class="line"><span class="comment">#初始化</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">initializePlugin</span>(<span class="params">mobject</span>):</span><br><span class="line">    mplugin = OpenMayaMPx.MFnPlugin(mobject)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        mplugin.registerCommand(commandName,cmdCreator)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        sys.stderr.write(<span class="string">&quot;Failed to register command:&quot;</span> + commandName)</span><br><span class="line">        </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">uninitializePlugin</span>(<span class="params">mobject</span>):</span><br><span class="line">    mplugin = OpenMayaMPx.MFnPlugin(mobject)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        mplugin.deregisterCommand(commandName)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        sys.stderr.write(<span class="string">&quot;Failed to deregister command&quot;</span> + commandName)</span><br></pre></td></tr></table></figure>
+
+<p>保存脚本然后</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> maya.cmds <span class="keyword">as</span> cmds</span><br><span class="line">cmds.loadPlugin(<span class="string">&quot;c:\\Users\\XZYW\\Desktop\\printHierarchy.py&quot;</span>)</span><br><span class="line">cmds.printHierarchy()</span><br></pre></td></tr></table></figure>
+
+<p>插件就可用了，这就是编写插件的方式。</p>
+<h3 id="6-Command-with-Arguments"><a href="#6-Command-with-Arguments" class="headerlink" title="6. Command with Arguments"></a><strong>6. Command with Arguments</strong></h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmds.polySphere(<span class="string">&quot;mySphere&quot;</span>,q = <span class="literal">True</span>,sx = <span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220628205624179.png" alt="image-20220628205624179"></p>
+<ul>
+<li>MSyntax<ul>
+<li>flags</li>
+<li>Args</li>
+<li>Object</li>
+</ul>
+</li>
+<li>MArgDatabase<ul>
+<li>是MArgParser的派生类</li>
+<li>Parsing</li>
+<li>Storing</li>
+<li>Retreving</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> maya.OpenMaya <span class="keyword">as</span> OpenMaya</span><br><span class="line"><span class="keyword">import</span> maya.OpenMayaMPx <span class="keyword">as</span> OpenMayaMPx</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> maya.OpenMayaFX <span class="keyword">as</span> OpenMayaFX</span><br><span class="line"><span class="comment">#使用粒子系统</span></span><br><span class="line"></span><br><span class="line">commandName = <span class="string">&quot;vertexParticle&quot;</span></span><br><span class="line">kHelpFlag = <span class="string">&quot;-h&quot;</span></span><br><span class="line">kHelpLongFlag = <span class="string">&quot;-help&quot;</span></span><br><span class="line">kSparseFlag = <span class="string">&quot;-s&quot;</span></span><br><span class="line">kSparseLongFlag = <span class="string">&quot;-sparse&quot;</span></span><br><span class="line">helpMessage = <span class="string">&quot;This command is used to attach a particle on each Vertex of a poly mesh&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">pluginCommand</span>(OpenMayaMPx.MPxCommand):</span><br><span class="line">    sparse = <span class="literal">None</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        OpenMayaMPx.MPxCommand.__init__(<span class="variable language_">self</span>)</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">argumentParser</span>(<span class="params">self,argList</span>):</span><br><span class="line">        syntax = <span class="variable language_">self</span>.syntax()<span class="comment">#MSyntax Object</span></span><br><span class="line">        parsedArguments = OpenMaya.MArgDatabase(syntax,argList)</span><br><span class="line">        <span class="keyword">if</span> parsedArguments.isFlagSet(kSparseFlag):</span><br><span class="line">            <span class="variable language_">self</span>.sparse = parsedArguments.flagArgumentDouble(kSparseFlag,<span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        <span class="keyword">if</span> parsedArguments.isFlagSet(kSparseLongFlag):</span><br><span class="line">            <span class="variable language_">self</span>.sparse = parsedArguments.flagArgumentDouble(kSparseLongFlag,<span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        <span class="keyword">if</span> parsedArguments.isFlagSet(kHelpFlag):</span><br><span class="line">            <span class="variable language_">self</span>.setResult(helpMessage)</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        <span class="keyword">if</span> parsedArguments.isFlagSet(kHelpLongFlag):</span><br><span class="line">            <span class="variable language_">self</span>.setResult(helpMessage)</span><br><span class="line">            <span class="keyword">return</span><span class="comment"># OpenMaya.MStatus.kSuccess这个方法已经被取消了，其实不用返回任何东西</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">isUndoable</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">undoIt</span>(<span class="params">self</span>):</span><br><span class="line">    	<span class="built_in">print</span>(<span class="string">&quot;Undo&quot;</span>)</span><br><span class="line">        mFnDagNode = OpenMaya.MFnDagNode(<span class="variable language_">self</span>.mObj_particle)</span><br><span class="line">        </span><br><span class="line">        mDagMod = OpenMaya.MDagModifier()</span><br><span class="line">        mDagMod.deleteNode(mFnDagNode.parent(<span class="number">0</span>))<span class="comment">#粒子系统创建是带有Transform的</span></span><br><span class="line">        </span><br><span class="line">        mDagMod.doIt()</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">redoIt</span>(<span class="params">self</span>):</span><br><span class="line">        mSel = OpenMaya.MSelectionList()</span><br><span class="line">        mDagPath = OpenMaya.MDagPath()</span><br><span class="line">        mFnMesh = OpenMaya.MFnMesh()</span><br><span class="line">        OpenMaya.MGlobal.getActiveSelectionList(mSel)<span class="comment">#处理所有主动选择的对象，并添加到提供的选择列表中</span></span><br><span class="line">        <span class="keyword">if</span> mSel.length() &gt;=<span class="number">1</span>:</span><br><span class="line">            <span class="keyword">try</span>:</span><br><span class="line">                mSel.getDagPath(<span class="number">0</span>,mDagPath)</span><br><span class="line">                mFnMesh.setObject(mDagPath)</span><br><span class="line">            <span class="keyword">except</span>:<span class="comment">#如果选中的不是polymesh</span></span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;Select a poly mesh&quot;</span>)</span><br><span class="line">                </span><br><span class="line">                <span class="keyword">return</span></span><br><span class="line">        <span class="keyword">else</span>:<span class="comment">#如果没选东西</span></span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;Select a poly mesh&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        mPointArray = OpenMaya.MPointArray()</span><br><span class="line">        mFnMesh.getPoints(mPointArray, OpenMaya.MSpace.kWorld)<span class="comment">#提供所有顶点世界坐标</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment"># create a particle system</span></span><br><span class="line">        mFnParticle = OpenMayaFX.MFnParticleSystem()</span><br><span class="line">        <span class="variable language_">self</span>.mObj_particle = mFnParticle.create()</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># Fix Maya Bug</span></span><br><span class="line">        mFnParticle = OpenMayaFX.MFnParticleSystem(<span class="variable language_">self</span>.mObj_particle)</span><br><span class="line">        </span><br><span class="line">        counter = <span class="number">0</span></span><br><span class="line">        <span class="comment"># attach particle to vertex</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(mPointArray.length()):</span><br><span class="line">            <span class="keyword">if</span> i%<span class="variable language_">self</span>.sparse == <span class="number">0</span>:</span><br><span class="line">                mFnParticle.emit(mPointArray[i])</span><br><span class="line">                counter += <span class="number">1</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Total Points:&quot;</span> + <span class="built_in">str</span>(counter))</span><br><span class="line">        mFnParticle.saveInitialState()<span class="comment">#如果应用动力学，确保粒子在原来位置上去应用</span></span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">doIt</span>(<span class="params">self,argList</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;doIt&quot;</span>)</span><br><span class="line">        <span class="variable language_">self</span>.argumentParser(argList)</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.sparse != <span class="literal">None</span>:</span><br><span class="line">            <span class="variable language_">self</span>.redoIt()</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">        </span><br><span class="line"><span class="comment">#创建实例并添加指针</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">cmdCreator</span>():</span><br><span class="line">    <span class="keyword">return</span> OpenMayaMPx.asMPxPtr(pluginCommand())</span><br><span class="line"><span class="comment">#创建命令语法</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">syntaxCreator</span>():</span><br><span class="line">    <span class="comment"># create MSyntax object</span></span><br><span class="line">    syntax = OpenMaya.MSyntax()</span><br><span class="line">    <span class="comment"># collect/add the flags</span></span><br><span class="line">    syntax.addFlag(kHelpFlag,kHelpLongFlag)<span class="comment">#short name,long name,data type</span></span><br><span class="line">    syntax.addFlag(kSparseFlag,kSparseLongFlag,OpenMaya.MSyntax.kDouble)</span><br><span class="line">    <span class="comment"># return MSyntax</span></span><br><span class="line">    <span class="keyword">return</span> syntax</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#初始化</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">initializePlugin</span>(<span class="params">mobject</span>):</span><br><span class="line">    mplugin = OpenMayaMPx.MFnPlugin(mobject)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        mplugin.registerCommand(commandName,cmdCreator,syntaxCreator)<span class="comment">#同时注册语法</span></span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        sys.stderr.write(<span class="string">&quot;Failed to register command:&quot;</span> + commandName)</span><br><span class="line">        </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">uninitializePlugin</span>(<span class="params">mobject</span>):</span><br><span class="line">    mplugin = OpenMayaMPx.MFnPlugin(mobject)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        mplugin.deregisterCommand(commandName)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        sys.stderr.write(<span class="string">&quot;Failed to deregister command&quot;</span> + commandName)</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">range 是生成一个列表</span><br><span class="line">xrange用法与range完全相同，不同的是生成的不是一个list对象，而是一个生成器</span><br><span class="line">在生成很大的数字序列时候，用xrange会比range性能优很多，因为不需要一上来就开辟一块很大的内存空间</span><br><span class="line">xrange和range都在循环的时候使用。</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>Command Execution</li>
+<li>Undo</li>
+<li>Redo</li>
+</ul>
+<p>每执行一个Command Execution，都会把对应的命令添加到Undo队列</p>
+<p>如果Command Execution使用Undo命令，就会把Undo队列中最后面的移到Redo队列上</p>
+<p>如果Command Execution使用Redo命令，就会把Redo队列中最后面的移到Undo队列上</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220628211342017.png" alt="image-20220628211342017" style="zoom:50%;" />
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220628213019559.png" alt="image-20220628213019559"></p>
+<p>好了，写完了这个脚本，看完这集教程，终于发现，它是过时的版本，作者用的还是maya2013，非常恐怖</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/08/18/TA/Maya/Python%20For%20Maya%EF%BC%88OpenMaya%EF%BC%89%EF%BC%88%E4%B8%80%EF%BC%89/" data-id="cmfe8hf3v00199wuh4bkuedwl" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7/" rel="tag">工具</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag">笔记</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2022/08/18/TA/Maya/Python%20For%20Maya%EF%BC%88OpenMaya%EF%BC%89%EF%BC%88%E4%BA%8C%EF%BC%89/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      【笔记】【Maya工具】Python For Maya（OpenMaya）（二）Dependency Graph
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2022/08/18/TA/OpenGL/C++%20learning_03/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title">【笔记】Cherno C++ Tutorial note 03</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

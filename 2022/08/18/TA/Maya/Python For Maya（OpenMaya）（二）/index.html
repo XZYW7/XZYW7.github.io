@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    【笔记】【Maya工具】Python For Maya（OpenMaya）（二）Dependency Graph |
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/Maya/Python For Maya（OpenMaya）（二）" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    【笔记】【Maya工具】Python For Maya（OpenMaya）（二）Dependency Graph
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/08/18/TA/Maya/Python%20For%20Maya%EF%BC%88OpenMaya%EF%BC%89%EF%BC%88%E4%BA%8C%EF%BC%89/" class="article-date">
+  <time datetime="2022-08-18T09:48:35.000Z" itemprop="datePublished">2022-08-18</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="Dependency-Graph"><a href="#Dependency-Graph" class="headerlink" title="Dependency Graph"></a>Dependency Graph</h2><ul>
+<li><p>Dirty Propagation</p>
+</li>
+<li><p>Push &amp; Pull Mechanism</p>
+</li>
+<li><p>Lazy Evaluation</p>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220704094816836.png" alt="image-20220704094816836" style="zoom:67%;" />
+
+<h3 id="1-Dirty-Propagation"><a href="#1-Dirty-Propagation" class="headerlink" title="1. Dirty Propagation"></a><strong>1. Dirty Propagation</strong></h3><p>Dependency Graph Node</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220704095016592.png" alt="image-20220704095016592"></p>
+<p>由有关联的输入、输出和对应的计算函数组成</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220704095141685.png" alt="image-20220704095141685" style="zoom:50%;" />
+
+<p>输入节点传播到对应的输出节点（Dirty Propagation），直到叶节点</p>
+<p>Updation Request（对节点属性产生影响的操作）</p>
+<ul>
+<li>View Port</li>
+<li>Attribute Editor</li>
+<li>Channel Box</li>
+<li>getAttr</li>
+</ul>
+<p>反向传播</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220704095445679.png" alt="image-20220704095445679" style="zoom:50%;" />
+
+<p>Clean Propagation</p>
+<p>（不会对没有输出要求的节点进行Clean）</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220704095707170.png" alt="image-20220704095707170" style="zoom: 50%;" />
+
+<p>注意涂色的是Attribute&#x2F;Plug，而不是Node本身</p>
+<p>总结：</p>
+<p>Dirty Propagation向一个方向传播直到叶节点，当出现Updation Request时，传播开始返回并检查哪些节点是Dirty的，最后到达Dirty的根节点时开始计算，设置Attribute&#x2F;Plug为Clean</p>
+<h3 id="2-Push-Pull-Mechanism"><a href="#2-Push-Pull-Mechanism" class="headerlink" title="2. Push &amp; Pull Mechanism"></a><strong>2. Push &amp; Pull Mechanism</strong></h3><p>在Dirty Propagation中，Dirty的标记被push至一个方向直到最后（Pushed Dirty Message）。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220704100117924.png" alt="image-20220704100117924" style="zoom:50%;" />
+
+<h3 id="3-Lazy-Evaluation"><a href="#3-Lazy-Evaluation" class="headerlink" title="3. Lazy Evaluation"></a><strong>3. Lazy Evaluation</strong></h3><p>在Clean Propagation中会存在依然Dirty的节点。</p>
+<p>Maya只更新或执行请求过的属性。</p>
+<h3 id="4-Writing-Dependency-Graph-Custom-Node"><a href="#4-Writing-Dependency-Graph-Custom-Node" class="headerlink" title="4. Writing Dependency Graph&#x2F; Custom Node"></a><strong>4. Writing Dependency Graph&#x2F; Custom Node</strong></h3><h4 id="4-1-Dependency-Graph-Node"><a href="#4-1-Dependency-Graph-Node" class="headerlink" title="4.1 Dependency Graph Node"></a><strong>4.1 Dependency Graph Node</strong></h4><p>可以执行计算（DG-Node+Computation）</p>
+<ul>
+<li>DG-Node<ul>
+<li><strong>Attribute</strong>（任何输入&#x2F;输出）<ul>
+<li>Specialize Handle（<strong>Plug</strong>）</li>
+</ul>
+</li>
+<li><strong>Data Block</strong><ul>
+<li>Specialize Handle（<strong>Data Handle</strong>）</li>
+<li>保存节点所有数据</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="4-2-建立一个DG-Node-Graph"><a href="#4-2-建立一个DG-Node-Graph" class="headerlink" title="4.2 建立一个DG-Node Graph"></a><strong>4.2 建立一个DG-Node Graph</strong></h4><p>建立一个DG-Node Graph和建立一个Maya command是很相似的</p>
+<ul>
+<li><p>command</p>
+<ul>
+<li>class PluginCommand</li>
+<li>cmdCreators</li>
+<li>initializePlugin</li>
+<li>uninitializePlugin</li>
+</ul>
+</li>
+<li><p>DG-Node</p>
+<ul>
+<li><p>class WheelNode</p>
+<ul>
+<li>_<em>init</em>_</li>
+<li><del>doIt</del> compute</li>
+</ul>
+</li>
+<li><p>Creator function</p>
+</li>
+<li><p>initialize function</p>
+<ul>
+<li><p>初始化节点所有属性</p>
+<ul>
+<li><p>MFn-Attribute使用函数集来创建属性</p>
+</li>
+<li><p>create Attribute(Create + set Properties)</p>
+<ul>
+<li><p>MFn-&gt;create attribute return mObj Handle</p>
+</li>
+<li><p>set Properties</p>
+<ol>
+<li><p>readable-&gt;source(输出节点只可读)</p>
+</li>
+<li><p>writable-&gt;destination[setAttr]</p>
+</li>
+<li><p>Storable-&gt;store with file(input)</p>
+</li>
+<li><p>Keyable -&gt;can be keyed or not</p>
+</li>
+</ol>
+</li>
+<li></li>
+</ul>
+</li>
+<li><p>attach Attribute to the Node</p>
+</li>
+<li><p>Design circuitry</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>initializePlugin</p>
+</li>
+<li><p>uninitializePlugin</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>在这个案例中，我们会写一个插件，能够让一个小车（两个圆柱和一个平板组成），空间位置发生变化的时候，轮子也发生对应的旋转。<br>$$<br>rotate &#x3D; \frac{translate}{2\pi r}*(-360)<br>$$<br>Node Design</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220704102307567.png" alt="image-20220704102307567"></p>
+<h4 id="4-3-完整流程"><a href="#4-3-完整流程" class="headerlink" title="4.3 完整流程"></a><strong>4.3 完整流程</strong></h4><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220704112229490.png" alt="image-20220704112229490"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> maya <span class="keyword">import</span> cmds</span><br><span class="line">cmds.loadPlugin(<span class="string">r&quot;C:\Users\XZYW\文档\maya\2023\zh_CN\scripts\WheelNode.py&quot;</span>)</span><br><span class="line"></span><br><span class="line">cmds.createNode(<span class="string">&quot;WheelNode&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>来贴个官网上找到的案例</p>
+<p><a target="_blank" rel="noopener" href="https://help.autodesk.com/view/MAYAUL/2023/CHS/?guid=Maya_SDK_py_ref_python_2api1_2py1_circle_node_8py_example_html">Maya 帮助 | Python API 2.0 Reference: python&#x2F;api1&#x2F;py1CircleNode.py | Autodesk</a></p>
+<p><strong>完整代码</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-  </span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> maya.OpenMaya <span class="keyword">as</span> OpenMaya</span><br><span class="line"><span class="keyword">import</span> maya.OpenMayaMPx <span class="keyword">as</span> OpenMayaMPx</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">nodeName = <span class="string">&quot;WheelNode&quot;</span></span><br><span class="line">nodeId = OpenMaya.MTypeId(<span class="number">0x0008004c</span>)<span class="comment"># Id是唯一的，定义一个唯一的节点</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">WheelNode</span>(OpenMayaMPx.MPxNode):<span class="comment"># 继承依赖关系图的类</span></span><br><span class="line">    inRadius = OpenMaya.MObject()<span class="comment"># 用于储存创建属性时mFn函数集返回的mObj</span></span><br><span class="line">    inTranslate = OpenMaya.MObject()</span><br><span class="line">    outRotate = OpenMaya.MObject()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        OpenMayaMPx.MPxNode.__init__(<span class="variable language_">self</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">compute</span>(<span class="params">self, plug, dataBlock</span>):<span class="comment"># 只要输入节点发生改变，maya就会调用compute函数,并且会</span></span><br><span class="line">                                      <span class="comment"># 发送outputNode,以及输入数据的数据块</span></span><br><span class="line">        <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">        rotate = translate / (2* 3.1416 * radius) * (-360)</span></span><br><span class="line"><span class="string">        &#x27;&#x27;&#x27;</span></span><br><span class="line">        <span class="keyword">if</span> plug == WheelNode.outRotate:<span class="comment"># 这个案例这里没用，但是对于多输出的复杂节点是需要的</span></span><br><span class="line">            dataHandleRadius = dataBlock.inputValue(WheelNode.inRadius)<span class="comment"># 这是一个返回的指针</span></span><br><span class="line">            dataHandleTranslate = dataBlock.inputValue(WheelNode.inTranslate)</span><br><span class="line">            </span><br><span class="line">            inRadiusVal = dataHandleRadius.asFloat()</span><br><span class="line">            inTranslateVal = dataHandleTranslate.asFloat()</span><br><span class="line">            outRotateVal = <span class="built_in">float</span>(inTranslateVal) / <span class="built_in">float</span>(<span class="number">2</span> * <span class="number">3.1416</span> * inRadiusVal) * (-<span class="number">360</span>)</span><br><span class="line">            </span><br><span class="line">            dataHandleRotate = dataBlock.outputValue(WheelNode.outRotate)</span><br><span class="line">            </span><br><span class="line">            dataHandleRotate.setFloat(outRotateVal)</span><br><span class="line">            </span><br><span class="line">            <span class="comment"># 结束计算，设置clean</span></span><br><span class="line">            dataBlock.setClean(plug)</span><br><span class="line">            </span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">return</span> OpenMaya.kUnknownParameter</span><br><span class="line">            </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">nodeCreator</span>():</span><br><span class="line">    <span class="keyword">return</span> OpenMayaMPx.asMPxPtr(WheelNode())</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">nodeInitializer</span>():</span><br><span class="line">    <span class="comment"># 1.创建一个Function set for numeric attribute</span></span><br><span class="line">    mFnAttr = OpenMaya.MFnNumericAttribute()</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 2.创建属性</span></span><br><span class="line">        <span class="comment"># Input Radius</span></span><br><span class="line">    WheelNode.inRadius = mFnAttr.create(<span class="string">&quot;radius&quot;</span>, <span class="string">&quot;r&quot;</span>,</span><br><span class="line">                   OpenMaya.MFnNumericData.kFloat, <span class="number">0.0</span>)<span class="comment"># longname, shortname,attrType,defaultValue</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># set properties</span></span><br><span class="line">    mFnAttr.setReadable(<span class="number">1</span>)<span class="comment"># bool</span></span><br><span class="line">    mFnAttr.setWritable(<span class="number">1</span>)</span><br><span class="line">    mFnAttr.setStorable(<span class="number">1</span>)</span><br><span class="line">    mFnAttr.setKeyable(<span class="number">1</span>)</span><br><span class="line">        <span class="comment"># Input Translate</span></span><br><span class="line">    WheelNode.inTranslate = mFnAttr.create(<span class="string">&quot;translate&quot;</span>, <span class="string">&quot;t&quot;</span>,</span><br><span class="line">                   OpenMaya.MFnNumericData.kFloat, <span class="number">0.0</span>)</span><br><span class="line">    mFnAttr.setReadable(<span class="number">1</span>)<span class="comment"># bool</span></span><br><span class="line">    mFnAttr.setWritable(<span class="number">1</span>)</span><br><span class="line">    mFnAttr.setStorable(<span class="number">1</span>)</span><br><span class="line">    mFnAttr.setKeyable(<span class="number">1</span>)</span><br><span class="line">        <span class="comment"># Output Rotation</span></span><br><span class="line">    WheelNode.outRotate = mFnAttr.create(<span class="string">&quot;rotate&quot;</span>, <span class="string">&quot;rot&quot;</span>,</span><br><span class="line">                   OpenMaya.MFnNumericData.kFloat)<span class="comment">#输出值是计算的，不用设默认值</span></span><br><span class="line">    mFnAttr.setReadable(<span class="number">1</span>)</span><br><span class="line">    mFnAttr.setWritable(<span class="number">0</span>)</span><br><span class="line">    mFnAttr.setStorable(<span class="number">0</span>)</span><br><span class="line">    mFnAttr.setKeyable(<span class="number">0</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 3.attach Attribute to the Node</span></span><br><span class="line">    WheelNode.addAttribute(WheelNode.inRadius)</span><br><span class="line">    WheelNode.addAttribute(WheelNode.inTranslate)</span><br><span class="line">    WheelNode.addAttribute(WheelNode.outRotate)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 4.Design the circuitry如何让maya知道节点之间的关系</span></span><br><span class="line">    WheelNode.attributeAffects(WheelNode.inRadius, WheelNode.outRotate)<span class="comment"># input,output</span></span><br><span class="line">    WheelNode.attributeAffects(WheelNode.inTranslate, WheelNode.outRotate)</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line"><span class="comment"># 初始化,和maya pluginCommand是一样的</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">initializePlugin</span>(<span class="params">mobject</span>):</span><br><span class="line">    mplugin = OpenMayaMPx.MFnPlugin(mobject)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        mplugin.registerNode(nodeName, nodeId, nodeCreator, nodeInitializer)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        sys.stderr.write(<span class="string">&quot;Failed to register node:&quot;</span> + nodeName)</span><br><span class="line">        </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">uninitializePlugin</span>(<span class="params">mobject</span>):</span><br><span class="line">    mplugin = OpenMayaMPx.MFnPlugin(mobject)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        mplugin.deregisterNode(nodeId)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        sys.stderr.write(<span class="string">&quot;Failed to deregister node&quot;</span> + nodeName)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/08/18/TA/Maya/Python%20For%20Maya%EF%BC%88OpenMaya%EF%BC%89%EF%BC%88%E4%BA%8C%EF%BC%89/" data-id="cmfe8hf3w001e9wuh6ceugjp7" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Maya/" rel="tag">Maya</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7/" rel="tag">工具</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag">笔记</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2022/08/18/TA/Maya/Python%20For%20Maya%EF%BC%88OpenMaya%EF%BC%89%EF%BC%88%E4%B8%89%EF%BC%89/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      【笔记】【maya工具】Python For Maya（OpenMaya）（三）Structure of a Deformer
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2022/08/18/TA/Maya/Python%20For%20Maya%EF%BC%88OpenMaya%EF%BC%89%EF%BC%88%E4%B8%80%EF%BC%89/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title">【笔记】【Maya工具】Python For Maya（OpenMaya）（一）API基础与插件</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

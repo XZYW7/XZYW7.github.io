@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+     【笔记】【百人计划】图形3.3 曲面细分与几何着色器 |
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形3.3曲面细分与几何着色器" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+     【笔记】【百人计划】图形3.3 曲面细分与几何着色器
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/08/22/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.3%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E4%B8%8E%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8/" class="article-date">
+  <time datetime="2022-08-22T04:40:14.000Z" itemprop="datePublished">2022-08-22</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h3 id="一、背景"><a href="#一、背景" class="headerlink" title="一、背景"></a><strong>一、背景</strong></h3><h4 id="1-1应用"><a href="#1-1应用" class="headerlink" title="1.1应用"></a><strong>1.1应用</strong></h4><ul>
+<li>曲面细分着色器<ul>
+<li>海浪（曲面细分+顶点位移动画）</li>
+<li>（交互）雪地（曲面细分+顶点位移）</li>
+<li>置换贴图（曲面细分+顶点位移）</li>
+</ul>
+</li>
+<li>几何着色器<ul>
+<li>几何动画（几何图元）</li>
+<li>草地等（与曲面细分着色器结合）</li>
+</ul>
+</li>
+</ul>
+<h4 id="1-2渲染管线"><a href="#1-2渲染管线" class="headerlink" title="1.2渲染管线"></a><strong>1.2渲染管线</strong></h4><ul>
+<li>顶点着色器</li>
+<li>曲面细分着色器<ul>
+<li>细分控制着色器Hull Shader（TCS）</li>
+<li>Tessellation Primitive Generator（不可编程）</li>
+<li>细分计算着色器Domain Shader（TES）</li>
+</ul>
+</li>
+<li>几何着色器</li>
+<li>片元着色器</li>
+</ul>
+<h4 id="1-3曲面细分着色器"><a href="#1-3曲面细分着色器" class="headerlink" title="1.3曲面细分着色器"></a><strong>1.3曲面细分着色器</strong></h4><h5 id="1-3-1TESS的输入与输出"><a href="#1-3-1TESS的输入与输出" class="headerlink" title="1.3.1TESS的输入与输出"></a><strong>1.3.1TESS的输入与输出</strong></h5><ul>
+<li><p>Hull Stage</p>
+<ul>
+<li>Hull function<ul>
+<li>每个patch每个顶点运行一次</li>
+<li>输入<ul>
+<li>Patch，可以看成是多个顶点的集合，包含每个顶点的属性，可以指定一个Patch包含的顶点数以及自己的属性</li>
+<li>Index，指定hull shader输出patch中的哪一个顶点</li>
+</ul>
+</li>
+<li>输出patch内对应顶点</li>
+</ul>
+</li>
+<li>Patch Constant Function<ul>
+<li>输入Patch</li>
+<li>每个patch运行一次</li>
+<li>输出Tessellation Factor</li>
+</ul>
+</li>
+<li>两个阶段是并行</li>
+<li>功能<ul>
+<li>将图元细分（三角形、矩形等）</li>
+</ul>
+</li>
+<li>输出<ul>
+<li>细分后的顶点数据</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Tessellation Primitive Generator</p>
+<ul>
+<li>为新网格的所有顶点生成重心坐标</li>
+</ul>
+</li>
+<li><p>Domain stage</p>
+<ul>
+<li>输入重心坐标、Patch</li>
+<li>为细分后曲面的所有顶点运行一次</li>
+<li>通常在顶点着色器的逻辑操作的部分，应该放在这里</li>
+</ul>
+</li>
+<li><p>（Geometry Stage）</p>
+</li>
+</ul>
+<h5 id="1-3-2HULL-shader参数"><a href="#1-3-2HULL-shader参数" class="headerlink" title="1.3.2HULL shader参数"></a><strong>1.3.2HULL shader参数</strong></h5><ul>
+<li>Tessellation Factor<ul>
+<li>决定将一条边分成几部分</li>
+<li>equal_Spacing</li>
+<li>fractional_even_spacing</li>
+<li>fractional_odd_spacing</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220818002411909.png" alt="image-20220818002411909"></p>
+<ul>
+<li>Inner Tessellation Factor<ul>
+<li>（与上面的参数是同一等级）将边等分后，向内延伸相交，直至内部没有交点。</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220818002434236.png" alt="image-20220818002434236"></p>
+<h4 id="1-4几何着色器"><a href="#1-4几何着色器" class="headerlink" title="1.4几何着色器"></a><strong>1.4几何着色器</strong></h4><h5 id="1-4-1几何着色器的输入与输出"><a href="#1-4-1几何着色器的输入与输出" class="headerlink" title="1.4.1几何着色器的输入与输出"></a><strong>1.4.1几何着色器的输入与输出</strong></h5><ul>
+<li>输入为图元（三角形、矩形、边）<ul>
+<li>根据图元不同，shader中会出现对应不同数量的顶点</li>
+</ul>
+</li>
+<li>输出同样为图元（一个或多个），需要自己从顶点构建，顺序很重要，同时定义最大输出的顶点数</li>
+</ul>
+<h3 id="二、曲面细分"><a href="#二、曲面细分" class="headerlink" title="二、曲面细分"></a><strong>二、曲面细分</strong></h3><ul>
+<li>将一个Quad细分</li>
+<li>与置换贴图结合<ul>
+<li>注意使用置换贴图不在fs中，也是在domain shader中的vert函数进行的，GPU无法获取mipmap信息，需要使用tex2Dlod等来读取图片。</li>
+<li>法线也需要重新计算</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> hull hullProgram</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> domain ds</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> vertex tessvert</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> fragment frag</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;UnityCG.cginc&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;Tessellation.cginc&quot;</span></span></span><br><span class="line"></span><br><span class="line">...    </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">VertexInput</span>;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">VertexOutput</span>&#123;</span><br><span class="line">    float4 vertex: SV_POSITION;</span><br><span class="line">    float3 normal;</span><br><span class="line">    float3 tangent;</span><br><span class="line">    float2 uv;</span><br><span class="line">&#125;;</span><br><span class="line">    </span><br><span class="line"><span class="function">VertexOutput <span class="title">vert</span><span class="params">(VertexInput v)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	VertexOutput o;</span><br><span class="line">    o.uv = <span class="built_in">TRANSFORM_TEX</span>(v.uv,_MainTex);</span><br><span class="line">    o.vertex = <span class="built_in">UnityObjectToClipPos</span>(v.vertex);</span><br><span class="line">    o.normal = v.normal;</span><br><span class="line">    o.tangent = v.tangent;</span><br><span class="line">&#125;<span class="comment">//顶点着色器的函数，但这里没有拿给顶点着色器，而是用来在DomainShader进行空间转换</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//只有在能够使用曲面细分着色器的平台才能使用</span></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> UNITY_CAN_COMPIE_TESSELLATION</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">TessVertex</span> &#123;</span><br><span class="line">	float4 vertex: INTERNALTESSPOS;</span><br><span class="line">    float3 normal: NORMAL;</span><br><span class="line">    float4 tangent: TANGENT;</span><br><span class="line">    float2 uv: TEXCOORD0;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">OutputPatchConstant</span> &#123;<span class="comment">//不同的图元，该结构会有不同</span></span><br><span class="line">	<span class="type">float</span> edge[<span class="number">3</span>]: SV_TESSFACTOR;</span><br><span class="line">    <span class="type">float</span> inside: SV_INSIDETESSFACTOR;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function">TessVertex <span class="title">tessvert</span><span class="params">(VertexInput v)</span></span>&#123;</span><br><span class="line">    TessVertex o;</span><br><span class="line">    o.vertex = v.vertex;</span><br><span class="line">    o.normal = v.normal;</span><br><span class="line">    o.tangent = v.tangent;</span><br><span class="line">    o.uv = v.uv;</span><br><span class="line">    <span class="keyword">return</span> o;</span><br><span class="line">&#125;<span class="comment">//顶点着色器，注意这里没有进行空间转换，而是在domianshader里进行的空间转换 </span></span><br><span class="line"></span><br><span class="line"><span class="type">float</span> _TessellationUniform;</span><br><span class="line"><span class="function">OutputPatchConstant <span class="title">hsconst</span><span class="params">(InputPatch&lt;TessVertex, <span class="number">3</span>&gt; patch)</span> </span>&#123;</span><br><span class="line">    OutputPatchConstant o;</span><br><span class="line">    o.edge[<span class="number">0</span>] = _TessellationUniform;</span><br><span class="line">    o.edge[<span class="number">1</span>] = _TessellationUniform;</span><br><span class="line">    o.edge[<span class="number">2</span>] = _TessellationUniform;</span><br><span class="line">    o.inside = _TessellationUniform;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//定义Hull shader的函数</span></span><br><span class="line">[<span class="built_in">UNITY_domian</span>(<span class="string">&quot;tri&quot;</span>)]<span class="comment">//指定图元</span></span><br><span class="line">[<span class="built_in">UNITY_partitioning</span>(<span class="string">&quot;fractional_odd&quot;</span>)]<span class="comment">//拆分edge的方式，equal_spacing等</span></span><br><span class="line">[<span class="built_in">UNITY_outputtopology</span>(<span class="string">&quot;triangl_cw&quot;</span>)]</span><br><span class="line">[<span class="built_in">UNITY_patchconstantfunc</span>(<span class="string">&quot;hsconst&quot;</span>)]<span class="comment">//指定patch const function。一个patch一共有三个点，但是这三个点都共用这个函数</span></span><br><span class="line">[<span class="built_in">UNITY_outputcontrolpoints</span>(<span class="number">3</span>)]<span class="comment">//不同图元会对应不同控制点</span></span><br><span class="line"><span class="function">TessVertex <span class="title">hullProgram</span><span class="params">(InputPatch&lt;TessVertex, <span class="number">3</span>&gt; patch, uint id : SV_OutputControlPointID)</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> patch[id];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//定义Domian shader的函数</span></span><br><span class="line">[<span class="built_in">UNITY_domain</span>(<span class="string">&quot;tri&quot;</span>)]<span class="comment">//同样指定图元</span></span><br><span class="line"><span class="function">VertexOutput <span class="title">ds</span> <span class="params">(OutputPatchConstant tessFactors, <span class="type">const</span> OutputPatch&lt;TessVertex, <span class="number">3</span>&gt; patch, float3 bary : SV_DomainLocation)</span> </span>&#123;</span><br><span class="line"><span class="comment">//bary重心坐标</span></span><br><span class="line"><span class="comment">//计算模型空间位置</span></span><br><span class="line">    VertexInput v;</span><br><span class="line">    v.vertex = patch[<span class="number">0</span>].vertex*bary.x + patch[<span class="number">1</span>].vertex*bary.y + patch[<span class="number">2</span>].vertex*bary.z;</span><br><span class="line">    v.tangent = patch[<span class="number">0</span>].tangent*bary.x + patch[<span class="number">1</span>].tangent*bary.y + patch[<span class="number">2</span>].tangent*bary.z;</span><br><span class="line">    v.normal = patch[<span class="number">0</span>].normal*bary.x + patch[<span class="number">1</span>].normal*bary.y + patch[<span class="number">2</span>].normal*bary.z;</span><br><span class="line">    v.uv = patch[<span class="number">0</span>].uv*bary.x + patch[<span class="number">1</span>].uv*bary.y + patch[<span class="number">2</span>].uv*bary.z;</span><br><span class="line">    VertexOutput o = <span class="built_in">vert</span>(v);<span class="comment">//调用原本该在顶点着色器中的转换函数。</span></span><br><span class="line">    <span class="keyword">return</span> o;</span><br><span class="line">&#125;<span class="comment">//这里才终于把顶点数据拿给下一阶段</span></span><br><span class="line"></span><br><span class="line">#ENDIF</span><br><span class="line"></span><br><span class="line">float4 frag...</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="三、几何着色器"><a href="#三、几何着色器" class="headerlink" title="三、几何着色器"></a><strong>三、几何着色器</strong></h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> vertex vert</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> fragment frag</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> geometry geo</span></span><br><span class="line">...</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">VertexInput</span>;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">VertexOutput</span>&#123;</span><br><span class="line">    float4 vertex: SV_POSITION;</span><br><span class="line">    float3 normal;</span><br><span class="line">    float3 tangent;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">//注意这次的顶点着色器是vert函数，上次是tessvert,同样不做任何操作</span></span><br><span class="line">VertexOutput vert;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">geometryOutput</span>&#123;</span><br><span class="line">    float4 pos: SV_POSITION;</span><br><span class="line">    float2 uv: TEXCOORD0;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function">geopetryOutput <span class="title">CreateGeoOutput</span><span class="params">(float3 pos, float2 uv)</span></span>&#123;</span><br><span class="line">    geometryOutput o;</span><br><span class="line">    o.pos = UnityObjectToClipPos;</span><br><span class="line">    o.uv = uv;</span><br><span class="line">    <span class="keyword">return</span> o;</span><br><span class="line">&#125;<span class="comment">//在几何着色器中完成空间转换，如果同时使用曲面细分和几何着色器，也要放到几何着色器来进行</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[<span class="built_in">maxvertexcount</span>(<span class="number">3</span>)]</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">geo</span><span class="params">(triangle vertexOutput IN[<span class="number">3</span>]: SV_POSITION, inout TriangleStream&lt;geometryOutput&gt; triStream)</span></span>&#123;</span><br><span class="line">    <span class="type">float</span> pos = IN[<span class="number">0</span>].vertex;</span><br><span class="line">    <span class="type">float</span> vNormal = IN[<span class="number">0</span>].normal;</span><br><span class="line">    <span class="type">float</span> vTangent = IN[<span class="number">0</span>].tangent;</span><br><span class="line">    <span class="type">float</span> vBinormal = <span class="built_in">cross</span>(vNormal,vTangent)*vTangent.w;</span><br><span class="line">    </span><br><span class="line">    <span class="type">float</span> height = ...</span><br><span class="line">    <span class="type">float</span> width = ...</span><br><span class="line">        </span><br><span class="line">    ...</span><br><span class="line">    geometryOutput o;</span><br><span class="line">    triStream.<span class="built_in">Append</span>(<span class="built_in">CreatGeoOutput</span>(<span class="built_in">dosomething</span>(pos),<span class="built_in">dosomething</span>(uv));</span><br><span class="line">    triStream.<span class="built_in">Append</span>(<span class="built_in">CreatGeoOutput</span>(<span class="built_in">dosomething</span>(pos),<span class="built_in">dosomething</span>(uv));</span><br><span class="line">    triStream.<span class="built_in">Append</span>(<span class="built_in">CreatGeoOutput</span>(<span class="built_in">dosomething</span>(pos),<span class="built_in">dosomething</span>(uv));<span class="comment">//添加了一个新的三角形图元                            </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也可以添加更多图元，如：</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220818013037250.png" alt="image-20220818013037250" style="zoom:50%;" />
+
+
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220818013127627.png" alt="image-20220818013127627"></p>
+<p>三角形的构建是triStream自动完成的。（uv是自己计算的。）</p>
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a><strong>作业</strong></h3><p>使用曲面细分、几何着色器做一些有意思的Demo</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/1661109050656-1661142579854.gif" alt="1661109050656"></p>
+<p>看了一圈，基本上大家都是参考那两个教程，就不多写什么了。（做到这个效果还挺想复刻一下Clannad的片头的，说不定挺适合）</p>
+<p>这里主要完成了基本的曲面细分-几何着色器多pass渲染带阴影和光照的草地-风的扰动。</p>
+<p>事实上，几何着色器构建的图元会覆盖原来的三角形图元，原来的表面其实消失了。这里可以再加一个pass渲染。</p>
+<p>并且地面pass可以不做细分来节省开销</p>
+<p>还可以进一步处理的部分：</p>
+<ul>
+<li>基于距离的曲面细分</li>
+<li>基于RT或物体位置的草地交互</li>
+</ul>
+<p>继续往后做这两个方向感觉就需要考虑偏向may佬说的在项目中整体方案的思路了。</p>
+<p>暂时就放一放</p>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a><strong>参考资料</strong></h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1XX4y1A7Ns">https://www.bilibili.com/video/BV1XX4y1A7Ns</a></p>
+<p>【技术美术百人计划】图形 3.3  曲面细分与几何着色器  大规模草渲染</p>
+<p>[2] <a target="_blank" rel="noopener" href="https://catlikecoding.com/unity/tutorials/advanced-rendering/tessellation/">https://catlikecoding.com/unity/tutorials/advanced-rendering/tessellation/</a></p>
+<p>[3] <a target="_blank" rel="noopener" href="https://roystan.net/articles/grass-shader.html">https://roystan.net/articles/grass-shader.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/08/22/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.3%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E4%B8%8E%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8/" data-id="cmfe8hf4a003s9wuh1fg7fwpj" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Computer-Graphics/" rel="tag">Computer Graphics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" rel="tag">百人计划</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag">笔记</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2022/08/22/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.7.2%20GPU%E7%A1%AC%E4%BB%B6%E6%9E%B6%E6%9E%84%E6%A6%82%E8%BF%B0/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      【笔记】【百人计划】图形2.7.2 GPU硬件架构概述
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2022/08/21/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.2%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E5%8F%8A%E5%89%94%E9%99%A4/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title">【笔记】【百人计划】图形3.2 混合模式及剔除</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

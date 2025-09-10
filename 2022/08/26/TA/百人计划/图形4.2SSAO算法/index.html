@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    【笔记】【百人计划】图形4.2 SSAO算法 |
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形4.2SSAO算法" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    【笔记】【百人计划】图形4.2 SSAO算法
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/08/26/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A24.2SSAO%E7%AE%97%E6%B3%95/" class="article-date">
+  <time datetime="2022-08-26T09:29:00.000Z" itemprop="datePublished">2022-08-26</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="图形4-2-SSAO算法"><a href="#图形4-2-SSAO算法" class="headerlink" title="图形4.2 SSAO算法"></a>图形4.2 SSAO算法</h2><p>GAMES202 中的SSAO</p>
+<p><a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/CbZTf-uM4/#screen-space-ambient-occlusionssao">https://xzyw7.github.io/post/CbZTf-uM4/#screen-space-ambient-occlusionssao</a></p>
+<h3 id="一、SSAO介绍"><a href="#一、SSAO介绍" class="headerlink" title="一、SSAO介绍"></a>一、SSAO介绍</h3><p>SSAO相关术语，简要理解及历史</p>
+<ul>
+<li>AO<ul>
+<li>环境光遮蔽Amibent Occlusion，用于模拟光线到达物体的能力的一种粗略的全局方法，描述光线到达物体表面的能力</li>
+</ul>
+</li>
+<li>SSAO<ul>
+<li>屏幕空间环境光遮蔽Screen Space Ambient Occlusion，一种用于实施近似AO的渲染技术。通过获取像素的深度缓冲、法线缓冲来计算实现，近似地表现物体在间接光下产生的阴影。</li>
+</ul>
+</li>
+<li>历史<ul>
+<li>AO最早在Siggraph 2002年会上有ILM（工业光魔）的技术主管Hayden Landis所展示，当时就被叫做Ambient Occlusion</li>
+<li>2007年，Crytek发布了SSAO的技术，并用在了孤岛危机上。</li>
+</ul>
+</li>
+</ul>
+<h3 id="二、SSAO原理"><a href="#二、SSAO原理" class="headerlink" title="二、SSAO原理"></a>二、SSAO原理</h3><p>简要理解SSAO算法原理</p>
+<p><img src="/%E5%9B%BE%E5%BD%A24.2%20SSAO%E7%AE%97%E6%B3%95/image-20220912220609664.png" alt="image-20220912220609664"></p>
+<ul>
+<li>深度缓冲<ul>
+<li>depth用于当前视点下场景的每一个像素距离相机的粗略表达，用于重构像素相机空间中的坐标Z，来近似重构该视点下的三维场景。</li>
+</ul>
+</li>
+<li>法线缓冲<ul>
+<li>相机空间中的法线信息，用于重构每个像素的TBN坐标轴，用于计算发现半球中的采样随机向量，随机向量用于判断和描述该像素的AO强度。</li>
+</ul>
+</li>
+<li>法向半球<ul>
+<li>黑色表示我们需要计算的样本</li>
+<li>蓝色项链表示样本的法向量</li>
+<li>白色、灰色为采样点。灰色表示被遮挡采样点，据此判断最终AO的强度</li>
+<li><img src="%E5%9B%BE%E5%BD%A24.2%20SSAO%E7%AE%97%E6%B3%95/image-20220912221417067.png" alt="image-20220912221417067" style="zoom:50%;" /></li>
+</ul>
+</li>
+</ul>
+<h3 id="三、算法实现"><a href="#三、算法实现" class="headerlink" title="三、算法实现"></a>三、算法实现</h3><p>根据原理结合UnityC#&amp;Shader实现SSAO</p>
+<h4 id="实现过程环境"><a href="#实现过程环境" class="headerlink" title="实现过程环境"></a>实现过程环境</h4><ul>
+<li>Unity2019.3.5f1</li>
+<li>透视模式</li>
+<li>前向渲染。如果为延迟渲染，则由对应的G-buffer生成，在shader中作为全局变量访问</li>
+<li>使用OnRenderImage()来处理后期，进而实现SSAO</li>
+</ul>
+<h4 id="获取深度-法线缓冲数据"><a href="#获取深度-法线缓冲数据" class="headerlink" title="获取深度&amp;法线缓冲数据"></a>获取深度&amp;法线缓冲数据</h4><ul>
+<li>C#部分</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">Start</span>()</span> &#123;</span><br><span class="line">    cam = <span class="keyword">this</span>.GetComponent&lt;Camera&gt;();</span><br><span class="line">    cam.depthTextureMode = cam.depthTextureMode | DepthTextureMode.DepthNormals;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Shader部分</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//获取深度法线图</span></span><br><span class="line">sampler2D _CameraDepthNormalsTexture;</span><br><span class="line"><span class="comment">//固定名称</span></span><br><span class="line">...</span><br><span class="line"><span class="comment">//采样获得深度值和法线值</span></span><br><span class="line">float3 viewNormal;</span><br><span class="line"><span class="type">float</span> linear01Depth;</span><br><span class="line">float4 depthnormal = <span class="built_in">tex2D</span>(_CameraDepthNormalsTexture, i.uv);</span><br><span class="line"><span class="built_in">DecodeDepthNormal</span>(depthnormal, linear01Depth, viewNormal);</span><br><span class="line"></span><br><span class="line"><span class="comment">//UnityCG.cginc</span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="type">void</span> <span class="title">DecodeDepthNormal</span><span class="params">(<span class="type">float</span> enc, out <span class="type">float</span> depth, out float3 noraml)</span> </span>&#123;</span><br><span class="line">    depth = <span class="built_in">DecodeFloatRG</span>(enc,zw);</span><br><span class="line">    normal = <span class="built_in">DecodeViewNormalStereo</span>(enc);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="重建相机空间坐标"><a href="#重建相机空间坐标" class="headerlink" title="重建相机空间坐标"></a>重建相机空间坐标</h4><ul>
+<li>重建方法<ul>
+<li>参考链接</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/92315967">https://zhuanlan.zhihu.com/p/92315967</a></li>
+<li>本例实现使用其中的“从NDC空间中重建”方法得到样本在相机空间中的向量，乘以深度值得到样本的坐标</li>
+</ul>
+</li>
+<li>从NDC空间中重建</li>
+</ul>
+<p>1.计算样本屏幕坐标</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 利用Unity内置函数</span></span><br><span class="line"><span class="comment">// 屏幕纹理坐标</span></span><br><span class="line">float4 screenPos = <span class="built_in">ComputeScreenPos</span>(o.vertex);</span><br></pre></td></tr></table></figure>
+
+<p> 2.转化至NDC空间</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float4 ndcPos = (screenPos/screenPos.w)*<span class="number">2</span><span class="number">-1</span>;</span><br></pre></td></tr></table></figure>
+
+<p>3.计算相机空间中至远平屏幕方向（内置变量_ProjectionParams.z存放相机远平面值far）</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float3 clipVec = <span class="built_in">float3</span>(ndcPos.x, ndcPos.y, <span class="number">1.0</span>) * _ProjectionParams.z;</span><br></pre></td></tr></table></figure>
+
+<p>4.矩阵变换至相机空间中的样本相对相机的方向</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">o.viewVec = mul(unity_CameraInvProjection, clipVec.xyzz).xyz;</span><br></pre></td></tr></table></figure>
+
+<p>5.重建相机空间中的样本左边(在像素着色器)</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">float3 viewPos = linear01Depth * i.viewVec;</span><br><span class="line"><span class="comment">//在相机空间中通过样本的相对相机方向及深度来拟合重构坐标</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="构建法向量正交基"><a href="#构建法向量正交基" class="headerlink" title="构建法向量正交基"></a>构建法向量正交基</h4><ol>
+<li>设置法向量</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//获取像素相机屏幕法线，法线z方向相对于相机为负（ao需要乘以-1置反），并处理成单位向量</span></span><br><span class="line">viewNormal = <span class="built_in">normalize</span>(viewNormal) * <span class="built_in">float3</span>(<span class="number">1</span>,<span class="number">1</span>,<span class="number">-1</span>);</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>生成随机向量（用于构建的正交基随机，而非所有样本计算得到的正交基一致）(先处理成统一)</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//randvec法线半球的随机向量</span></span><br><span class="line">float3 randvec = <span class="built_in">normalize</span>(<span class="built_in">float3</span>(<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>));</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>求出切向量，再用函数叉积求副切线向量</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Cramm-Schimidt处理创建正交基</span></span><br><span class="line"><span class="comment">//TBN空间</span></span><br><span class="line">float3 tangent = <span class="built_in">normalize</span>(randvec - viewNormal * <span class="built_in">dot</span>(randvec, viewNormal));</span><br><span class="line">float3 bitangent = <span class="built_in">cross</span>(viewNoraml, tangent);</span><br><span class="line">float3x3 TBN = <span class="built_in">float3x3</span>(tangent, bitangent, viewNormal);</span><br></pre></td></tr></table></figure>
+
+<h4 id="AO采样"><a href="#AO采样" class="headerlink" title="AO采样"></a>AO采样</h4><ol>
+<li>传入给定的随机采样向量，并通过法向量正交基转化至法线半球中的向量(在Ｃ＃中计算出采样的随机点)</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//随机向量，转化至TBN空间</span></span><br><span class="line">float3 randomVec = <span class="built_in">mul</span>(_SampleKernelArray[i].xyz, TBN);</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>获取随机坐标点</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//计算随机法线半球后的向量</span></span><br><span class="line">float3 randomPos = viewPos + randomVec * _SampleKeneralRadius;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>转换至屏幕空间坐标</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">float3 rclipPos = <span class="built_in">mul</span>((float3x3)unity_CameraProjection, randomPos);</span><br><span class="line">float2 rscreenPos = (rclipPos.xy / rclipPos.z) * <span class="number">0.5</span> + <span class="number">0.5</span>;</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>计算随机向量转化至屏幕空间后对应的深度值，并判断累加AO</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> randomDepth;</span><br><span class="line">float3 randomNormal;</span><br><span class="line">float4 rcdn = <span class="built_in">tex2D</span>(_CameraDepthNormalsTexture, rscreenPos);</span><br><span class="line"><span class="built_in">DecodeDepthNormal</span>(rcdn, randomDepth, randomNormal);</span><br><span class="line"></span><br><span class="line"><span class="comment">//判断累加ao</span></span><br><span class="line">ao +=(randomDepth　&gt;= linear01Depth)? <span class="number">1.0</span> : <span class="number">0.0</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="四、效果改进"><a href="#四、效果改进" class="headerlink" title="四、效果改进"></a>四、效果改进</h3><p>效果后期改进说明</p>
+<h4 id="随机正交基（增加随机性）"><a href="#随机正交基（增加随机性）" class="headerlink" title="随机正交基（增加随机性）"></a>随机正交基（增加随机性）</h4><ol>
+<li>为了不使求得的法向半球的正交基一致，我们引入随机向量。</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Cramm-Schimidt处理创建正交基</span></span><br><span class="line"><span class="comment">//TBN空间</span></span><br><span class="line">float3 tangent = <span class="built_in">normalize</span>(randvec - viewNormal * <span class="built_in">dot</span>(randvec, viewNormal));</span><br><span class="line">float3 bitangent = <span class="built_in">cross</span>(viewNoraml, tangent);</span><br><span class="line">float3x3 TBN = <span class="built_in">float3x3</span>(tangent, bitangent, viewNormal);</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>利用uv采样一张noise贴图（如4x4像素（可选择其他尺寸）的noise贴图）或者随机向量</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//铺平纹理</span></span><br><span class="line">float2 noiseScale = _ScreenParams.xy / <span class="number">4.0</span>;</span><br><span class="line">float2 noiseUV = i.uv * noiseScale;</span><br><span class="line"><span class="comment">//randvec法线半球的随机向量</span></span><br><span class="line">float3 randvec = <span class="built_in">tex2D</span>(_NoiseTex, noiseUV).xyz;</span><br></pre></td></tr></table></figure>
+
+<p>在C#中传入噪声图</p>
+<p><img src="/%E5%9B%BE%E5%BD%A24.2%20SSAO%E7%AE%97%E6%B3%95/image-20220912234322536.png" alt="image-20220912234322536"></p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssaoMaterial.SetTexture(<span class="string">&quot;_NoiseTex&quot;</span>, Noise)</span><br></pre></td></tr></table></figure>
+
+<h4 id="AO累加平滑优化"><a href="#AO累加平滑优化" class="headerlink" title="AO累加平滑优化"></a>AO累加平滑优化</h4><h5 id="范围判定（模型边界）"><a href="#范围判定（模型边界）" class="headerlink" title="范围判定（模型边界）"></a>范围判定（模型边界）</h5><ul>
+<li>样本采样可能会采集到深度差非常大的随机点，导致边界出现不该有的AO</li>
+</ul>
+<p><img src="/%E5%9B%BE%E5%BD%A24.2%20SSAO%E7%AE%97%E6%B3%95/image-20220912234446963.png" alt="image-20220912234446963"></p>
+<ul>
+<li>加入样本深度和随机点的深度值范围判定</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> range = <span class="built_in">abs</span>(randomDepth - linear01Depth) &gt; _RangeStrength ? <span class="number">0.0</span> : <span class="number">1.0</span>;</span><br></pre></td></tr></table></figure>
+
+<p>效果如下</p>
+<p><img src="/%E5%9B%BE%E5%BD%A24.2%20SSAO%E7%AE%97%E6%B3%95/image-20220912234529623.png" alt="image-20220912234529623"></p>
+<h5 id="自身判定（同一深度值情况下）"><a href="#自身判定（同一深度值情况下）" class="headerlink" title="自身判定（同一深度值情况下）"></a>自身判定（同一深度值情况下）</h5><p>如果随机点深度值和自身一样或非常接近，可能导致虽在同一平面，也会出现AO</p>
+<ul>
+<li>判断深度值大小的时候，增加一个Bias来改善该问题</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> selfCheck = randomDepth + _DepthBiasValue &lt; linear01Depth ? <span class="number">1.0</span> : <span class="number">0.0</span>;</span><br></pre></td></tr></table></figure>
+
+<h5 id="AO权重"><a href="#AO权重" class="headerlink" title="AO权重"></a>AO权重</h5><p>AO深度判断非0即1，比较生硬，为其增加一权重</p>
+<p>本例中权重为：法线半球中随机采样后的点x,y（切平面）距离样本的距离为参考</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> weight = <span class="built_in">smoothstep</span>(<span class="number">0</span>, <span class="number">0.2</span>, <span class="built_in">length</span>(randomVec.xy));</span><br></pre></td></tr></table></figure>
+
+<h5 id="结合"><a href="#结合" class="headerlink" title="结合"></a>结合</h5><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ao += range * selfCheck * weight;</span><br></pre></td></tr></table></figure>
+
+<h5 id="模糊（只展示效果对比）"><a href="#模糊（只展示效果对比）" class="headerlink" title="模糊（只展示效果对比）"></a>模糊（只展示效果对比）</h5><p>采用基于法线的双边滤波（Bilateral Filtering）</p>
+<p><img src="/%E5%9B%BE%E5%BD%A24.2%20SSAO%E7%AE%97%E6%B3%95/image-20220912235055005.png" alt="image-20220912235055005"></p>
+<h3 id="五、对比模型烘焙AO"><a href="#五、对比模型烘焙AO" class="headerlink" title="五、对比模型烘焙AO"></a>五、对比模型烘焙AO</h3><p>同模型烘焙AO方式对比，了解SSAO优缺点</p>
+<h4 id="三维建模软件烘焙AO"><a href="#三维建模软件烘焙AO" class="headerlink" title="三维建模软件烘焙AO"></a>三维建模软件烘焙AO</h4><p>通过DCC设定好渲染参数，对模型烘焙AO到纹理</p>
+<ul>
+<li>优点<ul>
+<li>单一物体可控性强（通过单一物体的材质球上的AO纹理贴图），可以控制单一物体的AO强弱</li>
+<li>弥补场景烘焙的细节，整体场景的烘焙（包含AO信息），并不能完全包含单一物体细节上的AO，而通过DCC烘焙到纹理的方式，增加物体的AO细节</li>
+<li>不影响其（Unity场景中）静态或者动态</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>操作较其他方式繁琐，需要对模型进行UV处理，再烘焙到纹理</li>
+<li>不利于整体场景整合（如3Dmax烘焙到纹理只能选择单一物体，针对整体场景的处理工作量巨大）</li>
+<li>增加AO纹理贴图，不利于资源优化（后期可通过其他纹理通道利用整合资源）</li>
+<li>只有物体本身具有AO信息，获取物体之间的AO信息工作量巨大（不是不可能）</li>
+</ul>
+</li>
+</ul>
+<h4 id="游戏引擎烘焙AO（Unity3D-Lighting）"><a href="#游戏引擎烘焙AO（Unity3D-Lighting）" class="headerlink" title="游戏引擎烘焙AO（Unity3D Lighting）"></a>游戏引擎烘焙AO（Unity3D Lighting）</h4><p>通过Unity的Lighting功能（主菜单&#x2F;Window&#x2F;Rendering&#x2F;Lighting Settings） 进行整体场景的烘焙，AO信息包含于此</p>
+<ul>
+<li>优点<ul>
+<li>操作简易，整体场景的烘焙，包含AO的选择</li>
+<li>不受物体本身UV的影响，unity可以通过Generate Lightmap UVs生成模型第二个纹理坐标数据</li>
+<li>可生产场景中物体与物体之间的AO信息</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>缺少单一物体的细节（可调整参数提高烘焙细节，但将增加烘焙纹理数量和尺寸以及烘焙时间）</li>
+<li>受物体是否静态影响，动态物体无法烘焙，获得AO信息</li>
+</ul>
+</li>
+</ul>
+<h4 id="SSAO"><a href="#SSAO" class="headerlink" title="SSAO"></a>SSAO</h4><ul>
+<li>优点<ul>
+<li>不依赖场景的复杂度，其效果质量依赖于最终图片像素大小</li>
+<li>实时计算，可用于动态场景</li>
+<li>可控性强，灵活性强，操作简单</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>性能消耗较上述两种方式更多，计算昂贵</li>
+<li>AO质量弱于离线烘焙</li>
+</ul>
+</li>
+</ul>
+<h3 id="六、性能消耗"><a href="#六、性能消耗" class="headerlink" title="六、性能消耗"></a>六、性能消耗</h3><p>主要性能消耗点</p>
+<img src="%E5%9B%BE%E5%BD%A24.2%20SSAO%E7%AE%97%E6%B3%95/image-20220913000029828.png" alt="image-20220913000029828" style="zoom:50%;" />
+
+<ul>
+<li>AO法向半球的随机采样</li>
+<li>双边滤波的多重采样</li>
+</ul>
+<h4 id="AO核心采样消耗说明"><a href="#AO核心采样消耗说明" class="headerlink" title="AO核心采样消耗说明"></a>AO核心采样消耗说明</h4><p>本例SSAO中，主要核心为计算AO随机法向半球的采样点</p>
+<ol>
+<li>使用For结构进行半球随机法向的采样，If，For对GPU计算性能上不友好</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//采样核心</span></span><br><span class="line"><span class="type">float</span> ao = <span class="number">0</span>;</span><br><span class="line"><span class="type">int</span> sampleCount = _SampleKernelCount;<span class="comment">//每个像素点上的采样次数</span></span><br><span class="line"><span class="comment">//https://blog.csdn.net/qq_39300235/article/details/102460405</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i=<span class="number">0</span>; i&lt;sampleCount; i++) &#123;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br><span class="line">ao = ao/sampleCount;</span><br><span class="line">ao = <span class="built_in">max</span>(<span class="number">0.0</span>, <span class="number">1</span> - ao*_AOStrength);</span><br><span class="line"><span class="keyword">return</span> <span class="built_in">float4</span>(ao,ao,ao,<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a>作业</h3><h4 id="实现SSAO"><a href="#实现SSAO" class="headerlink" title="实现SSAO"></a>实现SSAO</h4><h4 id="使用其他算法实现进行对比"><a href="#使用其他算法实现进行对比" class="headerlink" title="使用其他算法实现进行对比"></a>使用其他算法实现进行对比</h4><h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV16q4y1U7S3">https://www.bilibili.com/video/BV16q4y1U7S3</a></p>
+<p>【技术美术百人计划】图形 4.2 SSAO算法 屏幕空间环境光遮蔽</p>
+<p>[2] <a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/09%20SSAO/">https://learnopengl-cn.github.io/05%20Advanced%20Lighting/09%20SSAO/</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/08/26/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A24.2SSAO%E7%AE%97%E6%B3%95/" data-id="cmfe8hf4e004i9wuhhtcqdgq0" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" rel="tag">百人计划</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag">笔记</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2022/09/04/Diary/2022-09-04/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      2022年9月4日 周日
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2022/08/26/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A24.1Bloom%E7%AE%97%E6%B3%95/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title">【笔记】【百人计划】图形4.1 Bloom算法</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

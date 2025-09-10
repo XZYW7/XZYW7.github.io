@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    【笔记】【百人计划】图形4.5 Dof景深基础 |
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形4.5 Dof景深基础" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    【笔记】【百人计划】图形4.5 Dof景深基础
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/10/04/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A24.5%20Dof%E6%99%AF%E6%B7%B1%E5%9F%BA%E7%A1%80/" class="article-date">
+  <time datetime="2022-10-04T15:18:00.000Z" itemprop="datePublished">2022-10-04</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="图形4-5-Dof景深基础"><a href="#图形4-5-Dof景深基础" class="headerlink" title="图形4.5 Dof景深基础"></a>图形4.5 Dof景深基础</h2><h2 id="一、景深"><a href="#一、景深" class="headerlink" title="一、景深"></a>一、景深</h2><p><img src="/%E5%9B%BE%E5%BD%A24.5%20Dof%E6%99%AF%E6%B7%B1%E5%9F%BA%E7%A1%80/image-20221004232304423.png" alt="image-20221004232304423"></p>
+<ul>
+<li>景深<ul>
+<li>相机对焦点前后相对清晰的成像范围。</li>
+<li>虽然透镜只能将光聚到一个固定的距离（焦距），远离此点则会逐渐模糊，但在一段特定的距离内，模糊的程度是无法察觉的，这段距离称之为景深。</li>
+<li>当焦点设在超焦距处时，景深会从超焦距的一半延伸到无限远，对于一个固定的光圈来说，这是最大的景深。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/%E5%9B%BE%E5%BD%A24.5%20Dof%E6%99%AF%E6%B7%B1%E5%9F%BA%E7%A1%80/image-20221004232630406.png" alt="image-20221004232630406"></p>
+<p>脱焦的点扩大到超过像素大小以后，就会出现模糊</p>
+<h2 id="二、作用"><a href="#二、作用" class="headerlink" title="二、作用"></a>二、作用</h2><ul>
+<li>选择性突出或强调画面中的一部分，吸引观察者的注意力到画面中清晰对焦的部分，忽略其他模糊部分的细节</li>
+<li>强调所拍摄场景的深度，增加画面的层次立体感</li>
+<li>艺术意境的表达</li>
+<li>表达主观的视线。在电影学中，通过调节浅景深的镜头，使之对焦在不同位置上，来表示某个人的主观视线的转移</li>
+<li>交代人物之间的关系。在电影学中，通过景深聚焦位置的变化来表达前景和背景人物之间的关系</li>
+</ul>
+<h2 id="三、移动端景深实现"><a href="#三、移动端景深实现" class="headerlink" title="三、移动端景深实现"></a>三、移动端景深实现</h2><ul>
+<li>制作思路<ul>
+<li>模拟景深制作mask</li>
+<li>模糊场景</li>
+<li>正常场景</li>
+<li>合并</li>
+</ul>
+</li>
+</ul>
+<p><img src="/%E5%9B%BE%E5%BD%A24.5%20Dof%E6%99%AF%E6%B7%B1%E5%9F%BA%E7%A1%80/image-20221004233203292.png" alt="image-20221004233203292"></p>
+<p>计算时对于从深度图中获取深度的处理，需要乘以远裁面的大小，获得绝对的相机深度。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">half depth = <span class="built_in">Linear01Depth</span>(<span class="built_in">tex2Dd</span>(_CameraDepthTexture,i.uv))*_ProjectionParams.z;</span><br></pre></td></tr></table></figure>
+
+<p>（这一部分感觉可以替换成恢复线性深度的处理）</p>
+<p>因为我们不希望远裁面的位置影响到我们的景深效果（吗？我觉得这一点可以再斟酌一下）</p>
+<p>然后通过焦距设置以及该深度计算景深Mask</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> focusNear = _FocusDistance - _DepthOfField;</span><br><span class="line"><span class="type">float</span> focusFar = _FocusDistance + _DepthOfField;</span><br><span class="line"></span><br><span class="line">half finnal_depth = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">if</span> ((depth &gt;= focusNear) &amp;&amp; (depth &lt;= focusFar));</span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">	<span class="keyword">if</span>(depth &lt; focusNear)</span><br><span class="line">		finnal_depth = <span class="built_in">saturate</span>(<span class="built_in">abs</span>(focusNear - depth));</span><br><span class="line">	<span class="keyword">if</span>(depth &gt; focusFar)</span><br><span class="line">		finnal_depth = <span class="built_in">saturate</span>(<span class="built_in">abs</span>(depth - focusFar));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>搞了一个如下的Mask效果，靠近焦距就不模糊（0），远离焦距就模糊（1）</p>
+<p><img src="/%E5%9B%BE%E5%BD%A24.5%20Dof%E6%99%AF%E6%B7%B1%E5%9F%BA%E7%A1%80/image-20221004234304634.png" alt="image-20221004234304634"></p>
+<p>接下来的计算就很自然了，卷积，然后根据mask和原图进行插值。</p>
+<p><img src="/%E5%9B%BE%E5%BD%A24.5%20Dof%E6%99%AF%E6%B7%B1%E5%9F%BA%E7%A1%80/image-20221004234515207.png" alt="image-20221004234515207"></p>
+<p>通过降采样多次迭代处理</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">OnRenderImage</span><span class="params">(RenderTexture src, RenderTexture dest)</span> </span>&#123;</span><br><span class="line">    &#123;</span><br><span class="line">        material.<span class="built_in">SetFloat</span>(<span class="string">&quot;_DepthOfField&quot;</span>, _DepthOfField);</span><br><span class="line">        material.<span class="built_in">SetFloat</span>(<span class="string">&quot;_FocusDistance&quot;</span>, _FocusDistance);</span><br><span class="line">        </span><br><span class="line">        <span class="type">int</span> width = (<span class="type">int</span>)(src.width/ _DownSample);</span><br><span class="line">        <span class="type">int</span> height = (<span class="type">int</span>)(src.height/ _DownSample);</span><br><span class="line">        </span><br><span class="line">        RenderTexture RT1 = RenderTexture.<span class="built_in">GetTemporary</span>(width, height);</span><br><span class="line">        RenderTexture RT2 = RenderTexture.<span class="built_in">GetTemporary</span>(width, height);</span><br><span class="line">        </span><br><span class="line">        material.<span class="built_in">SetVector</span>(<span class="string">&quot;_BlurOffset&quot;</span>, <span class="keyword">new</span> <span class="built_in">Vector4</span>(_BlurRadius / wdith, _BlurRadius / height, <span class="number">0</span>, <span class="number">0</span>));</span><br><span class="line">        Graphics.<span class="built_in">Blit</span>(src,RT1,material,<span class="number">0</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i=<span class="number">0</span>; i &lt;_Iteration;i++)&#123;</span><br><span class="line">            RenderTexture.<span class="built_in">ReleaseTemporary</span>(RT2);</span><br><span class="line">            width /= <span class="number">2</span>;</span><br><span class="line">            height /= <span class="number">2</span>;</span><br><span class="line">            RT2 = RenderTexture.<span class="built_in">GetTemporary</span>(width, height);</span><br><span class="line">            Graphics.<span class="built_in">Blit</span>(RT1,RT2,material,<span class="number">0</span>);</span><br><span class="line">            </span><br><span class="line">            RenderTexture.<span class="built_in">ReleaseTemporary</span>(RT1);</span><br><span class="line">            width /= <span class="number">2</span>;</span><br><span class="line">            height /= <span class="number">2</span>;</span><br><span class="line">            RT1 = RenderTexture.<span class="built_in">GetTemporary</span>(width, height);</span><br><span class="line">            Graphics.<span class="built_in">Blit</span>(RT2,RT1,material,<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i=<span class="number">0</span>; i &lt;_Iteration;i++)&#123;</span><br><span class="line">            RenderTexture.<span class="built_in">ReleaseTemporary</span>(RT2);</span><br><span class="line">            width *= <span class="number">2</span>;</span><br><span class="line">            height *= <span class="number">2</span>;</span><br><span class="line">            RT2 = RenderTexture.<span class="built_in">GetTemporary</span>(width, height);</span><br><span class="line">            Graphics.<span class="built_in">Blit</span>(RT1,RT2,material,<span class="number">0</span>);</span><br><span class="line">            </span><br><span class="line">            RenderTexture.<span class="built_in">ReleaseTemporary</span>(RT1);</span><br><span class="line">            width *= <span class="number">2</span>;</span><br><span class="line">            height *= <span class="number">2</span>;</span><br><span class="line">            RT1 = RenderTexture.<span class="built_in">GetTemporary</span>(width, height);</span><br><span class="line">            Graphics.<span class="built_in">Blit</span>(RT2,RT1,material,<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        material.<span class="built_in">SetTexture</span>(<span class="string">&quot;_BlurTex&quot;</span>,RT1);</span><br><span class="line">        Graphics.<span class="built_in">Blit</span>(src,dest,material,<span class="number">1</span>);</span><br><span class="line">        RenderTexture.<span class="built_in">ReleaseTemporary</span>(RT1);</span><br><span class="line">        RenderTexture.<span class="built_in">ReleaseTemporary</span>(RT2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可见在实际操作中，为了获得好的模糊效果，是在第一个pass中完成多次的降采样与卷积，然后在第二个pass中进行mask的提取与插值</p>
+<p><img src="/%E5%9B%BE%E5%BD%A24.5%20Dof%E6%99%AF%E6%B7%B1%E5%9F%BA%E7%A1%80/image-20221004235732752.png" alt="image-20221004235732752"></p>
+<h2 id="四、高级景深效果思路拓展"><a href="#四、高级景深效果思路拓展" class="headerlink" title="四、高级景深效果思路拓展"></a>四、高级景深效果思路拓展</h2><p><img src="/%E5%9B%BE%E5%BD%A24.5%20Dof%E6%99%AF%E6%B7%B1%E5%9F%BA%E7%A1%80/image-20221005000034529.png" alt="image-20221005000034529"></p>
+<h3 id="颜色泄露"><a href="#颜色泄露" class="headerlink" title="颜色泄露"></a>颜色泄露</h3><p><img src="/%E5%9B%BE%E5%BD%A24.5%20Dof%E6%99%AF%E6%B7%B1%E5%9F%BA%E7%A1%80/image-20221005000123337.png" alt="image-20221005000123337"></p>
+<h3 id="模糊不连续缺陷"><a href="#模糊不连续缺陷" class="headerlink" title="模糊不连续缺陷"></a>模糊不连续缺陷</h3><p>焦点在背景时，前景会被截断——前后景分离</p>
+<p><img src="/%E5%9B%BE%E5%BD%A24.5%20Dof%E6%99%AF%E6%B7%B1%E5%9F%BA%E7%A1%80/image-20221005000357241.png" alt="image-20221005000357241"></p>
+<h3 id="散景的模拟"><a href="#散景的模拟" class="headerlink" title="散景的模拟"></a>散景的模拟</h3><p><img src="/%E5%9B%BE%E5%BD%A24.5%20Dof%E6%99%AF%E6%B7%B1%E5%9F%BA%E7%A1%80/image-20221005000627815.png" alt="image-20221005000627815"></p>
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a>作业</h3><ol>
+<li>实现景深效果</li>
+<li>分析官方后处理插件PPS中的景深实现</li>
+</ol>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1dv411u7KA">https://www.bilibili.com/video/BV1dv411u7KA</a>  </p>
+<p>【技术美术百人计划】图形 4.5 Dof景深基础</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/10/04/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A24.5%20Dof%E6%99%AF%E6%B7%B1%E5%9F%BA%E7%A1%80/" data-id="cmfe8hf4f004s9wuh0wr1gbq3" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" rel="tag">百人计划</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag">笔记</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2022/10/06/TA/Graphics/GAMES/%E4%BD%9C%E4%B8%9A%E8%BF%87%E7%A8%8B%E8%AE%B0%E5%BD%95/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      【过程记录】【GAMES202】环境配置与实时阴影
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2022/10/04/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A24.4%E6%8A%97%E9%94%AF%E9%BD%BF%E6%A6%82%E8%BF%B0/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title">【笔记】【百人计划】图形4.4 抗锯齿概述</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

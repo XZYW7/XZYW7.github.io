@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    【笔记】【百人计划】图形4.1 Bloom算法 |
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形4.1Bloom算法" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    【笔记】【百人计划】图形4.1 Bloom算法
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/08/26/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A24.1Bloom%E7%AE%97%E6%B3%95/" class="article-date">
+  <time datetime="2022-08-26T09:08:36.000Z" itemprop="datePublished">2022-08-26</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="一、Bloom算法介绍"><a href="#一、Bloom算法介绍" class="headerlink" title="一、Bloom算法介绍"></a><strong>一、Bloom算法介绍</strong></h2><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220825105103409.png" alt="image-20220825105103409"></p>
+<p>Bloom，也称辉光效果。模拟摄像机的一种图像效果，让物体具有真实的明亮效果。</p>
+<h3 id="1-1-实现思路"><a href="#1-1-实现思路" class="headerlink" title="1.1 实现思路"></a><strong>1.1 实现思路</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220825105142255.png" alt="image-20220825105142255"></p>
+<ol>
+<li>提取原图较量区域</li>
+<li>模糊该图像</li>
+<li>与原图混合</li>
+</ol>
+<h3 id="1-2-前置知识"><a href="#1-2-前置知识" class="headerlink" title="1.2 前置知识"></a><strong>1.2 前置知识</strong></h3><h4 id="1-2-1-HDR与LDR"><a href="#1-2-1-HDR与LDR" class="headerlink" title="1.2.1 HDR与LDR"></a><strong>1.2.1 HDR与LDR</strong></h4><p><a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/1_JYIZ9Hm/">https://xzyw7.github.io/post/1_JYIZ9Hm/</a></p>
+<p>如果在LDR中 使用Bloom，那么阈值提取的亮度区域不会超过1，并且光源的亮度很可能和环境中的亮度接近，导致不希望出现bloom的地方也被模糊了，因此HDR更适合使用Bloom。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220825105613703.png" alt="image-20220825105613703" style="zoom:50%;" />
+
+<h4 id="1-2-2-高斯模糊"><a href="#1-2-2-高斯模糊" class="headerlink" title="1.2.2 高斯模糊"></a><strong>1.2.2 高斯模糊</strong></h4><ul>
+<li>高斯模糊（Gaussian  Blur）<ul>
+<li>一种图像模糊</li>
+<li>减少图像噪声、降低细节层次</li>
+<li>通过高斯函数定义一个卷积核，对图像进行卷积。</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220825105727085.png" alt="image-20220825105727085" style="zoom:50%;" />
+
+<ul>
+<li>计算高斯核<ul>
+<li>用核的位置坐标带入高斯函数，计算结果进行归一化</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220825113401530.png" alt="image-20220825113401530" style="zoom:50%;" />
+
+<ul>
+<li>二维高斯核<ul>
+<li>计算量大，N*N*W*H次纹理采样</li>
+<li>可分离性：可拆成两个一维高斯核，计算次数为（N+N）*W*H</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220825113649073.png" alt="image-20220825113649073" style="zoom:50%;" /></li>
+</ul>
+</li>
+</ul>
+<h2 id="二、Bloom算法应用"><a href="#二、Bloom算法应用" class="headerlink" title="二、Bloom算法应用"></a><strong>二、Bloom算法应用</strong></h2><ul>
+<li>配合自发光贴图</li>
+<li>配合特效</li>
+<li>GodRay效果（基于径向模糊的后处理）</li>
+<li>配合Tone Mapping</li>
+</ul>
+<h2 id="三、Bloom算法实现"><a href="#三、Bloom算法实现" class="headerlink" title="三、Bloom算法实现"></a><strong>三、Bloom算法实现</strong></h2><ul>
+<li>思路<ul>
+<li>C#：调用OnRenderImage函数</li>
+<li>Shader：使用4个Pass完成Bloom效果</li>
+</ul>
+</li>
+<li>但是要做后处理的效果，我们首先使用入门精要中的PostEffectsBase作为基类。这个基类就暂且不研究了。</li>
+</ul>
+<p>MonoBehaviour.OnRenderImage这个生命周期函数，用于获取RT与输出处理后的RT</p>
+<p>这里还用到了一个重要的api，Graphics.Blit。用途是用指定的某个材质（的某个pass）来处理一个Texture，并储存到结果的RT。（pass为-1时，将依次调用所有pass）</p>
+<p><a target="_blank" rel="noopener" href="https://docs.unity3d.com/ScriptReference/Graphics.Blit.html">https://docs.unity3d.com/ScriptReference/Graphics.Blit.html</a></p>
+<p>其中<strong>src纹理会被传递给Shader中的_MainTex纹理属性</strong>。所以我们在脚本中看不到对_MainTex的处理，因为这是默认的</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Bloom</span> : <span class="title">PostEffectsBase</span><span class="comment">//提供了检查shder和材质的方法</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> Shader bloomShader;</span><br><span class="line">    <span class="keyword">private</span> Material bloomMaterial = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">public</span> Material material&#123;</span><br><span class="line">        <span class="keyword">get</span>&#123;</span><br><span class="line">            bloomMaterial = CheckShaderAndCreateMaterial(bloomShader, bloomMaterial);</span><br><span class="line">            <span class="keyword">return</span> bloomMaterial;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    [<span class="meta">Range(0,4)</span>]</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">int</span> iterations = <span class="number">3</span>;<span class="comment">//模糊迭代次数</span></span><br><span class="line">    [<span class="meta">Range(0.2f, 3.0f)</span>]</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">float</span> blurSpread = <span class="number">0.6f</span>;<span class="comment">//模糊范围</span></span><br><span class="line">    [<span class="meta">Range(1,8)</span>]</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">int</span> downSample = <span class="number">2</span>;<span class="comment">//下采样系数</span></span><br><span class="line">    [<span class="meta">Range(0.0f, 4.0f)</span>]</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">float</span> luminanceThreshold = <span class="number">0.6f</span>;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">OnRenderImage</span>(<span class="params">RenderTexture src, RenderTexture dest</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (material != <span class="literal">null</span>) &#123;</span><br><span class="line">            material.SetFloat(<span class="string">&quot;_LuminanceThreshold&quot;</span>, luminanceThreshold);</span><br><span class="line">            <span class="built_in">int</span> rtW = src.width / downSample;</span><br><span class="line">            <span class="built_in">int</span> rtH = src.height / downSample;</span><br><span class="line"></span><br><span class="line">            RenderTexture buffer0 = RenderTexture.GetTemporary(rtW,rtH,<span class="number">0</span>);<span class="comment">//创建缓冲区</span></span><br><span class="line">            buffer0.filterMode = FilterMode.Bilinear;<span class="comment">//双线性滤波</span></span><br><span class="line">            <span class="comment">// 提取亮度区域</span></span><br><span class="line">            Graphics.Blit(src,buffer0, material, <span class="number">0</span>);<span class="comment">//src,dest,mat,pass</span></span><br><span class="line">            </span><br><span class="line">            <span class="keyword">for</span>(<span class="built_in">int</span> i=<span class="number">0</span>;i&lt;iterations;i++) &#123;</span><br><span class="line">                <span class="comment">// vertical filter Pass</span></span><br><span class="line">                material.SetFloat(<span class="string">&quot;_BlurSize&quot;</span>, <span class="number">1.0f</span>+i*blurSpread);</span><br><span class="line">                RenderTexture buffer1 = RenderTexture.GetTemporary(rtW,rtH,<span class="number">0</span>);</span><br><span class="line">                Graphics.Blit(buffer0,buffer1,material,<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">                <span class="comment">// horizontal filter Pass</span></span><br><span class="line">                RenderTexture.ReleaseTemporary(buffer0);</span><br><span class="line">                buffer0 = buffer1;<span class="comment">//每次模糊使用的都是上一次模糊后的结果</span></span><br><span class="line">                buffer1 = RenderTexture.GetTemporary(rtW,rtH,<span class="number">0</span>);</span><br><span class="line">                Graphics.Blit(buffer0,buffer1,material,<span class="number">2</span>);</span><br><span class="line">                </span><br><span class="line">                RenderTexture.ReleaseTemporary(buffer0);</span><br><span class="line">                buffer0 = buffer1;</span><br><span class="line">            &#125;</span><br><span class="line">			<span class="comment">// Blend Pass</span></span><br><span class="line">            material.SetTexture(<span class="string">&quot;_Bloom&quot;</span>, buffer0);</span><br><span class="line">            Graphics.Blit(src,dest,material,<span class="number">3</span>);</span><br><span class="line">            RenderTexture.ReleaseTemporary(buffer0);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Graphics.Blit(src,dest);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>同样地，在shader里我们也要写好这4个pass。并且，这个shader是不需要创建材质然后赋给物体对象的。</p>
+<p>材质是在脚本中创建的，并且通过Graphics.Blit这一API来调用pass对RT进行处理。</p>
+<p>屏幕后处理实际上是在场景中绘制一个与屏幕同款同高的quad，</p>
+<p>我们片段着色器输出pos并对x，y分别除以分辨率，就是这个结果。Z分量始终为1，x，y以左上角为坐标原点。所以Shader中我们仍然对顶点进行正常的变换处理。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220825221804632.png" alt="image-20220825221804632" style="zoom:50%;" />
+
+
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br></pre></td><td class="code"><pre><span class="line">Shader <span class="string">&quot;Custom/Bloom&quot;</span></span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _MainTex (<span class="string">&quot;Base(RGB)&quot;</span>, <span class="number">2</span>D) = <span class="string">&quot;white&quot;</span> &#123;&#125;</span><br><span class="line">        _Bloom(<span class="string">&quot;Bloom(RGB)&quot;</span>,<span class="number">2</span>D)=<span class="string">&quot;black&quot;</span>&#123;&#125;</span><br><span class="line">        _LuminanceThreshold(<span class="string">&quot;Luminance Threshold&quot;</span>,Float)=<span class="number">0.5</span></span><br><span class="line">        _BlurSize(<span class="string">&quot;Blur Size&quot;</span>, Float) = <span class="number">0.5</span></span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        CGINCLUDE</span><br><span class="line">        <span class="meta">#<span class="keyword">include</span> <span class="string">&quot;UnityCG.cginc&quot;</span></span></span><br><span class="line">        sampler2D _MainTex;</span><br><span class="line">        half4 _MainTex_TexelSize;</span><br><span class="line">        sampler2D _Bloom;</span><br><span class="line">        <span class="type">float</span> _LuminanceThreshold;</span><br><span class="line">        <span class="type">float</span> _BlurSize;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="keyword">struct</span> <span class="title class_">v2fExtractBright</span> &#123;</span><br><span class="line">            float4 pos : SV_POSITION;</span><br><span class="line">            half2 uv : TEXCOORD0;</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="function">v2fExtractBright <span class="title">vertExtractBright</span><span class="params">(appdata_img v)</span> </span>&#123;</span><br><span class="line">            v2fExtractBright o;</span><br><span class="line">            o.pos = <span class="built_in">UnityObjectToClipPos</span>(v.vertex);</span><br><span class="line">            o.uv = v.texcoord;</span><br><span class="line">            <span class="keyword">return</span> o;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function">fixed <span class="title">luminance</span><span class="params">(fixed4 color)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0.2125</span> * color.r + <span class="number">0.7154</span> * color.g + <span class="number">0.0721</span> * color.b;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function">fixed4 <span class="title">fragExtractBright</span> <span class="params">( v2fExtractBright i)</span> : SV_Target &#123;</span></span><br><span class="line">            fixed4 c =<span class="built_in">tex2D</span>(_MainTex, i.uv);</span><br><span class="line">            fixed val = <span class="built_in">clamp</span>(<span class="built_in">luminance</span>(c)-_LuminanceThreshold, <span class="number">0.0</span> ,<span class="number">1.0</span>);</span><br><span class="line">            <span class="keyword">return</span> c*val;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">struct</span> <span class="title class_">v2fBlur</span> &#123;</span><br><span class="line">            float4 pos: SV_POSITION;</span><br><span class="line">            half2 uv[<span class="number">5</span>] : TEXCOORD0;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        <span class="function">v2fBlur <span class="title">vertexBlurVertical</span><span class="params">(appdata_img v)</span> </span>&#123;</span><br><span class="line">            v2fBlur o;</span><br><span class="line">            o.pos = <span class="built_in">UnityObjectToClipPos</span>(v.vertex);</span><br><span class="line"></span><br><span class="line">            half2 uv = v.texcoord;</span><br><span class="line">            o.uv[<span class="number">0</span>] = uv;</span><br><span class="line">            o.uv[<span class="number">1</span>] = uv + <span class="built_in">float2</span>(<span class="number">0.0</span>, _MainTex_TexelSize.y *<span class="number">1.0</span>) * _BlurSize;</span><br><span class="line">            o.uv[<span class="number">2</span>] = uv - <span class="built_in">float2</span>(<span class="number">0.0</span>, _MainTex_TexelSize.y *<span class="number">1.0</span>) * _BlurSize;</span><br><span class="line">            o.uv[<span class="number">3</span>] = uv + <span class="built_in">float2</span>(<span class="number">0.0</span>, _MainTex_TexelSize.y *<span class="number">2.0</span>) * _BlurSize;</span><br><span class="line">            o.uv[<span class="number">4</span>] = uv - <span class="built_in">float2</span>(<span class="number">0.0</span>, _MainTex_TexelSize.y *<span class="number">2.0</span>) * _BlurSize;</span><br><span class="line">            <span class="keyword">return</span> o;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function">v2fBlur <span class="title">vertexBlurHorizontal</span><span class="params">(appdata_img v)</span> </span>&#123;</span><br><span class="line">            v2fBlur o;</span><br><span class="line">            o.pos = <span class="built_in">UnityObjectToClipPos</span>(v.vertex);</span><br><span class="line"></span><br><span class="line">            half2 uv = v.texcoord;</span><br><span class="line">            o.uv[<span class="number">0</span>] = uv;</span><br><span class="line">            o.uv[<span class="number">1</span>] = uv + <span class="built_in">float2</span>( _MainTex_TexelSize.x *<span class="number">1.0</span>, <span class="number">0.0</span>) * _BlurSize;</span><br><span class="line">            o.uv[<span class="number">2</span>] = uv - <span class="built_in">float2</span>( _MainTex_TexelSize.x *<span class="number">1.0</span>, <span class="number">0.0</span>) * _BlurSize;</span><br><span class="line">            o.uv[<span class="number">3</span>] = uv + <span class="built_in">float2</span>( _MainTex_TexelSize.x *<span class="number">2.0</span>, <span class="number">0.0</span>) * _BlurSize;</span><br><span class="line">            o.uv[<span class="number">4</span>] = uv - <span class="built_in">float2</span>( _MainTex_TexelSize.x *<span class="number">2.0</span>, <span class="number">0.0</span>) * _BlurSize;</span><br><span class="line">            <span class="keyword">return</span> o;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function">fixed4 <span class="title">fragBlur</span><span class="params">(v2fBlur i)</span> :SV_Target &#123;</span></span><br><span class="line">            <span class="type">float</span> weight[<span class="number">3</span>] = &#123;<span class="number">0.4026</span>, <span class="number">0.2442</span>, <span class="number">0.0545</span>&#125;;</span><br><span class="line">            fixed3 sum = <span class="built_in">tex2D</span>(_MainTex, i.uv[<span class="number">0</span>]).rgb * weight[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> it = <span class="number">1</span>; it &lt; <span class="number">3</span>;it++) &#123;</span><br><span class="line">                sum += <span class="built_in">tex2D</span>(_MainTex, i.uv[it*<span class="number">2</span><span class="number">-1</span>]).rgb * weight[it];</span><br><span class="line">                sum += <span class="built_in">tex2D</span>(_MainTex, i.uv[it*<span class="number">2</span>]).rgb* weight[it];</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">fixed4</span>(sum, <span class="number">1.0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">struct</span> <span class="title class_">v2fBloom</span> &#123;</span><br><span class="line">            float4 pos : SV_POSITION;</span><br><span class="line">            half4 uv : TEXCOORD0;</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="function">v2fBloom <span class="title">vertBloom</span><span class="params">(appdata_img v)</span> </span>&#123;</span><br><span class="line">            v2fBloom o;</span><br><span class="line">            o.pos = <span class="built_in">UnityObjectToClipPos</span>(v.vertex)/<span class="number">3</span>;</span><br><span class="line">            o.uv.xy = v.texcoord;</span><br><span class="line">            o.uv.zw = v.texcoord;</span><br><span class="line">            <span class="meta">#<span class="keyword">if</span> UNITY_UV_STARTS_AT_TOP</span></span><br><span class="line">            <span class="keyword">if</span> (_MainTex_TexelSize.y&lt;<span class="number">0.0</span>) &#123;</span><br><span class="line">                o.uv.w = <span class="number">1.0</span>-o.uv.w;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">            <span class="keyword">return</span> o;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function">fixed4 <span class="title">fragBloom</span><span class="params">(v2fBloom i)</span>: SV_Target &#123;</span></span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">tex2D</span>(_MainTex, i.uv.xy) + <span class="built_in">tex2D</span>(_Bloom, i.uv.zw);<span class="comment">//fixed4(i.pos.x/1920,i.pos.y/1080,i.pos.z,1);//</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ENDCG</span><br><span class="line">        ZTest Always Cull off ZWrite off</span><br><span class="line">        Pass &#123;</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            <span class="meta">#<span class="keyword">pragma</span> vertex vertExtractBright</span></span><br><span class="line">            <span class="meta">#<span class="keyword">pragma</span> fragment fragExtractBright</span></span><br><span class="line">            ENDCG</span><br><span class="line"></span><br><span class="line">        &#125;        </span><br><span class="line">        Pass &#123;</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            <span class="meta">#<span class="keyword">pragma</span> vertex vertexBlurVertical</span></span><br><span class="line">            <span class="meta">#<span class="keyword">pragma</span> fragment fragBlur</span></span><br><span class="line">            ENDCG</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        Pass &#123;</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            <span class="meta">#<span class="keyword">pragma</span> vertex vertexBlurHorizontal</span></span><br><span class="line">            <span class="meta">#<span class="keyword">pragma</span> fragment fragBlur</span></span><br><span class="line">            ENDCG</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        Pass &#123;</span><br><span class="line">            CGPROGRAM</span><br><span class="line">            <span class="meta">#<span class="keyword">pragma</span> vertex vertBloom</span></span><br><span class="line">            <span class="meta">#<span class="keyword">pragma</span> fragment fragBloom</span></span><br><span class="line">            ENDCG</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    FallBack <span class="string">&quot;Diffuse&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220825212340311.png" alt="image-20220825212340311" style="zoom:33%;" />
+
+<p>模糊后</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220825212418349.png" alt="image-20220825212418349" style="zoom:33%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220825212653314.png" alt="image-20220825212653314" style="zoom:50%;" />
+
+
+
+<p>但是依然存在一个问题。</p>
+<p>就是这个downSample和高斯模糊什么关系？很容易想到，用同样的核进行滤波，下采样后滤波再上采样回去，会更模糊。这就相当于用更大的核来进行滤波。</p>
+<p><a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/1_JYIZ9Hm/">【笔记】【百人计划】图形2.7 LDR与HDR | XZYW (xzyw7.github.io)</a></p>
+<p>在LDR与HDR的笔记中曾经提到过Unity的Bloom方式。Unity就是多次下采样来完成Bloom效果的，不妨把它叫做coreSize的方法</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730184829163.png" alt="image-20220730184829163" style="zoom:50%;" />
+
+<p>我们也可以做这样的处理，只需要在每次迭代中增加下采样的次数就可以了。</p>
+<p>还要做一个小小的修改就是blurSize的处理</p>
+<p>material.SetFloat(“_BlurSize”, 1.0f);教程中为了达到这样的效果，采用了每次迭代增加BlurSize的方法，如下图（ <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/471923875%EF%BC%89%E3%80%82">https://zhuanlan.zhihu.com/p/471923875）。</a></p>
+<p>我们这里每次迭代都增加下采样，自然不用做这个处理。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/v2-a45a98e33d4695052d709030bdf21a63_720w.jpg" alt="img"></p>
+<p>得到的更优的结果就是，在更大的迭代数下能够减少虚影</p>
+<p>blurSpread过大会导致严重的虚影</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220826001629757.png" alt="image-20220826001629757" style="zoom:50%;" />
+
+<p>到这里还有一个问题</p>
+<p>就是其实我们会发现我们的辉光，一点都不辉，一点都不光，每次下采样后，模糊是模糊了，但是整个“光晕”也变暗了。</p>
+<p>按照上面的说法，我们应该把每次下采样的结果叠加起来。于是我们再新建一个RT缓冲区，用来储存下采样模糊的叠加结果。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">buffer1 = RenderTexture.<span class="built_in">GetTemporary</span>(rtW,rtH,<span class="number">0</span>);</span><br><span class="line">material.<span class="built_in">SetTexture</span>(<span class="string">&quot;_Bloom&quot;</span>, buffer0);</span><br><span class="line">Graphics.<span class="built_in">Blit</span>(bufferResult1,buffer1,material,<span class="number">3</span>);</span><br><span class="line">RenderTexture.<span class="built_in">ReleaseTemporary</span>(bufferResult1);</span><br><span class="line">bufferResult1 = buffer1;</span><br></pre></td></tr></table></figure>
+
+<p>是理想中的辉光没错了。但是这种做法要注意控制迭代次数，因为亮度是叠加的，迭代次数太多会过曝。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220826003752777.png" alt="image-20220826003752777" style="zoom:50%;" />
+
+<p>但是这样做的时候，用blurSize的结果是非常好的，但是用coreSize就出问题了。迭代次数越多，像素化越严重，以下是3次迭代，再增加就没法看了。正如入门精要中提及，尽管downSample值越大，性能越好，但过大的DownSample可能会造成图像像素化。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220826010042787.png" alt="image-20220826010042787" style="zoom:50%;" />
+
+<p>的确，blurSize的方法只在最开始的时候做downSample，而coreSize的方法每一次迭代都进行下采样，是非常节省性能的，但在这种叠加的时候，就出现问题了，因为下采样的区域差别是指数级的，叠加后会形成明显的区分。</p>
+<p>而blurSize的方法始终是在同一分辨率上做间隔采样，每次迭代只是增加了间隔数量，不会出现这种问题。</p>
+<p>所以，为了好看的效果，还是老老实实用blurSize吧。</p>
+<p>（不知道有没有更好的做法，能够用coreSize的方法的同时，得到均匀的Bloom）</p>
+<ul>
+<li><p>URP中的Bloom与本方法的Bloom</p>
+<ul>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220826012921143.png" alt="image-20220826012921143"></li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220826013319692.png" alt="image-20220826013319692"></li>
+</ul>
+</li>
+<li><p>还有些小问题，之前加上bloom后一直出现game界面闪烁。。。就是鼠标移到game里面以后，或者移出来，画面会闪一下，运行时就很稳定。</p>
+</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">RenderTexture buffer0 = RenderTexture.GetTemporary(rtW,rtH,<span class="number">0</span>);<span class="comment">//创建缓冲区</span></span><br><span class="line">buffer0.filterMode = FilterMode.Bilinear;<span class="comment">//双线性滤波</span></span><br><span class="line"><span class="comment">// 提取亮度区域</span></span><br><span class="line">Graphics.Blit(src,buffer0, material, <span class="number">0</span>);<span class="comment">//src,dest,mat,pass</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 新建一个RT buffer用来储存叠加结果</span></span><br><span class="line">RenderTexture bufferResult1 = RenderTexture.GetTemporary(rtW,rtH,<span class="number">0</span>);</span><br><span class="line"><span class="keyword">for</span>(<span class="built_in">int</span> i=<span class="number">0</span>;i&lt;iterations;i++) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// vertical filter Pass</span></span><br><span class="line">    <span class="comment">//material.SetFloat(&quot;_BlurSize&quot;, 1.0f + i*blurSpread);</span></span><br><span class="line">    material.SetFloat(<span class="string">&quot;_BlurSize&quot;</span>, <span class="number">1</span> + i * blurSpread);</span><br><span class="line">    RenderTexture buffer1 = RenderTexture.GetTemporary(rtW,rtH,<span class="number">0</span>);</span><br><span class="line">    Graphics.Blit(buffer0,buffer1,material,<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// horizontal filter Pass</span></span><br><span class="line">    RenderTexture.ReleaseTemporary(buffer0);</span><br><span class="line">    buffer0 = buffer1;<span class="comment">//每次模糊使用的都是上一次模糊后的结果</span></span><br><span class="line">    buffer1 = RenderTexture.GetTemporary(rtW,rtH,<span class="number">0</span>);</span><br><span class="line">    Graphics.Blit(buffer0,buffer1,material,<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">    RenderTexture.ReleaseTemporary(buffer0);</span><br><span class="line">    buffer0 = buffer1;</span><br><span class="line">    <span class="comment">//这里有个很重要的tips</span></span><br><span class="line">    <span class="comment">//buffer1的声明周期是在for循环内，进入下一次迭代，这里的buffer1就自动销毁了，经过测试，如果我们在这里释放buffer1的内存，后面所有的图像都没了。也就是说，buffer0指向的这块内存在这里被销毁了。而如果让它自然进入下一次迭代的化，buffer1生命周期结束，但是buffer0是指向这块内存的，仍然存在（参考智能指针）。</span></span><br><span class="line">    <span class="comment">//而且还要更复杂一些，似乎是因为GetTemporary的分配机制，他们的rt资源是重用的，gpu并没有分配新的rt。</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 换一个新的temporal RT就不会出现这个问题。</span></span><br><span class="line">    <span class="comment">// 储存下采样结果</span></span><br><span class="line">    material.SetTexture(<span class="string">&quot;_Bloom&quot;</span>, buffer0);<span class="comment">// 这一级的下采样结果</span></span><br><span class="line">    RenderTexture bufferResult2 = RenderTexture.GetTemporary(rtW,rtH,<span class="number">0</span>);<span class="comment">// 把闲置的buffer1利用起来</span></span><br><span class="line">    Graphics.Blit(bufferResult1,bufferResult2,material,<span class="number">3</span>);</span><br><span class="line">    RenderTexture.ReleaseTemporary(bufferResult1);</span><br><span class="line">    bufferResult1 = bufferResult2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/leonwei/article/details/54972653">https://blog.csdn.net/leonwei/article/details/54972653</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.unity3d.com/ScriptReference/RenderTexture.html">https://docs.unity3d.com/ScriptReference/RenderTexture.html</a></p>
+<ul>
+<li>实际上，我们的bloom的范围还应该受到亮度的影响</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/91390940%E5%8F%91%E7%8E%B0%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0%E4%B9%9F%E5%81%9A%E4%BA%86%E7%9B%B8%E5%90%8C%E7%9A%84Bloom%E7%B4%AF%E5%8A%A0%E6%93%8D%E4%BD%9C">https://zhuanlan.zhihu.com/p/91390940发现这篇文章也做了相同的Bloom累加操作</a></p>
+<p>看SSAO的开头的时候发现有同学提到catlike中也有Bloom的教程，去找了下放在这，之后可以看看这个是怎么处理这些细节的。</p>
+<p><a target="_blank" rel="noopener" href="https://catlikecoding.com/unity/tutorials/advanced-rendering/bloom/">https://catlikecoding.com/unity/tutorials/advanced-rendering/bloom/</a></p>
+<h2 id="作业"><a href="#作业" class="headerlink" title="作业"></a><strong>作业</strong></h2><ol>
+<li>实现Bloom效果</li>
+<li>思考如何实现Bloom的mask功能，让区域不产生bloom效果</li>
+</ol>
+<p>首先是理解这个问题，什么叫做Bloom的Mask。我的理解就是，正常的Bloom是对整张图片做后处理，那么整个画面都会受到一个全局的影响，而施加mask就是让场景中的一部分物体，虽然亮度超过阈值，但是不产生Bloom。</p>
+<p>也就是说，在亮度提取的部分，给它一个Mask，不会提取到这部分亮度。</p>
+<ul>
+<li>FB的Alpha通道<ul>
+<li>我们可以在物体渲染的最后在alpha通道加上我们的mask参数，然后在亮度提取的时候乘上alpha通道（mask）</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220826115737712.png" alt="image-20220826115737712" style="zoom:50%;" /></li>
+<li>可以看到问题就是，半透明发光物体也会被影响，但控制效果是达到了。</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220826115659429.png" alt="image-20220826115659429" style="zoom:50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220826115718616.png" alt="image-20220826115718616" style="zoom:50%;" />
+
+<ul>
+<li>模板测试<ul>
+<li>很自然而然的，这张mask我们可以用模板缓冲来做。</li>
+<li>就不实操了，纸上谈兵一下，渲染每个物体的时候把相关的mask写入模板缓冲，</li>
+<li>在亮度提取pass，用Equal或者其他什么操作，通过测试再提取亮度</li>
+</ul>
+</li>
+<li>传入一张Mask<ul>
+<li>可以直接public指定一个Texture2D，然后作为参数</li>
+<li>我这里随便拖了个黑白的贴图，效果还是很好的。但是实用性好像不是很大</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220826120812649.png" alt="image-20220826120812649"></li>
+</ul>
+</li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a><strong>参考资料</strong></h2><p>[1]  <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1a3411z7LC">https://www.bilibili.com/video/BV1a3411z7LC</a></p>
+<p>【技术美术百人计划】图形 4.1 Bloom算法 游戏中的辉光效果实现</p>
+<p>[2] <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/471923875">https://zhuanlan.zhihu.com/p/471923875</a></p>
+<p>[3] <a target="_blank" rel="noopener" href="https://kalogirou.net/2006/05/20/how-to-do-good-bloom-for-hdr-rendering/">https://kalogirou.net/2006/05/20/how-to-do-good-bloom-for-hdr-rendering/</a></p>
+<p>[4] <a target="_blank" rel="noopener" href="https://docs.unity3d.com/ScriptReference/Graphics.Blit.html">https://docs.unity3d.com/ScriptReference/Graphics.Blit.html</a></p>
+<p>[5] <a target="_blank" rel="noopener" href="https://blog.csdn.net/leonwei/article/details/54972653">https://blog.csdn.net/leonwei/article/details/54972653</a></p>
+<p>[6] <a target="_blank" rel="noopener" href="https://docs.unity3d.com/ScriptReference/RenderTexture.html">https://docs.unity3d.com/ScriptReference/RenderTexture.html</a></p>
+<p>[7] <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/91390940">https://zhuanlan.zhihu.com/p/91390940</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/08/26/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A24.1Bloom%E7%AE%97%E6%B3%95/" data-id="cmfe8hf4d004f9wuh0x1a1wnm" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Computer-Graphics/" rel="tag">Computer Graphics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" rel="tag">百人计划</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag">笔记</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%BF%87%E7%A8%8B%E8%AE%B0%E5%BD%95/" rel="tag">过程记录</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2022/08/26/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A24.2SSAO%E7%AE%97%E6%B3%95/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      【笔记】【百人计划】图形4.2 SSAO算法
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2022/08/24/TA/OpenGL/Opengl%20learning_01/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title">【笔记】Cherno Opengl Tutorial note 01</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

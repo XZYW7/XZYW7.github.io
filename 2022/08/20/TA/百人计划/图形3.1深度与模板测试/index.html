@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    【笔记】【百人计划】图形3.1 深度与模板测试 |
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形3.1深度与模板测试" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    【笔记】【百人计划】图形3.1 深度与模板测试
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/08/20/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.1%E6%B7%B1%E5%BA%A6%E4%B8%8E%E6%A8%A1%E6%9D%BF%E6%B5%8B%E8%AF%95/" class="article-date">
+  <time datetime="2022-08-19T16:00:21.000Z" itemprop="datePublished">2022-08-20</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="图形3-1-深度与模板测试"><a href="#图形3-1-深度与模板测试" class="headerlink" title="图形3.1 深度与模板测试"></a><strong>图形3.1 深度与模板测试</strong></h2><h3 id="一、模板测试Stencil-Test"><a href="#一、模板测试Stencil-Test" class="headerlink" title="一、模板测试Stencil Test"></a><strong>一、模板测试Stencil Test</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220816182543699.png" alt="image-20220816182543699"></p>
+<h4 id="1-1-渲染管线中的逐片元操作"><a href="#1-1-渲染管线中的逐片元操作" class="headerlink" title="1.1 渲染管线中的逐片元操作"></a><strong>1.1 渲染管线中的逐片元操作</strong></h4><ul>
+<li>逐片元操作（可配置，不可编程）<ul>
+<li>像素权限测试Pixel Ownership Test（屏幕窗口使用权限，如scene和game窗口区分）</li>
+<li>裁剪测试Scissor Test（可以对渲染部分区域进行控制）</li>
+<li>透明度测试Alpha Test（片元透明度大于阈值，则通过测试，否则剔除——只能实现不透明和全透明）</li>
+<li>模板测试Stencil Test</li>
+<li>深度测试Depth Test</li>
+<li>混合Blending</li>
+<li>Dithering</li>
+<li>Logic Op</li>
+</ul>
+</li>
+</ul>
+<h4 id="1-2-模板测试理解"><a href="#1-2-模板测试理解" class="headerlink" title="1.2 模板测试理解"></a><strong>1.2 模板测试理解</strong></h4><ul>
+<li>通过一定条件来判断是对该片元抛弃还是保留</li>
+<li>模板缓冲区<ul>
+<li>和颜色缓冲区、深度缓冲区类似</li>
+<li>为屏幕上每个像素点保存一个uint8</li>
+<li>可以用这个值与预先设定的参考值比较，根据结果来决定是否更新对应像素的颜色。</li>
+<li>这个比较的过程被称为模板测试</li>
+</ul>
+</li>
+<li>发生在透明度测试后，深度测试前</li>
+<li>通过测试，则更新像素点，否则不更新语法表示</li>
+</ul>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">stencil&#123;</span><br><span class="line">    Ref referenceValue</span><br><span class="line">    ReadMask readMask</span><br><span class="line">    WriteMask writeMask</span><br><span class="line">    Comp comparisonFunction</span><br><span class="line">    Pass stencilOperation</span><br><span class="line">    Fail stencilOperation</span><br><span class="line">    ZFail stencilOperation<span class="comment">//模板测试通过了，但是深度测试没通过</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(referenceValue&amp;readMask comparisonFunction stencilBufferValue&amp;readMask)</span><br><span class="line">pass</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="keyword">discard</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="1-2-1-比较函数Comparison-Function"><a href="#1-2-1-比较函数Comparison-Function" class="headerlink" title="1.2.1 比较函数Comparison Function"></a><strong>1.2.1 比较函数Comparison Function</strong></h5><table>
+<thead>
+<tr>
+<th align="center">Greater</th>
+<th align="center">GEqual</th>
+<th align="center">Less</th>
+<th align="center">LEqual</th>
+<th align="center">Equal</th>
+<th align="center">NotEqual</th>
+<th align="center">Always</th>
+<th align="center">Never</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">$&gt;$</td>
+<td align="center">$\geq$</td>
+<td align="center">$&lt;$</td>
+<td align="center">$\leq$</td>
+<td align="center">$&#x3D;$</td>
+<td align="center">$\neq$</td>
+<td align="center">总是通过</td>
+<td align="center">总是失败</td>
+</tr>
+</tbody></table>
+<h5 id="1-2-2-模板（更新）操作stencilOperation"><a href="#1-2-2-模板（更新）操作stencilOperation" class="headerlink" title="1.2.2 模板（更新）操作stencilOperation"></a><strong>1.2.2 模板（更新）操作stencilOperation</strong></h5><table>
+<thead>
+<tr>
+<th align="center">属性</th>
+<th align="center">含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Keep</td>
+<td align="center">保留当前缓冲内容，即stencilBufferValue不变</td>
+</tr>
+<tr>
+<td align="center">Zero</td>
+<td align="center">将0写入缓冲，即stencilBufferValue变为0</td>
+</tr>
+<tr>
+<td align="center">Replace</td>
+<td align="center">将参考值写入缓冲，即将stencilBufferValue赋值为referenceValue</td>
+</tr>
+<tr>
+<td align="center">IncrSat</td>
+<td align="center">stencilBufferValue加1，如果超过255，则保留为255</td>
+</tr>
+<tr>
+<td align="center">DecrSat</td>
+<td align="center">stencilBufferValue减1，如果小于0，则保留为0</td>
+</tr>
+<tr>
+<td align="center">Invert</td>
+<td align="center">将stencilBufferValue按位取反</td>
+</tr>
+<tr>
+<td align="center">IncrWarp</td>
+<td align="center">stencilBufferValue加1，如果超过255，则变成0（然后继续自增）</td>
+</tr>
+<tr>
+<td align="center">DecrWarp</td>
+<td align="center">stencilBufferValue减1，如果小于0，则变成255（然后继续自减）</td>
+</tr>
+</tbody></table>
+<h4 id="1-3-总结"><a href="#1-3-总结" class="headerlink" title="1.3 总结"></a><strong>1.3 总结</strong></h4><ul>
+<li><p>使用模板缓冲区最重要的两个值：当前模板缓冲值stencilBufferValue和模板参考值referenceValue</p>
+</li>
+<li><p>模板测试主要就是对这两个值使用特定的比较操作</p>
+</li>
+<li><p>模板测试之后要对模板缓冲区的值进行更新操作，Keep，Zero，Replace等</p>
+</li>
+<li><p>模板测试之后可以根据结果对模板缓冲区做不同的更新操作，比如测试成功操作pass，测试失败操作fail，深度测试失败Zfail，还有正对正面和背面精确更新操作PassBack，PassFront，FailBack等</p>
+</li>
+<li><p>应用</p>
+<ul>
+<li>描边<ul>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220816205437129.png" alt="image-20220816205437129"></li>
+</ul>
+</li>
+<li>多边形填充<ul>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220816205429461.png" alt="image-20220816205429461"></li>
+</ul>
+</li>
+<li>反射区域控制<ul>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220816205345560.png" alt="image-20220816205345560"></li>
+</ul>
+</li>
+<li>Shadow Volume</li>
+</ul>
+</li>
+</ul>
+<h3 id="二、深度测试Depth-Test"><a href="#二、深度测试Depth-Test" class="headerlink" title="二、深度测试Depth Test"></a><strong>二、深度测试Depth Test</strong></h3><ul>
+<li>一些特性</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220816205656742.png" alt="image-20220816205656742"></p>
+<p>在这里面值得注意的是最后一张，greater的部分，绿色的部分消失了。这是因为蓝色外面的部分还没有渲染，是无穷远，greater的比较无法通过，就不被渲染。像这种涉及无穷远比较的，比如天空盒，要多注意深度测试的比较方式。</p>
+<h4 id="2-1-渲染管线中的深度测试"><a href="#2-1-渲染管线中的深度测试" class="headerlink" title="2.1 渲染管线中的深度测试"></a><strong>2.1 渲染管线中的深度测试</strong></h4><blockquote>
+<p>  Early-Z</p>
+<p>  现在大部分的GPU都提供一个叫做提前深度测试(Early Depth Testing)的硬件特性。提前深度测试允许深度测试在片段着色器之前运行。只要我们清楚一个片段永远不会是可见的（它在其他物体之后），我们就能提前丢弃这个片段。</p>
+<p>  片段着色器通常开销都是很大的，所以我们应该尽可能避免运行它们。当使用提前深度测试时，片段着色器的一个限制是你不能写入片段的深度值。如果一个片段着色器对它的深度值进行了写入，提前深度测试是不可能的。OpenGL不能提前知道深度值。</p>
+<p>  ——LearnOpengl</p>
+</blockquote>
+<ul>
+<li><p>（Early-Z）</p>
+</li>
+<li><p>片元着色器</p>
+</li>
+<li><p>逐片元操作（可配置，不可编程）</p>
+<ul>
+<li>像素权限测试Pixel Ownership Test（屏幕窗口使用权限，如scene和game窗口区分）</li>
+<li>裁剪测试Scissor Test（可以对渲染部分区域进行控制）</li>
+<li>透明度测试Alpha Test（片元透明度大于阈值，则通过测试，否则剔除——只能实现不透明和全透明）</li>
+<li>模板测试Stencil Test</li>
+<li>深度测试Depth Test</li>
+<li>混合Blending</li>
+<li>Dithering</li>
+<li>Logic Op</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-2-深度测试理解"><a href="#2-2-深度测试理解" class="headerlink" title="2.2 深度测试理解"></a><strong>2.2 深度测试理解</strong></h4><p>深度测试就是当前对象在屏幕（Frame Buffer）对应的像素点，将对象自身的深度值与该当前该像素点缓存的深度值进行比较，如果通过，本对象在该像素点才会将颜色写入颜色缓冲，否则不会写入。</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//深度缓冲区</span></span><br><span class="line"><span class="keyword">if</span>(ZWrite On &amp;&amp; (currentDepthValue ComparisonFunction DepthBufferValue))</span><br><span class="line">写入深度</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">忽略深度</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//颜色缓冲区</span></span><br><span class="line"><span class="keyword">if</span>(currentDepthValue Comparison Function DepthBufferValue)</span><br><span class="line">写入颜色缓冲</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">不写入颜色缓冲</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>从发展角度理解<ul>
+<li>控制渲染顺序<ul>
+<li>画家算法</li>
+<li>Z-Buffer算法</li>
+</ul>
+</li>
+<li>控制Z-Buffer对深度的储存<ul>
+<li>Z-Test</li>
+<li>Z-Write</li>
+</ul>
+</li>
+<li>控制不同类型物体渲染顺序<ul>
+<li>透明物体</li>
+<li>不透明物体</li>
+<li>渲染队列</li>
+</ul>
+</li>
+<li>减少overdraw<ul>
+<li>Early-Z</li>
+<li>Z-Cull</li>
+<li>Z-check</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h5 id="2-2-1-深度缓冲区Z-Buffer"><a href="#2-2-1-深度缓冲区Z-Buffer" class="headerlink" title="2.2.1 深度缓冲区Z-Buffer"></a><strong>2.2.1 深度缓冲区Z-Buffer</strong></h5><p>深度缓冲就像颜色缓冲，在每个片段中储存了信息，并且和颜色缓冲一样拥有宽度和高度，深度缓冲是由窗口系统自动创建的，他会以16、24、32位float的形式储存深度值。在大部分系统中深度缓冲精度都是24位。（Z-Buffer中储存的是当前深度信息，对于每个像素储存一个深度值）</p>
+<p>通过Z-Write和Z-Test来调用Z-Buffer，实现想要的渲染结果</p>
+<h5 id="2-2-2-深度写入Z-Write"><a href="#2-2-2-深度写入Z-Write" class="headerlink" title="2.2.2 深度写入Z-Write"></a><strong>2.2.2 深度写入Z-Write</strong></h5><p>深度写入包括两种状态：Z-Write On 与Z-Write Off</p>
+<p>当我们开启深度写入时，物体被渲染时，对应每个像素的深度都写入到深度缓冲区。反之，不会写入。但是物体写入深度，除了需要深度写入开启，还需要通过深度测试。</p>
+<p>Z-Test分为通过和不通过两种情况，Z-Write分为开启和关闭两种情况，一共就是四种情况</p>
+<table>
+<thead>
+<tr>
+<th align="center">深度测试</th>
+<th align="center">深度写入</th>
+<th align="center">深度缓冲区</th>
+<th align="center">颜色缓冲区</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">通过</td>
+<td align="center">开启</td>
+<td align="center">写入</td>
+<td align="center">写入</td>
+</tr>
+<tr>
+<td align="center">通过</td>
+<td align="center">关闭</td>
+<td align="center">不写入</td>
+<td align="center">写入</td>
+</tr>
+<tr>
+<td align="center">失败</td>
+<td align="center">开启</td>
+<td align="center">不写入</td>
+<td align="center">不写入</td>
+</tr>
+<tr>
+<td align="center">失败</td>
+<td align="center">关闭</td>
+<td align="center">不写入</td>
+<td align="center">不写入</td>
+</tr>
+</tbody></table>
+<p>这里顺便附上之前用Opengl做天空盒时对深度测试的理解。（现在看来glDepthMask就是开启深度写入，glDepthFunc就是比较函数，只有开启深度测试，深度写入才有用）可以根据上面的表格来更深入地理解下面的描述。</p>
+<blockquote>
+<p>  此外，还额外进行了天空盒的绘制，天空盒其实也就是先绘制一个立方体，然后将其z坐标取为w，使得在坐标归一化除以w时，z&#x3D;1位于无限远的位置，这样能够使得天空的面永远在无限远处。</p>
+<p>  期间还需要对深度缓存进行一些操作。以下是我的理解。</p>
+<p>  &#x2F;&#x2F;在不进行天空盒z&#x3D;w操作的基础上，我们先渲染一遍天空盒，并且在此期间关闭深度遮罩不写入深度缓存，渲染完毕后开启深度遮罩，渲染其他物体，此时，其他物体覆盖在天空盒上,正常渲染</p>
+<p>  &#x2F;&#x2F;(是否写入深度缓存结果上也等同于是否进行深度测试，即可以关闭深度遮罩，也可以关闭深度测试)</p>
+<p>   &#x2F;&#x2F;如果不关闭深度遮罩，天空盒深度将写入深度缓存，如果物体在天空盒后面，则被遮挡。</p>
+<p>   &#x2F;&#x2F;理解测试：那么在不进行z&#x3D;w的时候，先绘制天空盒，不关闭深度遮罩，但是在绘制完天空盒之后，清除深度缓存，能正常绘制其他物体。测试正确。</p>
+<p>   &#x2F;&#x2F;现在进行z&#x3D;w的操作，并且先渲染天空盒，采用关闭深度测试的方式，即便z&#x3D;1.0，也能正常渲染（未写入深度缓冲）。但是如果把天空盒放在最后渲染,天空盒将覆盖所有物体。</p>
+<p>   &#x2F;&#x2F;如果是采用关闭深度遮罩的方式呢？只是不写入深度缓存，但实际上还是会进行深度测试，z&#x3D;1.0无法渲染天空盒，因为原本就是1，但如果用LEQUAL,则可以渲染天空盒（默认为LESS）</p>
+<p>   &#x2F;&#x2F;实际上，天空盒深度值已经是1.0的情况，开启深度遮罩没有任何意义（开启深度遮罩只是为了避免天空盒深度小于其他物体的情况，1.0已经最大），渲染天空盒和物体的顺序也不会有影响</p>
+<p>   &#x2F;&#x2F;但是，后渲染天空盒，保留深度测试，可以利用深度测试提升性能</p>
+</blockquote>
+<h5 id="2-2-3-比较函数Comparison-Function"><a href="#2-2-3-比较函数Comparison-Function" class="headerlink" title="2.2.3 比较函数Comparison Function"></a><strong>2.2.3 比较函数Comparison Function</strong></h5><table>
+<thead>
+<tr>
+<th align="center">Greater</th>
+<th align="center">GEqual</th>
+<th align="center">Less</th>
+<th align="center">LEqual</th>
+<th align="center">Equal</th>
+<th align="center">NotEqual</th>
+<th align="center">Always</th>
+<th align="center">Never</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">$&gt;$</td>
+<td align="center">$\geq$</td>
+<td align="center">$&lt;$</td>
+<td align="center">$\leq$</td>
+<td align="center">$&#x3D;$</td>
+<td align="center">$\neq$</td>
+<td align="center">总是通过</td>
+<td align="center">总是失败</td>
+</tr>
+</tbody></table>
+<h5 id="2-2-4-默认状态"><a href="#2-2-4-默认状态" class="headerlink" title="2.2.4 默认状态"></a><strong>2.2.4 默认状态</strong></h5><p>Z-Write On，Z-Test Lequal，深度缓存一开始为无穷大。（这些和Opengl是不一样的）</p>
+<h4 id="2-3-渲染队列"><a href="#2-3-渲染队列" class="headerlink" title="2.3 渲染队列"></a><strong>2.3 渲染队列</strong></h4><h5 id="2-3-1-Unity中的渲染队列"><a href="#2-3-1-Unity中的渲染队列" class="headerlink" title="2.3.1 Unity中的渲染队列"></a><strong>2.3.1 Unity中的渲染队列</strong></h5><p>Unity中设置队列</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220816220946497.png" alt="image-20220816220946497"></p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Tags &#123;&quot;Queue&quot; = &quot;Transparent&quot;&#125;<span class="comment">//默认是Geometry</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th align="center">渲染队列</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Background（1000）</td>
+<td>最早被渲染的物体的队列</td>
+</tr>
+<tr>
+<td align="center">Geometry（2000）</td>
+<td>不透明物体的渲染队列。大多数物体都应该是用该队列进行渲染（默认渲染队列）</td>
+</tr>
+<tr>
+<td align="center">AlphaTest（2450）</td>
+<td>有透明通道，需要进行AlphaTest的物体的队列，比在Geometry中更有效</td>
+</tr>
+<tr>
+<td align="center">Transparent（3000）</td>
+<td>半透明物体。一般是不写入深度的物体，Alpha Blend等的在该队列渲染</td>
+</tr>
+<tr>
+<td align="center">Overlay（4000）</td>
+<td>最后被渲染的物体。一般是覆盖效果，如镜头光晕，屏幕贴片。</td>
+</tr>
+</tbody></table>
+<ul>
+<li>渲染队列的物体排序：根据深度排序，深度小的在最前，深度大的在最后</li>
+<li>不透明物体的渲染顺序：从前往后</li>
+<li>透明物体的渲染顺序：从后往前（OverDraw）</li>
+</ul>
+<h5 id="2-3-2-Tips"><a href="#2-3-2-Tips" class="headerlink" title="2.3.2 Tips"></a><strong>2.3.2 Tips</strong></h5><p>多pass shader中，unity会选择所有pass里队列最靠前的作为物体的队列，然后根据pass的编写顺序逐pass执行</p>
+<h4 id="2-4-Early-Z"><a href="#2-4-Early-Z" class="headerlink" title="2.4 Early-Z"></a><strong>2.4 Early-Z</strong></h4><p>传统的渲染管线中，Z-Test是在Blending阶段，这时的深度测试，所有对象都计算过了片元着色器。大量的计算是无用的。</p>
+<p>现代GPU运用了Early-Z技术，在Vs和Fs之间，进行一次深度测试。如果深度测试失败，就不必进行片元着色器的计算。但是最终的Z-Test仍需进行，保证最终遮挡结果正确。前面一次主要是Z-Cull为了裁剪达到优化目的。后一次是Z-Check，为了检查。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220816221825445.png" alt="image-20220816221825445"></p>
+<h4 id="2-5-深度值"><a href="#2-5-深度值" class="headerlink" title="2.5 深度值"></a><strong>2.5 深度值</strong></h4><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220816222256273.png" alt="image-20220816222256273"></p>
+<p>这个非线性深度也能够回答GAMES101中闫老师在投影矩阵那部分，讲frustum中间的点在投影矩阵之后是变远了还是变近了的问题。</p>
+<blockquote>
+<p>  要想有正确的投影性质，需要使用一个非线性的深度方程，它是与 1&#x2F;z  成正比的。它做的就是在z值很小的时候提供非常高的精度，而在z值很远的时候提供更少的精度。花时间想想这个：我们真的需要对1000单位远的深度值和只有1单位远的充满细节的物体使用相同的精度吗？线性方程并不会考虑这一点。</p>
+<p>  由于非线性方程与 1&#x2F;z  成正比，在1.0和2.0之间的z值将会变换至1.0到0.5之间的深度值，这就是一个float提供给我们的一半精度了，这在z值很小的情况下提供了非常大的精度。在50.0和100.0之间的z值将会只占2%的float精度，这正是我们所需要的。这样的一个考虑了远近距离的方程是这样的：<br>  $$<br>  F_{depth}&#x3D;\frac{1&#x2F;z-1&#x2F;near}{1&#x2F;far-1&#x2F;near}<br>  $$</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/depth_non_linear_graph.png" alt="img"></p>
+<h5 id="2-5-1-深度冲突Z-fighting"><a href="#2-5-1-深度冲突Z-fighting" class="headerlink" title="2.5.1 深度冲突Z-fighting"></a><strong>2.5.1 深度冲突Z-fighting</strong></h5><blockquote>
+<p>  一个很常见的视觉错误会在两个平面或者三角形非常紧密地平行排列在一起时会发生，深度缓冲没有足够的精度来决定两个形状哪个在前面。结果就是这两个形状不断地在切换前后顺序，这会导致很奇怪的花纹。这个现象叫做深度冲突(Z-fighting)，因为它看起来像是这两个形状在争夺(Fight)谁该处于顶端。</p>
+</blockquote>
+<p>所以实际上z-fighting的问题还是精度的问题。</p>
+<p>一般解决方法就是稍微移动一点，不要重合。Learnopengl里还基于深度储存的精度剔除，可以把近平面设置远一点。或者是用更大的精度来储存。（实际上永远不会有足够的精度来保证完全重合）</p>
+<h4 id="2-6-总结"><a href="#2-6-总结" class="headerlink" title="2.6 总结"></a><strong>2.6 总结</strong></h4><ul>
+<li>是用深度缓冲区最重要的两个值：当前深度缓冲currentDepthValue和深度缓冲值zbufferValue，并通过比较操作获取理想渲染结果</li>
+<li>Unity中的渲染顺序：先渲染不透明物体（从前往后），再渲染透明物体（从后往前）</li>
+<li>通过深度写入和深度测试组合控制半透明物体的渲染</li>
+<li>引入Early-z技术后的深度测试渲染流程</li>
+<li>深度缓冲区储存0-1的浮点值（非线性深度）</li>
+<li>应用<ul>
+<li>基于深度的着色（湖水）<ul>
+<li>（摄像机到地面距离和湖水深度作比较，以差值比例控制着色）</li>
+</ul>
+</li>
+<li>ShadowMap</li>
+<li>透明物体、粒子渲染</li>
+<li>透视X-ray效果</li>
+<li>切边效果</li>
+</ul>
+</li>
+</ul>
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a><strong>作业</strong></h3><p><strong>根据课程内容，使用深度测试与模板测试做一些有意思的效果</strong></p>
+<h4 id="模板测试-描边"><a href="#模板测试-描边" class="headerlink" title="模板测试-描边"></a><strong>模板测试-描边</strong></h4><p>正好撞见Unity的描边，我们就来试试模板测试的描边</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220819163419228.png" alt="image-20220819163419228"></p>
+<p>我们来拆解一下这个效果</p>
+<ul>
+<li>2pass<ul>
+<li>一个pass绘制物体<ul>
+<li>写入一个模板值</li>
+</ul>
+</li>
+<li>一个pass绘制物体法线外扩<ul>
+<li>模板比较</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>现在问题就在于，如何进行法线外扩。</p>
+<p><a target="_blank" rel="noopener" href="https://www.laowangomg.com/?p=712">https://www.laowangomg.com/?p=712</a></p>
+<p>这篇文章总结的非常详细。</p>
+<p>其实最重要的问题是，我们在什么时候进行法线外扩？从模型空间到齐次裁剪空间过程中，在哪一步？</p>
+<p>问题在于，我们应该让法线如何外扩？对于模型上的所有顶点，沿法线方向移动距离s，这是模型空间、世界空间、相机空间的做法。这样做的问题在于，我们可以把这个距离看作都是世界空间的距离，在经过投影变换后，不同位置的尺度会发生变化，也就是说，导致描边不均匀。</p>
+<p>上面的博客给出的办法是——在齐次裁剪空间进行法线外扩，并且我们可以忽略z轴上的变化。只考虑屏幕的xy方向。</p>
+<p>但是在我的实践中发现了一个问题，就是其实描边的宽度还是会出现不一致。并且这和渲染窗口分辨率有关。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220819220901399.png" alt="image-20220819220901399"></p>
+<p>于是我们就知道是怎么回事了：</p>
+<p><strong>齐次裁剪空间时宽度一致的外扩尺度，经过视口变换后不再一致</strong>，但是我们肯定没有办法在视口变换的阶段处理顶点的位置，因此我们仍然需要进行改变。</p>
+<p>我们要解决的核心问题是，让它在屏幕上能保持尺度的一致，其实，就是&#x3D;&#x3D;观察空间&#x3D;&#x3D;保持一致。</p>
+<p>之前说在MVP空间的外扩都会导致投影后尺度变化。事实的确如此，在观察空间也会出现这个问题。</p>
+<p>那么，在观察空间如何解决这一问题呢？我们可以借用裁剪空间的方法，只考虑屏幕上xy的变化，而忽略z的尺度变化。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">o.pos.xy += <span class="built_in">normalize</span>(vNormal.xy) * _OutLine;</span><br><span class="line"><span class="comment">//o.pos.xyz += normalize(vNormal.xyz) * _OutLine;</span></span><br></pre></td></tr></table></figure>
+
+<p>我们可以看出使用XYZ和xy的细微差别，这也很好理解。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/1660921557672.gif" alt="1660921557672"></p>
+<p>这里我还做了一项处理就是让描边的粗细不受距离的影响，或者说，距离增加，描边的粗细也应该增加。不然就会像这样</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220819222542483.png" alt="image-20220819222542483"></p>
+<p>这应该如何处理呢？</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220819232155564.png" alt="image-20220819232155564"></p>
+<p>我们的h1&#x2F;z1是由参数控制的，不妨令z1为1，则h1就等于</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">normalize</span>(o.pos.xy)*_OutLine</span><br></pre></td></tr></table></figure>
+
+<p>那么要令距离z2的点在投影上和h1具有相同的高度，h2就很好求了。</p>
+<p>这里还要注意，将z值取绝对值，我们只需要正值的计算。这样再调一调粗细的参数，效果和unity的描边效果就是基本一致的。</p>
+<p>但是这种做法的局限性在于顶点法线，如果比较尖锐的顶点不是插值的法线的话，就会出现面片的分离。这就需要对模型法线进行处理，涉及到相应的工具制作。这也就是之后下一步工作的伏笔了。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/1660923128047.gif" alt="1660923128047"></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">Pass&#123;</span><br><span class="line"></span><br><span class="line">    Stencil&#123;</span><br><span class="line">        Ref <span class="number">0</span></span><br><span class="line">            Comp Equal</span><br><span class="line">    &#125;</span><br><span class="line">	Cull front</span><br><span class="line">    CGPROGRAM</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> _OutLine;</span><br><span class="line">    <span class="type">float</span> _Attenuation;</span><br><span class="line"></span><br><span class="line">    <span class="function">v2f <span class="title">vert</span><span class="params">(a2v v)</span> </span>&#123;</span><br><span class="line">        v2f o;</span><br><span class="line">        o.pos = <span class="built_in">mul</span>(UNITY_MATRIX_MV,v.vertex);</span><br><span class="line">        float3 vNormal = <span class="built_in">mul</span>((float3x3) UNITY_MATRIX_V, <span class="built_in">UnityObjectToWorldNormal</span>(v.normal));</span><br><span class="line">        o.pos.xy += <span class="built_in">normalize</span>(vNormal.xy) * _OutLine * <span class="built_in">abs</span>(o.pos.z);</span><br><span class="line">        o.pos = <span class="built_in">mul</span>(UNITY_MATRIX_P,o.pos);</span><br><span class="line">        <span class="keyword">return</span> o;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="function">fixed4 <span class="title">frag</span><span class="params">(v2f i)</span> : SV_Target &#123;</span></span><br><span class="line">        fixed4 color =<span class="built_in">fixed4</span>(<span class="number">1.0</span>,<span class="number">0.0</span>,<span class="number">0.0</span>,<span class="number">1.0</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">fixed4</span>(color);</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="meta">#<span class="keyword">pragma</span> vertex vert</span></span><br><span class="line">    <span class="meta">#<span class="keyword">pragma</span> fragment frag</span></span><br><span class="line"></span><br><span class="line">    ENDCG</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们为了防止描边被遮挡，也可做如下处理</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Stencil&#123;</span><br><span class="line">    Ref <span class="number">1</span></span><br><span class="line">        Comp Always</span><br><span class="line">        Pass replace</span><br><span class="line">        ZFail replace</span><br><span class="line">&#125;<span class="comment">//物体pass</span></span><br><span class="line"></span><br><span class="line">Stencil&#123;</span><br><span class="line">    Ref <span class="number">0</span></span><br><span class="line">        Comp Equal</span><br><span class="line">&#125;</span><br><span class="line">Cull front</span><br><span class="line">ZTest always<span class="comment">//描边pass</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="深度测试-遮挡透视"><a href="#深度测试-遮挡透视" class="headerlink" title="深度测试-遮挡透视"></a><strong>深度测试-遮挡透视</strong></h4><p>首先当然是做一个遮挡扫描效果。</p>
+<p>我们来拆解下这个效果的组成</p>
+<ul>
+<li>遮挡物<ul>
+<li>正常的</li>
+</ul>
+</li>
+<li>被遮挡物<ul>
+<li>多pass<ul>
+<li>以正常部分的队列为物体渲染队列从前往后</li>
+</ul>
+</li>
+<li>正常部分<ul>
+<li>Geometry</li>
+<li>开启深度测试LESS，开启深度写入</li>
+</ul>
+</li>
+<li>遮挡部分<ul>
+<li>Transparent</li>
+<li>开启深度测试Greater，不写入深度</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>我们首先来写一下遮挡部分</p>
+<p>在透明的处理上，顺便看了下3.2部分的混合，用正常的透明混合方法Blend SrcAlpha OneMinusSrcAlpha</p>
+<p>当然也可以选择其他的（感觉差不太多）</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220817153223447.png" alt="image-20220817153223447" style="zoom:50%;" />
+
+<h5 id="大问题"><a href="#大问题" class="headerlink" title="大问题"></a><strong>大问题</strong></h5><p>出现了一个大问题。为遮挡物赋予一些材质时，会导致渲染顺序出错。</p>
+<p>正常来说，遮挡物和被遮挡物都会处于Geometry的渲染队列，并且遮挡物先渲染，再渲透明Pass，最后是非透明Pass这是非常合理的.</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220817211331779.png" alt="image-20220817211331779"></p>
+<p>赋予某些材质后。</p>
+<p>有些时候是正常的，有些时候，透明pass会在遮挡物之前渲染，导致透明物体被遮挡。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220817211349707.png" alt="image-20220817211349707"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220817211648337.png" alt="image-20220817211648337"></p>
+<p>这还不是最麻烦的。在这个状态下，如果后退摄像机一点，这里两个透明物体中的其中一个被渲染出来了。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220817211717544.png" alt="image-20220817211717544"></p>
+<p>如果再后退一点——透明物体都正常绘制了。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220817211752817.png" alt="image-20220817211752817"></p>
+<p>**但是，这依然不是最麻烦的。**如果这个时候，再把摄像机后退一些会发生什么呢？</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220817211856345.png" alt="image-20220817211856345"></p>
+<p>这就是我所感觉到的绝望。</p>
+<p>解决方法我想到了很多。</p>
+<ol>
+<li>被遮挡物体物体两个Pass都放在了Geometry渲染。如果把两个Pass放在Geometry之后的其他Pass渲染，就没问题了。但要注意修改Tags的pass时，最好是subshader的pass，这样会比较稳定，如果只改两个Pass的tags，是不稳定的。</li>
+<li>和上面的方法基本思想一样，做法刚好相反。就是一定要保证遮挡物在被遮挡物两个pass之前渲染，把遮挡物的队列设成Geometry-1（或者更前面）就好了。</li>
+<li>换一个遮挡物的shader和材质。这个是比较麻烦的。因为，即便是一个原本能正常绘制的shader，在我完全复制所有代码以后，重新生成的材质，依然出现了上述问题。这就比较玄学了，这也是最头疼的部分。。。</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/468122471%E7%94%A8%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0%E7%9A%84%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95%EF%BC%8C%E6%8A%8A%E4%B8%A4%E4%B8%AApass%E5%88%86%E5%BC%80%E5%88%B0%E4%B8%A4%E4%B8%AAshader%EF%BC%8C%E7%94%A8UsePass%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%8C%E8%BF%99%E6%A0%B7%E5%90%84%E8%87%AA%E7%9A%84subshader%E5%8F%AF%E4%BB%A5%E8%AE%BE%E7%BD%AE%E5%90%84%E8%87%AA%E7%9A%84Tag%E3%80%82%E7%BB%93%E6%9E%9C%E4%B9%9F%E6%98%AF%E6%AD%A3%E5%B8%B8%E7%9A%84%E3%80%82">https://zhuanlan.zhihu.com/p/468122471用这篇文章的处理方法，把两个pass分开到两个shader，用UsePass的方法，这样各自的subshader可以设置各自的Tag。结果也是正常的。</a></li>
+</ol>
+<p>但是，虽然这些方法能解决问题，我还是不知道为什么会出现这样的问题，以及，其实没有解决问题的根本——为什么在这些shader中渲染顺序会出错，不应该都是按深度排序的吗？</p>
+<p>首先会考虑是否是z精度的问题？但是又怎么会随距离周期变化呢？</p>
+<p>发现其实DepthPass顺序就错了，也就是说直接原因还是深度。但是为什么某些材质就没有这个问题了呢？并且SubShader和Pass的Tag也有影响。。。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220817213753109.png" alt="image-20220817213753109"></p>
+<p><strong>又找到了一个绝妙的解决方法</strong></p>
+<p>我直接重新做一个shader，然后用两次UsePass。。。当然，缺少原来CGINCLUDE的参数和属性，这一部分直接原样复制过去就行了。</p>
+<p>果然能解决问题。</p>
+<p>。。。但是令人崩溃的又来了。。。我继续把两个UsePass分别替换回原来的两个Pass的代码。。。竟然也是对的。。。问题是这样和原来的代码有啥区别。。。shader的名字的区别。。。为什么。。。已经麻了，就当是bug吧。</p>
+<p>感觉跟unity的资源读取和shader编译的过程有一定关系。</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/zhlabcd/p/11767018.html%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0%E5%87%BA%E7%8E%B0%E4%BA%86%E4%B8%80%E6%A0%B7%E7%9A%84%E7%8E%B0%E8%B1%A1%EF%BC%8C%E4%BD%86%E6%98%AF%E7%9C%8B%E8%B5%B7%E6%9D%A5%E5%8E%9F%E5%9B%A0%E4%B8%8D%E5%A4%AA%E4%B8%80%E6%A0%B7%EF%BC%8C%E4%B8%8D%E8%BF%87%E5%8F%AF%E8%83%BD%E6%9C%89%E4%B8%80%E5%AE%9A%E5%85%B1%E6%80%A7%E3%80%82">https://www.cnblogs.com/zhlabcd/p/11767018.html这篇文章出现了一样的现象，但是看起来原因不太一样，不过可能有一定共性。</a></p>
+<p>背后的真正原因，只能有缘再解决了</p>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a><strong>参考资料</strong></h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Tb4y1C7Qa">https://www.bilibili.com/video/BV1Tb4y1C7Qa</a></p>
+<p>【技术美术百人计划】图形 3.1 深度与模板测试  传送门效果示例</p>
+<p>[2] <a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/04%20Advanced%20OpenGL/01%20Depth%20testing/">https://learnopengl-cn.github.io/04%20Advanced%20OpenGL/01%20Depth%20testing/</a></p>
+<p>[3] <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/427742656">https://zhuanlan.zhihu.com/p/427742656</a></p>
+<p>[4] <a target="_blank" rel="noopener" href="https://www.laowangomg.com/?p=712">https://www.laowangomg.com/?p=712</a></p>
+<p>[5] <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/468122471">https://zhuanlan.zhihu.com/p/468122471</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/08/20/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.1%E6%B7%B1%E5%BA%A6%E4%B8%8E%E6%A8%A1%E6%9D%BF%E6%B5%8B%E8%AF%95/" data-id="cmfe8hf4a003p9wuh1gd04abu" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Computer-Graphics/" rel="tag">Computer Graphics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" rel="tag">百人计划</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag">笔记</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%BF%87%E7%A8%8B%E8%AE%B0%E5%BD%95/" rel="tag">过程记录</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2022/08/20/TA/OpenGL/C++%20learning_04/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      【笔记】Cherno C++ Tutorial note 04
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2022/08/18/TA/Maya/Python%20For%20Maya%EF%BC%88OpenMaya%EF%BC%89%EF%BC%88%E5%9B%9B%EF%BC%89/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title">【笔记】【Maya工具】Python For Maya（OpenMaya）（四）Locator &amp; CallBack for IK</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

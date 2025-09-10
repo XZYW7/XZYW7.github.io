@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    【笔记】Precomputed Radiance Transfer |
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/Graphics/PRT" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    【笔记】Precomputed Radiance Transfer
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/06/15/TA/Graphics/PRT/" class="article-date">
+  <time datetime="2022-06-14T17:03:46.000Z" itemprop="datePublished">2022-06-15</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="论文：《Precomputed-Radiance-Transfer-for-Real-Time-Rendering"><a href="#论文：《Precomputed-Radiance-Transfer-for-Real-Time-Rendering" class="headerlink" title="论文：《Precomputed Radiance Transfer for Real-Time Rendering"></a><center>论文：《Precomputed Radiance Transfer for Real-Time Rendering</h2><h2 id="in-Dynamic-Low-Frequency-Lighting-Environments》"><a href="#in-Dynamic-Low-Frequency-Lighting-Environments》" class="headerlink" title="in Dynamic, Low-Frequency Lighting Environments》"></a><center>in Dynamic, Low-Frequency Lighting Environments》</h2><span id="more"></span>
+
+<h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>文章首先提出，这是一个在“能够捕捉软阴影、互反射、和焦散的低频光照环境下”渲染diffuse和glossy物体的实时方法。</p>
+<p>预处理阶段，会创建一个全局的传输模拟，在物体表面创建函数，将任意低频入射光表示为传输辐射度（transferred radiance），包括如阴影、物体自身的互反射这样的全局效果。</p>
+<p>在实时的运行中，传输函数作用在入射光上。动态的局部光照通过每帧采样靠近它的物体来处理。物体也可以是相对照明刚体旋转的。照明和传输函数用低阶的球谐函数表示。这避免了走样，并且对于漫反射（diffuse）物体，通过简化着色积分至9-25维向量的点乘，在图形硬件上获得更高的运行效率。Glossy物体使用矩阵而非向量处理。</p>
+<p>文章将更深入介绍动态光照环境通过预处理对象到空间邻域点的辐射传输函数。这使得来源于刚体移动物体的软阴影和焦散能够被投射到任意动态的接受物。该方法能表现实时全局照明的效果。</p>
+<p>这里的阅读中，我感到重要也将贯穿整篇论文的核心问题就是，如何理解“transfer”。在后面的阅读中也会有所理解。</p>
+<h3 id="一、方法简介"><a href="#一、方法简介" class="headerlink" title="一、方法简介"></a>一、方法简介</h3><p>文章提出，真实感渲染中所注重的效果：来自面光源、软阴影和互反射的光照</p>
+<p>然而，在大范围的光照环境上积分的通用方法，包括蒙特卡洛光线追踪、辐射度、多个点光源的相加的多次渲染，在实时渲染上不太实用。</p>
+<p>实时真实感全局照明有三个问题。</p>
+<ul>
+<li><p>为复杂、且空间上发生变化的真实材质BRDF建模。这需要在它需要在每个点的照明方向的半球上进行积分，也必须计算弹射、遮蔽（如沿光源到接受物的光路的阻挡产生的阴影）</p>
+</li>
+<li><p>很多研究聚焦于扩展BRDF的复杂度（glossy，各向异性反射），需要通过把入射光表示为方向或点的总和来求解光线积分问题。因此光线积分可以简化成在一些点上采样（analytic or tabulated）BRDF，但是大面积的光源变得不可交互。</p>
+</li>
+<li><p>还有一些研究采样辐射度，用很多大小的核进行卷积。（如Image Based的方法）这解决了光照积分的问题，但忽略了光照传输的复杂度，如阴影，因为这种卷积假设入射光不被遮挡也不被散射。最终，有很好的做法来模拟更复杂的光线传输，尤其是阴影。光线积分成为了问题，这些技巧在大面积光源上是不实用的。</p>
+</li>
+</ul>
+<p>总得来说该方法的目的是要更好地解决实时的光照积分和光线传输复杂度的问题。而这里的妥协是，聚焦于低频光照环境，使用低阶球谐函数基来有效地、无走样地表达环境。主要思想是表达一个物体如何把光散射到物体本身或其邻近的空间。</p>
+<p>假设有一个理想漫反射的凸面物体，被无穷远的环境贴图照亮。物体被着色后返回到环境的这个响应可以看作一个传输函数（transfer function），映射传入辐射度到传出辐射度，在这种情况下，只需计算余弦权重的积分。更复杂的积分就是捕获凹物体的自阴影，被积函数要额外地乘一个代表各方向可见性的传输因子。</p>
+<p>该方法就是为给定对象预计算复杂传递函数（如阴影）所需的昂贵的传输模拟。（transport simulation）。结果是表面的传输函数由一系列稠密的向量集或矩阵表示。并且，输入辐射度不需要预计算。图形硬件可以动态地采样多个点的输入辐射度。 也可以使用解析模型，如天光模型或简单的几何图形，如圆。</p>
+<p>通过在线性基（在这里是SH基）来同时表示输入辐射度和传输函数，我们可以利用光传输的线性性质来把光线积分简化成他们的系数向量（漫反射接收器）的点乘，或者通过一个小的传输矩阵（glossy的接收器）转化成一个简单的系数向量的线性变换。低频光照环境只需要很少的系数（9-25个），图形硬件在一个pass中就可以计算出结果。不像MC和multi-pass的光线积分方法，不论有多少或者光源有多大，我们的计算运行时间都是常数时间，事实上，这依赖于大规模、平滑的光照来限制所需要的SH系数的数量。</p>
+<p>该方法可以在传输函数中表示复杂的传输效果，如互反射、焦散。因为这些都是作为预处理进行模拟，只有传输函数会受到影响，不会改变计算运行时间。该方法能够处理表面和体表示的几何体。如果有更多的SH系数，除了漫反射，也可以处理glossy的接受器（但是不能特别specular），包括互反射效果。25个系数足以处理glossy效果。除了刚体到自身的传输（称为自传输self-transfer），我们把这个技术应用到从刚体到相邻空间的邻域传输，这能够捕捉软硬影、glossy反射，以及动态接收器的焦散</p>
+<h5 id="算法概览Overview"><a href="#算法概览Overview" class="headerlink" title="算法概览Overview"></a>算法概览Overview</h5><ul>
+<li><p>预处理阶段</p>
+<p>在预处理阶段，在模型上运行全局光照模拟器，捕获其如何将光照投影和散射到自身。</p>
+<p>结果会记录在模型上的一个稠密的向量集（diffuse情况）或者矩阵集（glossy情况）。</p>
+</li>
+<li><p>在实时阶段，入射辐射度首先投影到SH基，然后把模型的传输向量或矩阵场应用到光照系数向量上。如果物体是diffuse的，物体上的每个点的传输向量与光照系数点乘，就能得到正确的自散射着色。如果是glossy的，就把一个传输矩阵和光照系数点乘，得到球谐函数的系数，代表每个点的自散射输入辐射度，将这个函数与物体的brdf进行卷积，然后在基于视线的反射方向上进行计算，得到最终的着色结果。</p>
+</li>
+</ul>
+<h3 id="二、背景前置知识（Spherical-Harmonics）"><a href="#二、背景前置知识（Spherical-Harmonics）" class="headerlink" title="二、背景前置知识（Spherical Harmonics）"></a>二、背景前置知识（Spherical Harmonics）</h3><p>定义：球谐函数定义了球面上的一个标准正交基，S，类似于1D圆上的傅里叶变换。使用球面参数化表达<br>$$<br>s&#x3D;(x,y,z)&#x3D;(\sin\theta\cos\phi,\sin\theta\sin\phi,\cos\theta)<br>$$<br>基函数定义为<br>$$<br>Y_l^m(\theta,\phi)&#x3D;K_l^me^{im\phi}P_l^{|m|}(\cos\theta),l\in N,-l \leq m\leq l<br>$$<br>$P_l^m$是伴随勒让德多项式，$K_l^m$是归一化常数<br>$$<br>K_l^m&#x3D;\sqrt{\frac{(2l+1)}{4\pi}\frac{(l-|m|)!}{(l+|m|)!}}<br>$$<br>这是复数域的基函数定义，实数基如下<br>$$<br>y_l^m&#x3D;\left{\begin{array}{} \sqrt{2} Re(Y_l^m)&#x3D;\sqrt2 K_l^m\cos(m\phi)P_l^m(\cos\theta)&amp;m&gt;0\<br>\sqrt2Im(Y_l^m)&#x3D;\sqrt2 K_l^m\sin(-m\phi)P_l^{-m}(\cos\theta)&amp;m&lt;0\<br>Y_l^0<br>&#x3D;K_l^0P_l^0(\cos\theta)&amp;m&#x3D;0\end{array}\right.<br>$$</p>
+<p>l的值越低（band index阶序数）代表越低频率的球面基函数。l阶的基函数都可以简化成x，y，z的l次多项式，可以用简单的递推公式计算。</p>
+<h4 id="投影与重建"><a href="#投影与重建" class="headerlink" title="投影与重建"></a>投影与重建</h4><p>因为SH基函数是标准正交的，球面上定义的标量函数可以通过积分投影到基函数上的系数。<br>$$<br>f_l^m&#x3D;\int f(s)y_l^m(s)ds<br>$$<br>这些系数提供了n阶的重建函数<br>$$<br>\tilde f(s)&#x3D;\sum^{n-1}<em>{l&#x3D;0}\sum</em>{m&#x3D;-l}^lf_l^my_l^m(s)<br>$$</p>
+<p>f的近似能够随着阶数n的增加而提升精度。低频的信号可以只用少数几个SH阶就能精准地重建。更高频的信号的低阶投影会受到阶数限制（平滑无锯齿）。</p>
+<p>投影到n阶就需要n方个系数。用投影系数和基函数的一列向量就可以很方便地重写重建公式<br>$$<br>\tilde f(s) &#x3D; \sum_{i&#x3D;1}^{n^2}f_iy_i(s)<br>\i&#x3D;l(l+1)+m+1<br>$$</p>
+<h4 id="基本性质"><a href="#基本性质" class="headerlink" title="基本性质"></a>基本性质</h4><h5 id="旋转不变性"><a href="#旋转不变性" class="headerlink" title="旋转不变性"></a>旋转不变性</h5><p>非常重要的一个性质是SH投影的旋转不变性。给定$g(s)&#x3D;f(Q(s))$</p>
+<p>Q表示球面上的任意旋转，那么$\tilde{g}(s)&#x3D;\tilde f (Q(s))$</p>
+<p>这类似于一维傅里叶变换的平移不变性。这个性质表示当从一个旋转的点集上采样f，不会产生走样</p>
+<h5 id="标准正交性"><a href="#标准正交性" class="headerlink" title="标准正交性"></a>标准正交性</h5><p>标准正交性是SH基提供的有用的性质，给定球面上的两个函数a，b，他们的投影满足<br>$$<br>\int\tilde a(s)\tilde b(s)ds &#x3D; \sum_{i&#x3D;1}^{n^2}a_ib_i<br>$$<br>也就是说，阶数限制的函数的乘积积分可以简化为他们的投影系数的点乘</p>
+<h4 id="卷积"><a href="#卷积" class="headerlink" title="卷积"></a>卷积</h4><p>我们把圆周对称的核函数$h(z)$ 与函数$f$ 的卷积记为$h<em>f$ ,$h$ 是圆周对称的，为了让结果定义在球面S上而不是更高维的旋转集$SO(3)$, 卷积的投影满足<br>$$<br>(h</em>f)_l^m&#x3D;\sqrt{\frac{4\pi}{2l+1}}h_l^0f_l^m&#x3D;\alpha_l^0h_l^0f_l^m<br>$$<br>也就是说，投影的卷积系数只衡量独立的投影函数的乘积。注意到h是关于z圆周对称的，它的投影系数只在m&#x3D;0非零（根据标准正交性）。卷积的这种性质提供了一种很快的方式得到卷积的环境贴图，只需要一个半球余弦kernel，定义为$h(z) &#x3D;max(z,0)$ ，来获得irradiance map，其中$h_l^0$ 由解析公式给出。卷积性质也可以用于使用更窄的kernel得到预滤波的环境贴图。</p>
+<h4 id="乘积投影"><a href="#乘积投影" class="headerlink" title="乘积投影"></a>乘积投影</h4><p>一对球面函数的乘积投影$c(s)&#x3D;a(s)b(s)$, a是已知的，b未知的，可以看作投影系数$b_j$ 通过矩阵$\hat a$ 的线性变换，<br>$$<br>c_i&#x3D;\int a(s)(b_jy_j(s))y_i(s)ds&#x3D;(\int a(s)y_i(s)y_j(s)ds)b_j<br>\&#x3D;(a_k\int y_i(s)y_j(s)y_k(s)ds)b_j&#x3D;\hat a_{ij}b_j<br>$$<br>其中对重复的j和k序数求和。$\hat a$ 是对称矩阵。a的分量可以通过使用Clebsch-Gordan级数推导的递归计算基函数的三重积的积分得到。也可以不用预先SH投影a，而采用数值积分计算。注意到乘积的n阶投影包含了两个因子函数的系数，总共是2n-1项</p>
+<h4 id="旋转"><a href="#旋转" class="headerlink" title="旋转"></a>旋转</h4><p>重建函数通过Q旋转$\tilde f(Q)$ ,可以通过f投影系数的线性变换再次投影到SH空间。因为具有旋转不变性，线性变换对于每一阶的系数都是独立的。</p>
+<p>最有效的方法是通过zyz欧拉角分解旋转Q，使用一个十分复杂的递推公式得到。因为我们只处理低阶函数，我们还可以通过符号积分实现显示的旋转公式。</p>
+<h3 id="三、辐射度自传输"><a href="#三、辐射度自传输" class="headerlink" title="三、辐射度自传输"></a>三、辐射度自传输</h3><p>Radiance Self-Transfer可以描述为物体O如何对自身产生阴影与散射。</p>
+<p>首先在物体O的点p参数化输入光照，$L_p(s)$ ，使用SH基来表达。入射光因此可以用n^2个系数向量$(L_p)_i$ 。我们可以在表面或者一个点动态、 稀疏地采样光照。 假设O上的光照变化很小，并非由于其自身的存在。我们还对O预先计算并密集存储传输向量或矩阵。 </p>
+<p>传输向量transfer vector $(M_p)i$ 对于漫反射表面很有用，并且通过与光照向量内积得到一个标量出射辐射度的乘积来表示线性变换<br>$$<br>L_p’&#x3D;\sum_{i&#x3D;1}^{n^2}(M_p)_i(L_p)_i<br>$$<br>也就是说，传输向量的每个分量都代表了一个光照基函数对p点的着色的线性影响。</p>
+<p>传输矩阵$(\Mu_p)<em>{ij}$ 对于glossy表面是很有用的，表示光照向量上的线性变换，对于整个传输辐射度的球面函数而不是一个标量产生投影系数。<br>$$<br>(L_p’)<em>j&#x3D;\sum</em>{j&#x3D;1}^{n^2}(\Mu_p)</em>{ij}(L_p)_j<br>$$</p>
+<p>incident和transferred radiance 的区别在于$L_p’(s)$ 包括由于O本身存在产生的阴影、散射，而$L_p(s)$ 表示假设O从场景中拿走后的输入光照。$(\Mu_p)_{ij}$ 的分量表示输入辐射度$(L_p)_j$的第j个光照系数到传输辐射度$(L’_p)_i$第i个系数的线性影响。下一部分将推导漫反射表面的传输向量和glossy表面由于O的自散射的传输矩阵</p>
+<h5 id="3-1漫反射传输"><a href="#3-1漫反射传输" class="headerlink" title="3.1漫反射传输"></a>3.1漫反射传输</h5><p>首先假设物体O是漫反射的。p点上最简单的传输函数表示无阴影的漫反射传输（unshadowed diffuse transfer），定义为一个标量函数<br>$$<br>T_{DU}(L_p)&#x3D;(\rho_p&#x2F;\pi)\int L_p(s)H_{Np}(s)ds<br>$$<br>得到的出射辐射度对于漫反射表面是与视线角度无关的。</p>
+<p>积分外面是p点漫反射的brdf，$L_p$是p点的入射辐射度，并且假设物体O从场景移走。$N_p$ 是点p的法线，$H_Np$ 表示的就是余弦权重，关于$N_p$ 的一个半球kernel。通过把$L_p$ 和$H_Np$ 独立投影到SH空间，投影公式可以将其转化为他们的系数向量的内积。我们把结果的系数称作光照函数$L_p$ 和传输函数$M_p$。在这个简单的情况下，$M_p^{DU}(s)&#x3D;H_Np(s)$ 。因为法线是已知的，传输函数的SH投影可以与计算出来，结果就是传输向量。事实上，储存是不必的，因为给定了法线，可以通过一个简单的解析公式得出。因为$M_p^{DU}$ 本质上是一个低通滤波器，二阶投影（9个系数）就能在各种光照环境（即使不平滑）下的非常好的精度。</p>
+<p>为了包括阴影，我们定义shadowed diffuse transfer<br>$$<br>T_{DS}(L_p)&#x3D;(\rho_p&#x2F;\pi)\int L_p(s)H_{Np}(s)V_p(s)ds<br>$$<br>增加了可见项，$V(s)\to { 0,1}$ ,当光线从p沿方向s出发不与O再相交时等于1，也就是无阴影。和无阴影传输异意，我们把这个积分分解成两个函数，使用SH投影的$L_p$ 以及传输函数<br>$$<br>M_p^{DS}(s)&#x3D;H_{Np}(s)V_p(s)<br>$$<br><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/0.png" alt="0"></p>
+<p>分别投影Lp和Mp，再次将$T_{DS}$中的积分减少为系数向量的内积。</p>
+<p>传输现在以及不重要了，我们用传输模拟来预计算，把结果储存在O上很多点的传输向量中。</p>
+<p>和之前不同，$M_p$的二阶投影可能会不精确，即使在平滑光照下。因为$V_p$会创造局部高频的光照。</p>
+<p>4-5阶投影在平滑光照环境下能得到好的结果。</p>
+<p>最后为了捕捉diffuse的互反射，包括阴影，我们定义interreflected diffuse transfer<br>$$<br>T_{DI}(L_p)&#x3D;T_{DS}(L_p)+(\rho_p&#x2F;\pi)\int \bar L_p(s)H_{Np}(s)(1-V_p(s))ds<br>$$<br>$\bar L_p$ 是从O上沿方向s的辐射度，难点在于除非入射辐射度来自无限远的光源，只给定p的入射辐射度，我们无法精确地知道$\bar L_p(s)$ ，因为$\bar L_p$ 取决于p任意远的点的出射辐射度，并且局部光照在O上变化。</p>
+<p>如果O上的光照变化很小，那么$\bar L_p$ 就能很好地估计，就好像O的各个地方都能被$L_p$照亮。</p>
+<p>因此$T_{DI}$ 和$L_p$呈线性关系，可以像前两种情况一样分解为两个投影函数的乘积：一个与光相关，另一个与几何相关。 虽然预计算的互反射必须假设O上的入射光具有空间不变性，但不需要更简单的阴影传输。不同之处在于，阴影传输仅依赖于p处的入射光，而相互反射传输依赖于O上不同于p的许多点q，而$L_q$也不同于$L_p$。 因此，只要对入射辐射场进行足够精细的采样（第6.1节），就可以捕获局部照明变化，并且阴影传输将是正确的。</p>
+<p>$\bar L$ 的存在使得很难显式表示互反射的传输函数，$M_p^{DI}(s)$ ,接下来将看到如何数值计算它的投影系数。</p>
+<h5 id="3-2-Glossy传输"><a href="#3-2-Glossy传输" class="headerlink" title="3.2 Glossy传输"></a>3.2 Glossy传输</h5><p>glossy物体的自传输定义相似，但是kernel函数（视线依赖）依赖于反射方向R而不是固定的法线方向N。和之前的H kernel类似，我们把glossy fanshe建模为kernel $G(s,R,r)$ ,这里标量r定义物体的glossiness或光泽反射（specular response）的范围广度。我们也认为使用SH 投影系数可以处理任意的BRDFs。</p>
+<p>我们可以相似的三个glossy transfer函数，对于无阴影，阴影和互反射情况<br>$$<br>T_{GU}(L_p,R,r)&#x3D;\int L_p(s)G(s,R,r)ds\<br>在T_{GS}(L_p,R,r)&#x3D;\int L_p(s)G(s,R,r)V_p(s)ds\<br>T_{GI}(L_p,R,r)&#x3D;T_{GS}(L_p)+\int \bar L_p(s)G(s,R,r)(1-V_p(s))ds<br>$$<br>在反射方向R输出的标量radiance，是一个关于$L_p$ 和R的函数，在预计算时都是未知的。因为传输不仅是s的函数，无法简化成SH系数表示的向量。</p>
+<p>这里不通过R和r参数化标量传输，更有效的分解是把输入辐射度$L_p(s)$ 转化成整个球面上的传输辐射度，记为$L_p’(s)$ ，假设glossy kernel G关于R圆周对称（如Phong 模型之类），$L_p’s$ 与$G^*_r(z)&#x3D;G(s,(0,0,1),r)$ 进行卷积，在R方向进行计算得到最终的结果</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/Figure%202.png" alt="Figure 2"></p>
+<p>$L_p’$的transfer就可以用一个矩阵而不是一个向量来表示。比如，glossy shadowed transfer表示为<br>$$<br>\Mu_p^{GS}(L_p,s)&#x3D;L_p(s)V_p(s)<br>$$<br>这是$L_p$ 上的线性操作，通过过SH点乘投影公式，可以表示为一个对称矩阵$\hat V_p$ 。即使在平滑光照下，随着物体O的glossiness增加，$L_p’$必须使用更多的SH bands。把低频光照映射到更高频的传输辐射度的非方阵矩阵在这样的条件下是很有用的。对于shadowed glossy transfer（但是不进行互反射），另一种方法是使用向量而不是矩阵来表达$\Mu_p^{GS}$ ,通过使用点乘投影公式中基函数的三重积。动态计算$V_p$ 与$L_p$ 的点积。但是目前我们没有实现这种方式。</p>
+<h5 id="3-3局限性"><a href="#3-3局限性" class="headerlink" title="3.3局限性"></a>3.3局限性</h5><p>预计算传输很重要的一个局限性是物体O的影响$T_{DI}，T_{GI}$ 的互反射材质属性必须烘焙到预处理的传输中，并且实时运行时不能改变。</p>
+<p>另一方面，无互反射的更简单的shadowed transfer阴影传输，是允许实时改变的，并且可以在O的材质属性上进行空间变化。但是如果遮挡物，或者光源侵入O的凸面外壳，则会增加错误。物体O只能刚体变换，不能发生形变，或者整体相关的组件分离。</p>
+<p>回忆为了O上的正确互反射所假设的的低频光照变化，也是限定条件。 </p>
+<p>最后，注意到定义的漫反射传输在离开表面时得到辐射度，因为已经和预先权重的法线半球卷积过了，而glossy 传输在入射表面时得到辐射度，因此必须和局部的BRDF卷积来得到最终的出射辐射度。这也可以在glossy物体O上预烘焙到一个固定的BRDF，这样就不必再运行时和$G$进行卷积了，但是会限制灵活性。</p>
+<h3 id="四、预计算辐射自传输"><a href="#四、预计算辐射自传输" class="headerlink" title="四、预计算辐射自传输"></a>四、预计算辐射自传输</h3><p>作为预处理方法，我们可以通过以无限远的球面作为发光体，使用SH基函数模拟物体O上的全局光照。我们对光照收集的方案技巧应用了对已存在的方法，并且可以用很多方法加速。它的新颖之处在于如何对光照参数化以及如何收集结果的积分传输。所有的积分传输系数都是有符号量。</p>
+<p>模拟通过一个入射光L的未知球面第n阶的SH投影进行参数化（通过$n^2$ 个未知系数$L_i$）。尽管模拟结果使用SH基函数$y_i(s)$ 作为发光体，对于每个$L_i$ 可以独立计算，一次全部计算出来会更高效。无穷远的球面L在实时运行时会被O周围的实际入射辐射场$L_p$ 代替。</p>
+<p>初始的pass模拟离开L到达采样点的路径的直接阴影。在后续的pass当中加入互反射，代表在到达点p之前，从L到O反射多次的路径（记作Lp,LDp,LDDp等）。在每个pass，能量都被收集到每个采样点p。</p>
+<p>大面积的发光体（低频SH基函数）使得收集光照比发射光线采样的方式更高效。</p>
+<p>为了在O上的采样点p捕捉方向球，我们生成了大量的准随机方向集${s_d},s_d\in S$ ,我们也在每个$s_d$ 方向对于所有的SH基函数预计算。$s_d$ 以层次化结构的bins来组织，将初始的二十面体由1-2等分为等面积的球面三角形，（1-4划分在球面上不能像平面一样得到等面积的划分）。</p>
+<p>我们使用6-8个子分层级，创建了512-2048个bins，每个层次结构的层级上的bin都包含了一系列$s_d$ </p>
+<p>在第一个pass中，对于O上的每一点p，我们都在关于p点法线$N_p$ 的半球面投射阴影光线，使用层次结构来剔除半球外的方向。我们为每个方向$s_d$ 用遮挡位（occlusion bit）做一个标签，$1-V_p(s_d)$ ,表示$s_d$ 是否在半球方向内并与物体O再次相交（O的自阴影）。遮挡位也可以和层级bins联系起来，表示其中的任意$s_d$ 都被遮挡。自遮挡方向与bins都被标记，这样我们就可以进行更进一步的互反射pass。完全不被遮挡的bins或方向样本就只从环境光中接受直接光照。</p>
+<p>对于漫反射表面，在O上的每一点p我们都通过SH投影$M_p$ 来进一步计算传输向量（见漫反射传输函数）。</p>
+<p>对于glossy表面，我们通过glossy传输函数计算的SH投影$\Mu_p$ 来计算传输矩阵。</p>
+<p>在每种情况，结果都表示在点p收集到的辐射度，以L来进行参数化。计算传输的SH投影可以通过对方向样本$s_d$ 数值积分来计算。并使用下面的规则来求和成累积传输<br>$$<br>diffuse:(M_p)<em>i^0+&#x3D;(\rho_p&#x2F;\pi)V_p(s_d)H_N(s_d)y_i(s_d)\<br>glossy:(\Mu_p)</em>{ij}^0+&#x3D;V_p(s_d)y_j(s_d)y_i(s_d)\<br>对于s_d进行传输积分，shadow pass 迭代记为0<br>$$<br>上标0表示迭代次数，每个点p的向量$M_p$ 或矩阵$\Mu_p$ 在shadow pass之前都初始化为0，然后在p点对所有$s_d$ 方向进行累加。这个规则对于漫反射传输积分使用基函数投影公式来驱动，对于glossy传输积分使用点乘投影来驱动。</p>
+<p>然后是互反射pass，需要遍历在shadow pass标记为具有遮挡位的bins。不再发射阴影光线， 这一次发射返回 来自物体O上输出照明的传输。如果光线${ray(p,s_d)}$ 和O上零一点q相交，（q是最接近p的点），我们就采样从q沿$-s_d$ 的出射radiance。接下来需要使用以下的更新规则，上标b表示弹射pass的迭代次数。<br>$$<br>diffuse:(M_p)<em>i^b+&#x3D;(\rho_p&#x2F;\pi)(1-V_p(s_d))(M_q)<em>i^{b-1}H_N(s_d)\<br>glossy:\<br>(\Mu_p)</em>{ij}^b+&#x3D;(1-V_p(s_d))(\sum_k\alpha_k(G^*</em>{r_q})<em>k(\Mu_q)</em>{kj}^{b-1}y_k(reflect(-s_d,N_q)))y_i(s_d)\<br>$$<br>正如shadow pass，我们从初始化传输向量或矩阵为0开始，在对各个方向累积传输之前。</p>
+<p>漫反射规则由$T_{DI}$ 的定义和基函数投影公式驱动；</p>
+<p>glossy规则由$T_{GI}$ 的定义和卷积公式以及点乘投影公式来驱动。</p>
+<p>glossy传输定义的中间因子代表来自于在上一次bounce pass（b-1）从q返回到p所具有的radiance。</p>
+<p>因为$\Mu_q$ 储存了入射辐射度，它必须和q点的O的BRDF卷积来获得$-s_d$ 方向的出射辐射度，产生k上的总和。回忆$\alpha_k$ 是第k个卷积系数，用单索引表示法表示。“reflect”操作只是计算$-s_d$沿法线的反射方向，（也就是q点原来的入射方向）。</p>
+<p>我们观察点积投影公式表示$(\Mu_p)_{ij}$  对于shadowed glossy transfer是一个对称矩阵，因为它由两个球谐函数的点乘形成，但对于互反射glossy transfer就不成立了。</p>
+<p>互反射pass会不断重复，直到某个pass的总能量低于一个阈值。对于典型的材质，衰减很快，所有bounce pass的传输总和就是互反射了。我们的实现同时模拟了漫反射和glossy传输。</p>
+<p>对于这个模拟一个简单的改善是允许O上的类镜面表面。我们不记录这样的表面的传输。相反，照射到镜面表面的光线始终会被反射，然后传播直到遇到非镜面的表面。（这里和光子映射很像。）因此我们在连续迭代中的路径可表示为LSp，LSDSp,LSDSDSp等等。D是diffuse表面或者glossy bounce，S是specular的。这样就能在动态响应照明变化的diffuse或者glossy接收器上捕捉caustics。</p>
+<h3 id="五、辐射传输的实时渲染"><a href="#五、辐射传输的实时渲染" class="headerlink" title="五、辐射传输的实时渲染"></a>五、辐射传输的实时渲染</h3><p>我们现在的模型O捕获到表面上许多点的辐射传输，以向量或矩阵来表示。实时渲染O则需要以下步骤</p>
+<ol>
+<li>根据SH基函数计算在O附近的一个或多个点$P_i$ 的入射光${L_{P_i}}$。</li>
+<li>将这些$L_{P_i}$ 旋转到O的坐标系，并混合他们，来得到O上的入射光$L_P$ 的field</li>
+<li>对在O上的每个点p的$(L_p)_i$ 应用一个线性变换来获得出射辐射度。这需要和$(M_p)<em>i$ 进行点乘（漫反射表面），或者对于$(\Mu_p)</em>{ij}$进行一个矩阵-向量乘法（glossy表面）</li>
+<li>glossy表面需要最终的一步，来自于3的辐射度向量结果要和p点的BRDF卷积，然后计算在视线的反射方向R的值。</li>
+</ol>
+<p>第一步可以加载一个预计算的环境贴图，在软件上来计算解析光照模型，或者使用图形硬件采样辐射度。</p>
+<p>第二步的旋转在第三节中有概述，并且是逐物体完成，而非物体上的某个点。这是很有必要的，因为传输是用一个O通用的坐标系统来储存。如果O进行了刚体移动，那么旋转$L_{P_i}$ 中少量的辐射度样本来与O匹配，就比旋转O的许多传输函数更高效。我们当前是在软件中实现旋转的。</p>
+<p>对于漫反射表面，第三步的简单实现是要储存每个像素的传输向量，然后在顶点着色器中执行点乘。传输向量也可以被储存在贴图而不是顶点上，然后在像素着色器中进行计算。</p>
+<p>因为系数并不是始终在[-1,1]范围的有符号量，必须使用像素着色器，因为它们能提供更大的[-8,8]的范围。我们的像素着色器需要8条指令来执行点积，并将$L_P$的系数存储在常量寄存器中。对于色彩环境或者模拟O上的Color bleeding，需要3个pass，每次对rgb通道执行独立的点积。否则一次就够了。</p>
+<p>对于glossy的自传输，我们在软件上执行对应方程的矩阵变换。因为传输矩阵太大了，无法在顶点或像素着色器中进行操作。结果就是$(L’<em>p)<em>i$ ，O上的顶点p的传输辐射度。然后在像素着色器中，我们和一个简单的余弦幂（Phong lobe）kernel对$G^*$ 进行卷积，计算在反射方向R上的值。结果可以写作<br>$$<br>\sum</em>{i&#x3D;1}^{n^2}\alpha_iG^*<em>i(\sum</em>{j&#x3D;1}^{n^2}(\Mu_p)</em>{ij}(L_p)_j)y_i(R)<br>$$<br>我们在硬件上计算5阶的SH投影。</p>
+<h4 id="5-1-入射辐射场的空间采样"><a href="#5-1-入射辐射场的空间采样" class="headerlink" title="5.1 入射辐射场的空间采样"></a>5.1 入射辐射场的空间采样</h4><p>对于动态采样入射radiance的一个简单方法是，在O的中心点进行采样。为了处理O上的局部光照变化，更准确的方法是采样多个点的入射光.一组好的采样点可以用ICP算法（iterated closest point）来预处理获得，它需要提供一个需要的点的数量作为输入。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/Figure%205.png" alt="Figure 5"></p>
+<p>然后能够产生一个有代表性的点集$P_i$ ，在O周围均匀分布，入射光能够实时采样。我们也可以预计算每个点的系数，它们混合了各个采样的辐射度球结果的贡献，来得到O上的入射辐射场，记为之前的$L_p$ </p>
+<h4 id="5-2-GPU硬件上采样SH辐射度"><a href="#5-2-GPU硬件上采样SH辐射度" class="headerlink" title="5.2 GPU硬件上采样SH辐射度"></a>5.2 GPU硬件上采样SH辐射度</h4><p>图形硬件对于动态场景捕获辐射度样本${L_{P_i}}$ 是很有用的。为了做到这一点，从每个对应cube map 球面参数化的6个面的$P_i$ 渲染6张图片。O本身在这些渲染中被忽略了。然后将立方贴图投影到它们的SH系数上，并使用SH投影公式积分。</p>
+<p>为了效率，我们为以不同的立体角为权重的基函数预计算贴图，$B_l^m(s)&#x3D;y_l^m(s)ds$ ，每个都通过s的立方贴图参数化来计算。结果的积分就变成了对捕获到的$L_P(s)$和贴图$B_l^m(s)$ 进行简单的点乘。</p>
+<p>图形硬件上的计算表现会非常理想。精度问题以及无法再硬件上做内积，使得我们读回采样的辐射图像，并将其投影到软件中。在这种情况下，最好尽可能降低回读图像的分辨率。</p>
+<p>低阶的SH投影可以用非常低分辨率的立方贴图计算，假设它们已经被正确地带限了。举例来说，带限到第六阶的球面信号可以用六张4x4的图像投影，方差平均0.3%,最高1%，误差通过假设单位功率信号来归一化（整个球面的积分平方信号为1）。对于6x8x8的贴图，误差减少到平均0.003%，最高0.02%。然而，通常的信号不能球面带限。另外的分析表明，假设对采样的2D图像进行连续的双线性重建，使用6x8x8的图像投影到第六阶产生0.7%平均、2%最高的方差，而6x16x16产生0.2%，0.5%；6x32x32产生0.05%，0.1%。</p>
+<p>从硬件上提取6x16x16的图像，与点采样渲染的情况相同，2D图像的走样依然是个问题，因为上述分析使用点采样的双线性重建作为参考。为了减少走样，我们对立方贴图图像每个维度进行2倍的超采样，然后在读取和投影之前在硬件中进行方框滤波抽取。基函数贴图也是超采样的，以同样方式抽取作为预处理。</p>
+<h3 id="六、体积模型的自传输"><a href="#六、体积模型的自传输" class="headerlink" title="六、体积模型的自传输"></a>六、体积模型的自传输</h3><p>体数据的自传输和表面采用同样的框架。在任意低频光照环境下，结果的预计算模型允许实时的光照变化，带有正确的阴影和互反射。</p>
+<p>我们的的简单的模拟器当前只对漫反射体积有效。和表面传输相同，预处理的步骤使用球面基函数作为发光体在体积上模拟光照。对于无互反射的阴影传输（直接阴影），我们从发光体到体积上的每个体素p收集能量，在体积路径中衰减。所需的方向$s_d$ 的数值积分表达为<br>$$<br>(M_p)<em>i^0&#x3D;A(p\to p+D</em>{s_d})y_i(s_d)<br>$$<br>$A(p\to q)$ 是体积沿p到q路径的的衰减，D表示光线$ray(p,s_d)$ 直到从体积射出时的距离。为了包括互反射，我们遍历每个体素p，沿着随机方向$s_d$ 前向散射它的传输。传输沿着$S_d$ 储存到所有体素q，直到离开体积，使用如下规则<br>$$<br>(M_q)_i^b+&#x3D;A(p\to q)(M_p)_i^{b-1}<br>$$<br>体积上的更多pass会产生进一步的间接弹射。渲染过程以传统方式进行，通过从后向前的顺序，使用alpha混合考虑透明度，绘制3D体积的切片。每个切片是包含传输向量样本的2D图片。像素着色器能够计算光照系数和每个切片着色所需的传输向量之间的点乘。</p>
+<h3 id="七、辐射邻域传输"><a href="#七、辐射邻域传输" class="headerlink" title="七、辐射邻域传输"></a>七、辐射邻域传输</h3><p>邻域传输预计算物体O对领域环境的影响，当然也是在参数化、低频光照的条件下。传输模拟等同于Section 5的自传输，但是发生于O周围3D空间的点，而不是O上的。在运行时，可以将任意接收器R放置在该体积中，以捕获O投射到R上的阴影、反射和焦散，而无需事先知道R。</p>
+<p>例如，移动的车辆O可以在地形R上投射阴影。投射阴影和照明也会响应照明变化；如，移动灯光会移动R上的软阴影。这通过考虑glossy传输以及允许动态光照来生成辐照体积（irradiance volumes）。</p>
+<p>因为在预计算步骤中R是未知的，所以O的邻域体积必须存储传输矩阵而不是向量。即使对于漫反射接收器也是如此，因为我们事先不知道R的法线。我们当前的实现是预计算O周围简单的3D网格中每个点的传递矩阵$\Mu_p$。在实时运行时，我们在软件上对体积中每个点执行矩阵变换，然后把结果传给图形硬件。结果是一个体积贴图，包含应用到R的传输辐射度$L’_p$ 的系数。</p>
+<p>然后在像素着色器中，该传输辐射度用于照明接收器。漫反射接收器使用卷积公式将辐射度与余弦权重半球H*卷积，然后计算得到的R法向量处的SH投影。Glossy接收器执行关于反射方向的glossy传输的卷积公式。</p>
+<p>预计算了自传输的接收器增加了O和R不共享坐标系的困难。因此，两个物体之一的稠密传输样本必须动态地旋转来和另一个对齐。所需的SH旋转操作对于硬件计算当前是不适合的。提升硬件能比较快的解决这个问题。</p>
+<p>和自传输相比，邻域传输会引起额外的近似误差。从多个邻域传输物体到相同的接收器投射阴影或光照很难结合起来。并非O或R的存在导致的局部光照变化也是一个问题。O的整个邻域的光照必须非常恒定才能提供准确的结果。特别是O和R以外的物体进入O的领域时，会导致像阴影丢失这样的误差。O的领域必须足够大，才能储存它可能投射到R上的任何投射阴影或光照。尽管如此，邻域传输还是能够捕获以前的方法无法实时获得的效果。</p>
+<h3 id="八、结论"><a href="#八、结论" class="headerlink" title="八、结论"></a>八、结论</h3><p>文章实现了除传递矩阵模型（茶壶、佛像、滑翔机）之外的所有模型的实时表现。对于这些模型，较大的矩阵乘法在cpu上进行计算往往成为了性能的瓶颈。而对于这些模型，在首先固定灯光（允许视线变化）或视线（允许光照变化）后，也可以实现实时结果。</p>
+<p>原因是固定视角（然后固定反射向量R）或灯光$L_p$将glossy卷积中的计算减少为简单的点积，然后可以在硬件中完成。 固定灯光渲染比固定视角慢，因为固定灯光模式需要在不断变化的视图向量上计算SH基函数，然后是点积；而固定视角只需要进行点积，并且在性能上与漫反射传输相同。也能得到比较好且稳定的自阴影和互反射效果。和标准阴影缓冲区（Shadow map）技术相比，不需要深度公差来防止自阴影走样。即使当照明包含非常高的频率时也会产生不错的图像，没有时间走样，但会产生一些模糊的自阴影；结果看起来实际上与模糊入射光的处理完全相同。</p>
+<p>Figure 10 比较了不同SH阶的阴影结果。小光源（顶行）需要更多信号波段（bands），大的光源只需要更少的波段就能获得很好的近似。使用最多4次波段（5阶25个系数）就能提供很好的效果，也能很好适配当前的图形硬件。注意质量不仅仅取决于SH投影照明时忽略的能量大小，漫反射和glossy物体是入射辐射度的有效的低通滤波。然而，对于自转移效果，这种低通滤波的范围取决于物体的几何结构，在空间上有所变化，并且通常需要三阶以上（二次），这与无阴影漫反射传输不同。由于其旋转不变性，我们认为与球面小波等替代方法相比，SH基对于我们的低频照明应用特别有效。动态采样入射辐射度时，该性质消除了走样，否则如果投影到相同系数数量的其他基，会产生时间上的走样，如阴影抖动。当照明环境的能量接近其最高代表频带时，SH的振铃或吉布斯现象可能会成为一个问题。</p>
+<h3 id="九、总结与未来工作"><a href="#九、总结与未来工作" class="headerlink" title="九、总结与未来工作"></a>九、总结与未来工作</h3><p>复杂对象（如人脸）上许多重要的着色变化都是由于其自身造成的。预计算辐射自传输是捕获对象在任何低频照明环境中对自身的遮挡和散射效果的通用方法。在运行时替换实际入射光时，生成的模型会实时提供全局照明效果，如软阴影、互反射和焦散。使用图形硬件，可以在物体附近的每个帧和多个点对入射光进行采样，从而实现动态局部照明。邻域传输通过记录3D空间的传输来概括这个概念，并允许在任意接收器上投射软阴影和焦散。</p>
+<p>在未来的工作中，我们希望将预计算传输应用于更复杂的传输模型，尤其是次表面散射。我们相信，该模型产生的出射辐射度的平滑性使其特别适合于SH参数化传输。</p>
+<p>通过将场景的照明分解为高频和低频项，将现有的阴影技术与我们的技术结合起来也很有价值。</p>
+<p>传输field的压缩是一个重要但未解决的问题。</p>
+<p>假设独立自由度的数量保持可控，通过以与变形相同的方式参数化预计算自传输，也可以实现扩展到如人物角色的可变形物体。最后，我们有兴趣跟踪快速改进的PC图形硬件，以便所有计算，包括传递矩阵变换和SH旋转，最终都可以在GPU上执行。</p>
+<p>最后，读完了整篇论文，也丝毫不敢说对这个重要的实时渲染方法完全理解，包括使用的复杂的SH函数的推导与特性，论文复现也没有选择相关的论文，因此，要对PRT的整个过程细节有更深入的理解，还需要亲自去做一遍才行。不过有趣的是，我选择的渐进式光子映射中，在文中也提到了Photon maps是一种Caching onto diffuse receivers的方法，而文中计算镜面互反射的连续迭代传输路径的概念，也在Photon mapping中有所体现。因此这一部分在PPM作为大程实现过后来理解，感觉也更清晰了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/06/15/TA/Graphics/PRT/" data-id="cmfe8hf3u000w9wuh2q30dcjv" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CG-Advanced/" rel="tag">CG Advanced</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag">笔记</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2022/06/28/TA/OpenGL/C++%20learning_02/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      【笔记】Cherno C++ Tutorial note 02
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2022/06/15/TA/Graphics/GAMES/%E8%BF%87%E7%A8%8B%E8%AE%B0%E5%BD%95PRT/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title">【过程记录】【GAMES202】PRT</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    【笔记】【百人计划】图形2.5 BUMP图改进 |
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形2.5 BUMP图改进" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    【笔记】【百人计划】图形2.5 BUMP图改进
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/08/02/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.5%20BUMP%E5%9B%BE%E6%94%B9%E8%BF%9B/" class="article-date">
+  <time datetime="2022-08-02T10:21:24.000Z" itemprop="datePublished">2022-08-02</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h3 id="一、凹凸贴图Bump-Mapping"><a href="#一、凹凸贴图Bump-Mapping" class="headerlink" title="一、凹凸贴图Bump Mapping"></a><strong>一、凹凸贴图Bump Mapping</strong></h3><ul>
+<li>把物体的细节分为三种尺度<ul>
+<li>宏观尺度（覆盖很多像素）<ul>
+<li>由几何图元来表示</li>
+</ul>
+</li>
+<li>中观尺度（覆盖少量像素）<ul>
+<li>细节复杂，无法使用单个三角形渲染，并且足够大</li>
+</ul>
+</li>
+<li>微观尺度（可能覆盖小于一个像素）<ul>
+<li>在着色模型当中表现，模拟物体表面微观几何形状的相互作用</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>凹凸映射是模拟中观尺度的常用方法之一，能够让观察者感知到比几何模型尺度更小的细节</p>
+<p>基本思想：在纹理中把尺度细节相关的信息编码进去，在着色过程中用受到干扰的表面代替真实表面，就让表面看起来具有小尺度的细节。</p>
+<p>总之，凹凸贴图是对物体表面贴图进行变化再进行光照计算的一种技术。（增加物体真实感，但不需要额外的几何复杂度）</p>
+<ul>
+<li>分类<ul>
+<li>法线贴图</li>
+<li>视差贴图</li>
+<li>浮雕贴图</li>
+</ul>
+</li>
+</ul>
+<p>在这三种技术中都会用到法线(贴图)</p>
+<h3 id="二、法线贴图Normal-Mapping"><a href="#二、法线贴图Normal-Mapping" class="headerlink" title="二、法线贴图Normal Mapping"></a><strong>二、法线贴图Normal Mapping</strong></h3><p>法线贴图是一张存有物体局部表面法线信息的贴图。</p>
+<p>计算光照时，程序读取法线图，并获取当前着色点的法线信息，结合光照信息进行光照计算。</p>
+<p>法线贴图一般由高模映射到对应的底模上来生成，但像金属、木头等细节丰富的物体，可借助程序化软件如：Photoshop,Substance Designer等生成对应法线贴图</p>
+<h4 id="切线空间"><a href="#切线空间" class="headerlink" title="切线空间"></a><strong>切线空间</strong></h4><p>法线的储存一般放在模型的切线空间中</p>
+<ul>
+<li>切线空间<ul>
+<li>物体表面切线、副切线、法线方向为基，组成的几何空间</li>
+</ul>
+</li>
+<li>读取切线空间法线，需要将法线从切线空间转换到世界空间</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220731003919885.png" alt="image-20220731003919885" style="zoom:67%;" />
+
+
+
+<h4 id="世界和切线空间转换"><a href="#世界和切线空间转换" class="headerlink" title="世界和切线空间转换"></a><strong>世界和切线空间转换</strong></h4><p>切线空间坐标系的正交基是世界空间下的顶点法线（N）、切线（T）、副切线（B），法线为z轴，切线为x轴，副切线为y轴</p>
+<p>构建一个3x3的矩阵做空间向量的坐标系转换。<br>$$<br>TBN &#x3D; \begin{bmatrix}T_x&amp;B_x&amp;N_x\<br>T_y&amp;B_y&amp;N_y\<br>T_z&amp;B_z&amp;N_z\<br>\end{bmatrix}\<br>\ \<br>TBN^{-1}&#x3D;TBN^T&#x3D;\begin{bmatrix}T_x&amp;T_y&amp;T_z\<br>B_x&amp;B_y&amp;B_z\<br>N_x&amp;N_y&amp;N_z\<br>\end{bmatrix}\<br>$$<br>想不清哪个是世界-切线，哪个是切线-世界，考虑一个单位阵，左乘矩阵，看看会变成什么就知道了。</p>
+<ul>
+<li>切线空间的好处<ul>
+<li>切线空间记录的是相对的法线信息，对于一个物体表面记录的法线扰动，可以同样应用到球形物体上（植物的光照处理），但是模型空间记录法线就是绝对的，只能在该物体上用。</li>
+<li>方便制作UV动画，贴图采样变化一致</li>
+<li>法线纹理可重用</li>
+<li>便于计算储存，0-1的储存映射范围，知道两个可以计算另一个</li>
+</ul>
+</li>
+<li>Unity中法线贴图的压缩格式<ul>
+<li>非移动平台，unity会把法线贴图转换成DXRT5nm格式，这种格式只有两个有效通道AG通道，可以节省空间<ul>
+<li>在DXRT5nm格式中，AG通道分别储存对应法线的x，y分量，z分量需要通过一个简单的计算求得。</li>
+</ul>
+</li>
+<li>移动平台，unity使用传统RGB通道</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/7416ead6-fc7e-4e52-9dba-b56d68996a2a.png" alt="7416ead6-fc7e-4e52-9dba-b56d68996a2a" style="zoom: 33%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/8b45fbb7-0987-4b01-9c95-c47166d160b4.png" alt="8b45fbb7-0987-4b01-9c95-c47166d160b4" style="zoom: 67%;" />
+
+
+
+<h3 id="三、视差贴图Parallax-Mapping"><a href="#三、视差贴图Parallax-Mapping" class="headerlink" title="三、视差贴图Parallax Mapping"></a><strong>三、视差贴图Parallax Mapping</strong></h3><p>法线贴图只能改变法线而改变光照，无法使模型表面产生遮挡效果</p>
+<p>视差贴图Parallax Mapping是一种类似法线贴图的技术。它用于提高模型表面细节并赋予其遮挡关系，可以和法线贴图一起使用。</p>
+<p>视差贴图需要引进一张新的贴图——高度图。高度图一般是用于顶点位移使用的（位移&#x2F;置换贴图 Displacement mapping），但性能消耗高，需要大量三角形。视差贴图的核心是改变纹理坐标来改变遮挡关系，视差贴图就利用储存模型信息的高度图，<strong>利用模型表面高度信息来对纹理进行偏移</strong>。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220731010656743.png" alt="image-20220731010656743" style="zoom: 67%;" />
+
+<p>在着色时，模型在切线空间下所有点都在切平面内（0.0），核心就是对于要计算的片元A时，真正应该计算的点是视线与物体的“实际”交点B点。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220731011441775.png" alt="image-20220731011441775"></p>
+<p>要计算B点，就需要AB两点在平面上的UV偏差，为了简便，采取近似计算的方法，根据高（深）度图及切线空间下视角方向，近似求解偏移量，视角方向（v）与切平面的正切值与A点的高度值相乘来近似求解，并通过一个缩放值来控制。（有比较大的误差，必须要用这个scale来调整）<br>$$<br>d &#x3D; \frac{v.xy}{v.z}\cdot ha\cdot scale<br>$$</p>
+<h4 id="陡峭视察映射Steep-Parallax-Mapping"><a href="#陡峭视察映射Steep-Parallax-Mapping" class="headerlink" title="陡峭视察映射Steep Parallax Mapping"></a>陡峭视察映射Steep Parallax Mapping</h4><p>陡峭视察映射也是近似，但更准确一些</p>
+<p>陡峭视察映射将深度分为等距的若干层，从顶端开始采样，并且每次沿视角方向偏移一定值，若当前层深度大于采样出的深度，则停止检查并返回结果</p>
+<p>（有点ray marching的感觉，那其实在优化上也可以借鉴一下分级采样？<a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/CbZTf-uM4/#real-time-global-illuminationscreen-space%EF%BC%89">https://xzyw7.github.io/post/CbZTf-uM4/#real-time-global-illuminationscreen-space）</a></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220731012950141.png" alt="image-20220731012950141"></p>
+<p>也可以根据v和n的角度来对采样层数进行控制</p>
+<h3 id="四、浮雕贴图Relief-Mapping"><a href="#四、浮雕贴图Relief-Mapping" class="headerlink" title="四、浮雕贴图Relief Mapping"></a><strong>四、浮雕贴图Relief Mapping</strong></h3><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220731014135800.png" alt="image-20220731014135800" style="zoom:50%;" />
+
+<p>视差贴图在使用较大的uv偏移时存在失真。</p>
+<p>浮雕贴图更容易提供更多的深度，还可以做自阴影、AO效果</p>
+<h4 id="实现方法"><a href="#实现方法" class="headerlink" title="实现方法"></a>实现方法</h4><p>浮雕映射一般采用射线步进、二分查找来决定uv偏移量</p>
+<p>第一种使用射线步进来查找可能的交点（直接用二分查找可能漏掉较薄的区域导致结果不准确），确定交点位于哪一个步进内。之后在该步进内使用二分查找快速确定交点位置，最后返回结果，偏移贴图。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220731014352296.png" alt="image-20220731014352296"></p>
+<ul>
+<li>解决最后一步二分查找性能开销问题<ul>
+<li>视差闭塞贴图（Parallax Occlusion Mapping）</li>
+<li>在步进后，分别对步进两端uv值采样，对结果插值，作为p点的结果（插值导致表面平滑效果更好）</li>
+</ul>
+</li>
+</ul>
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a><strong>作业</strong></h3><p>结合先行版基础渲染光照介绍（一）将本次课所讲的案例结合进先前的光照效果</p>
+<p>这里就4个案例嘛</p>
+<h4 id="法线贴图"><a href="#法线贴图" class="headerlink" title="法线贴图"></a>法线贴图</h4><p>左一：standard shader</p>
+<p>左二：custom shader，使用法线贴图</p>
+<p>右一：custom shader，无法线贴图</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220801232026790.png" alt="image-20220801232026790"></p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">struct v2f &#123;</span><br><span class="line">    float4 pos : SV_POSITION;</span><br><span class="line">    float3 normal : TEXCOORD0;</span><br><span class="line">    float3 worldPos : TEXCOORD1;</span><br><span class="line">    float2 uv : TEXCOORD2;</span><br><span class="line">    float3 tangent : TEXCOORD3;</span><br><span class="line">    float3 bitangent : TEXCOORD4;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">fixed3 normal = <span class="built_in">normalize</span>(i.normal);</span><br><span class="line">fixed3x3 TBN = fixed3x3(<span class="built_in">normalize</span>(i.tangent),<span class="built_in">normalize</span>(i.bitangent),normal);</span><br><span class="line">TBN = <span class="built_in">transpose</span>(TBN);<span class="comment">//Unity shader的矩阵是行优先的，所以我们要取个转置；</span></span><br><span class="line">fixed3 bump = <span class="built_in">normalize</span>(UnpackNormal(tex2D(_Normal, i.uv)));</span><br><span class="line">normal = <span class="built_in">normalize</span>(mul(TBN,bump));</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>不想像入门精要那样传一整个矩阵，我们可以传递的变量也是有限的，甚至可以只传tangent，副切线用叉乘计算。甚至也可以用之前的ddx和ddy的trick来计算。</p>
+<p><a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/zezxM-QCJ/#ddxddy%E4%B8%8E%E6%B3%95%E7%BA%BF%E8%B4%B4%E5%9B%BE">https://xzyw7.github.io/post/zezxM-QCJ/#ddxddy%E4%B8%8E%E6%B3%95%E7%BA%BF%E8%B4%B4%E5%9B%BE</a></p>
+<p>（Tips：有注意到在learnopengl中有描述，在一些网格较大的时候，出现TBN不互相垂直的情况，可以用施密特正交化来解决。）</p>
+<h4 id="视差贴图"><a href="#视差贴图" class="headerlink" title="视差贴图"></a>视差贴图</h4><p>这个时候发现……狮子模型这个素材没有高度图……还得换个素材……</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">fixed3 LightDir = <span class="built_in">normalize</span>(UnityWorldSpaceLightDir(i.worldPos));<span class="comment">//normalize(_WorldSpaceLightPos0.xyz);//</span></span><br><span class="line">fixed3 ViewDir = <span class="built_in">normalize</span>(UnityWorldSpaceViewDir(i.worldPos));<span class="comment">//normalize(_WorldSpaceCameraPos.xyz - i.worldPos);</span></span><br><span class="line">float3 h = <span class="built_in">normalize</span>(LightDir + ViewDir);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">fixed3 normal = <span class="built_in">normalize</span>(i.normal);</span><br><span class="line">fixed3 bitangent = <span class="built_in">normalize</span>(<span class="built_in">cross</span>(normal,i.tangent.xyz) * i.tangent.w);</span><br><span class="line">fixed3x3 TBN = fixed3x3(<span class="built_in">normalize</span>(i.tangent.xyz),bitangent,normal);</span><br><span class="line">TBN = <span class="built_in">transpose</span>(TBN);</span><br><span class="line"></span><br><span class="line"><span class="comment">//视差贴图</span></span><br><span class="line"><span class="type">float</span> height = tex2D(_heightMap,i.uv).r;</span><br><span class="line">float3 ViewDirTS = <span class="built_in">normalize</span>(mul(<span class="built_in">transpose</span>(TBN),ViewDir));</span><br><span class="line">float2 offUV = ViewDirTS.xy/ViewDirTS.z * height * _heightScale;</span><br><span class="line">i.uv -= offUV;</span><br><span class="line"></span><br><span class="line"><span class="comment">//法线贴图</span></span><br><span class="line">fixed3 bump = <span class="built_in">normalize</span>(UnpackNormal(tex2D(_Normal, i.uv)));</span><br><span class="line">normal = <span class="built_in">normalize</span>(mul(TBN,bump));</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220802000836213.png" alt="image-20220802000836213"></p>
+<p>视差贴图在视线接近垂直的时候效果还是很好的，但是正如learnopengl中所说，当从一个角度看过去的时候，会有一些问题产生（和法线贴图相似），陡峭的地方会产生不正确的结果。并且它的效果非常依赖于_heightScale这一参数</p>
+<h4 id="陡峭视差贴图"><a href="#陡峭视差贴图" class="headerlink" title="陡峭视差贴图"></a>陡峭视差贴图</h4><figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">float2 steepParallaxMapping (float2 uv, float3 viewDir) &#123;</span><br><span class="line">    <span class="type">float</span> numLayers = <span class="number">20</span>;</span><br><span class="line">    <span class="type">float</span> layerHeight = <span class="number">1.0</span>/numLayers;</span><br><span class="line">    float2 deltaUV = <span class="number">1.0</span>/numLayers * viewDir.xy / viewDir.z * _heightScale;</span><br><span class="line">    float2 currentUV = uv;</span><br><span class="line">    <span class="type">float</span> currentHeight = tex2D(_heightMap,uv).r;</span><br><span class="line">    <span class="type">float</span> currentLayerHeight = <span class="number">0.0</span>;</span><br><span class="line">    <span class="keyword">while</span>(currentLayerHeight &lt; currentHeight)</span><br><span class="line">    &#123;</span><br><span class="line">        currentUV -= deltaUV;</span><br><span class="line">        currentHeight = tex2Dlod(_heightMap, float4(currentUV,<span class="number">0.0</span>,<span class="number">0.0</span>)).r;</span><br><span class="line">        <span class="comment">//currentHeight = tex2Dgrad(_heightMap, currentUV,0.0,0.0).r;  </span></span><br><span class="line">        currentLayerHeight += layerHeight;  </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> currentUV;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>中间一直出现的报错“unable to unroll loop”，给tex2D改成tex2Dlod或tex2Dgrad就好了</p>
+<p>参考</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/391443312">https://zhuanlan.zhihu.com/p/391443312</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/144434084">https://zhuanlan.zhihu.com/p/144434084</a></p>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/57994423/why-i-cant-use-tex2d-inside-a-loop-in-unity-shaderlab">https://stackoverflow.com/questions/57994423/why-i-cant-use-tex2d-inside-a-loop-in-unity-shaderlab</a></p>
+<p><em>tex2D只能从“均匀控制流”调用，因为它必须通过计算“导数”来计算LOD。tex2Dlod没有，因为您提供了LOD。</em></p>
+<p>tex2Dlod和tex2Dgrad都能指定纹理层，所以能够在循环中调用。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220802161513119.png" alt="image-20220802161513119"></p>
+<h4 id="浮雕贴图"><a href="#浮雕贴图" class="headerlink" title="浮雕贴图"></a>浮雕贴图</h4><figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">float2 steepParallaxMapping (float2 uv, float3 viewDir) &#123;</span><br><span class="line">    <span class="type">float</span> numLayers = <span class="number">20</span>;</span><br><span class="line">    <span class="type">float</span> layerHeight = <span class="number">1.0</span>/numLayers;</span><br><span class="line">    float2 deltaUV = <span class="number">1.0</span>/numLayers * viewDir.xy / viewDir.z * _heightScale;</span><br><span class="line">    float2 currentUV = uv;</span><br><span class="line">    <span class="type">float</span> currentHeight = tex2D(_heightMap,uv).r;</span><br><span class="line">    <span class="type">float</span> currentLayerHeight = <span class="number">0.0</span>;</span><br><span class="line">    <span class="keyword">while</span>(currentLayerHeight &lt; currentHeight)</span><br><span class="line">    &#123;</span><br><span class="line">        currentUV -= deltaUV;</span><br><span class="line">        currentHeight = tex2Dlod(_heightMap, float4(currentUV,<span class="number">0.0</span>,<span class="number">0.0</span>)).r;  </span><br><span class="line">        currentLayerHeight += layerHeight;  </span><br><span class="line">    &#125;</span><br><span class="line">    float2 left = currentUV;</span><br><span class="line">    float2 right = currentUV+deltaUV;</span><br><span class="line">    <span class="type">float</span> dist = <span class="number">1</span>;</span><br><span class="line">    float2 midpoint = (left+right)/<span class="number">2</span>;</span><br><span class="line">    <span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (i&lt;<span class="number">10</span>) &#123;</span><br><span class="line">        midpoint = (left+right)/<span class="number">2</span>;</span><br><span class="line">        currentHeight = tex2Dlod(_heightMap, float4(midpoint,<span class="number">0.0</span>,<span class="number">0.0</span>)).r;</span><br><span class="line">        currentLayerHeight = <span class="built_in">length</span>(midpoint)/<span class="built_in">length</span>(viewDir.xy) * viewDir.z;</span><br><span class="line">        <span class="keyword">if</span> (currentLayerHeight &lt; currentHeight) &#123;</span><br><span class="line">            right = midpoint;</span><br><span class="line">            dist = currentHeight - currentLayerHeight;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (currentLayerHeight &gt; currentHeight) &#123;</span><br><span class="line">            left = midpoint;</span><br><span class="line">            dist = -currentHeight + currentLayerHeight;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        i++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> midpoint;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="视察闭塞贴图"><a href="#视察闭塞贴图" class="headerlink" title="视察闭塞贴图"></a>视察闭塞贴图</h4><figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">float2 left = currentUV;</span><br><span class="line">float2 right = currentUV+deltaUV;</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> afterDepth  = currentHeight-currentLayerHeight;</span><br><span class="line"><span class="type">float</span> beforeDepth = tex2D(_heightMap, right).r -currentLayerHeight + layerHeight;</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> weight = afterDepth / (afterDepth - beforeDepth);</span><br><span class="line">float2 finalTexCoords = right * weight + left * (<span class="number">1.0</span> - weight);</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> finalTexCoords;</span><br></pre></td></tr></table></figure>
+
+<p>POM是肉眼可见的效果不错（上：SPM，中：RPM，下：POM），RPM就不太能看得出变化了，但其实还是有的</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220802175923830.png" alt="image-20220802175923830" style="width:80%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220802180825768.png" alt="image-20220802180825768" style="width:80%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220802175853495.png" alt="image-20220802175853495" style="width:80%;" />
+
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a><strong>参考资料</strong></h4><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Ub4y1Z765">https://www.bilibili.com/video/BV1Ub4y1Z765</a> 【技术美术百人计划】图形 2.5 BUMP图改进</p>
+<p>[2] Unity Shader入门精要 p146-155</p>
+<p>[3]<br><a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/05%20Parallax%20Mapping/">https://learnopengl-cn.github.io/05%20Advanced%20Lighting/05%20Parallax%20Mapping/</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/08/02/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.5%20BUMP%E5%9B%BE%E6%94%B9%E8%BF%9B/" data-id="cmfe8hf4800399wuh0psadj8u" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Computer-Graphics/" rel="tag">Computer Graphics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/" rel="tag">百人计划</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag">笔记</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%BF%87%E7%A8%8B%E8%AE%B0%E5%BD%95/" rel="tag">过程记录</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2022/08/16/Diary/2022-08-16/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      2022年8月16日 周二
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2022/07/31/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.7LDR%E4%B8%8EHDR/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title">【笔记】【百人计划】图形2.7 LDR与HDR</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

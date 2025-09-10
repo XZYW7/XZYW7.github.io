@@ -1020,7 +1020,7 @@ img {
 .article-entry video,
 .archives video {
   max-width: 100%;
-  height: auto;
+/* height auto */
   display: block;
   margin: auto;
 }

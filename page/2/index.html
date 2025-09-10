@@ -64,153 +64,6 @@
     <h1 class="page-type-title"></h1>
     
     
-    <article id="post-TA/百人计划/图形2.8 flowmap的实现" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-
-    
-    <div class="article-meta">
-      <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.8%20flowmap%E7%9A%84%E5%AE%9E%E7%8E%B0/" class="article-date">
-  <time datetime="2025-09-10T13:18:14.025Z" itemprop="datePublished">2025-09-10</time>
-</a>
-      
-    </div>
-    
-
-    
-
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-        
-      
-      
-        <h1 id="图形2-8-flowmap的实现——流动效果实现"><a href="#图形2-8-flowmap的实现——流动效果实现" class="headerlink" title="图形2.8 flowmap的实现——流动效果实现"></a>图形2.8 flowmap的实现——流动效果实现</h1><h3 id="一、Flowmap是什么"><a href="#一、Flowmap是什么" class="headerlink" title="一、Flowmap是什么"></a>一、Flowmap是什么</h3><ul>
-<li>Flowmap的实质<ul>
-<li>一张记录了2D向量信息的纹理</li>
-<li>Flowmap上的颜色（RG）记录该处向量场的方向，让模型上某一点表现出定量流动的特征</li>
-<li>通过在shader中偏移uv再对纹理进行采样，来模拟流动效果。</li>
-</ul>
-</li>
-</ul>
-<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220806235307299.png" alt="image-20220806235307299"></p>
-<p>&#x3D;&#x3D;ue4与unity相比反转了绿通道&#x3D;&#x3D;</p>
-<h3 id="二、Flowmap-shader"><a href="#二、Flowmap-shader" class="headerlink" title="二、Flowmap shader"></a>二、Flowmap shader</h3><ol>
-<li>采样Flowmap获取向量场信息<ul>
-<li>Flowmap不能直接使用，需要从0，1映射到-1，1</li>
-</ul>
-</li>
-<li>用向量场信息，使采样贴图时的uv随时间变化</li>
-<li>对同一贴图以半个周期的相位差采集两次，并线性插值，使贴图流动连续</li>
-</ol>
-<ul>
-<li>随着时间进行，变形越来越大，为了把偏移控制在一定范围内</li>
-</ul>
-<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> phase = frac(_Time);</span><br><span class="line"><span class="comment">// 解决frac产生的跳变</span></span><br><span class="line"><span class="comment">// 构造周期相同，相位相差半个周期的波形函数</span></span><br><span class="line"><span class="type">float</span> phase0 = frac(_Time * <span class="number">0.1</span> * _TimeSpeed);</span><br><span class="line"><span class="type">float</span> phase1 = frac(_Time * <span class="number">0.1</span> * _TimeSpeed + <span class="number">0.5</span>);</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220807000102114.png" alt="image-20220807000102114"></p>
-<ul>
-<li>用相位差半个周期的两层采样进行加权混合，使纹理流动一个周期重新开始时的不自然情况被另一层采样覆盖</li>
-</ul>
-<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220807000117694.png" alt="image-20220807000117694"></p>
-<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">float2 tiling_uv = i.uv * _MainTex_ST.xy + _MainTex_ST.zw;</span><br><span class="line">half3 tex0 = tex2D(_MainTex, tiling_uv - floatDir.xy * phase0);</span><br><span class="line">half3 tex1 = tex2D(_MainTex, tiling_uv - floatDir.xy * phase1);</span><br><span class="line"><span class="comment">//构造函数计算随波形函数变化的权值，</span></span><br><span class="line"><span class="comment">//使得纹理采样值在接近最大偏移时有权值0，并因此消隐，构造较平滑的循环</span></span><br><span class="line"><span class="type">float</span> flowLerp = <span class="built_in">abs</span>((<span class="number">0.5</span>-phase0)/<span class="number">0.5</span>);</span><br><span class="line">half3 finalColor = lerp(tex0,tex1,flowLerp);</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="三、Flowmap的制作"><a href="#三、Flowmap的制作" class="headerlink" title="三、Flowmap的制作"></a>三、Flowmap的制作</h3><h4 id="Flowmap-painter"><a href="#Flowmap-painter" class="headerlink" title="Flowmap painter"></a>Flowmap painter</h4><p>Flowmap painter是unity制作的绘制flowmap的工具（用该工具得到的flowmap是线性空间颜色，不需要gamma矫正，在unity中取消勾选sRGB）</p>
-<p>本来还以为这种东西要手动在ps里画RG通道。。。有点头疼来着，没想到这个工具这么方便，并且可以支持flow的效果实时可视化。</p>
-<h4 id="Houdini-Labs"><a href="#Houdini-Labs" class="headerlink" title="Houdini Labs"></a>Houdini Labs</h4><p>Houdini Labs是内置在Houdini中的一组游戏开发相关的节点，可以在github中搜索sidefx Labs或直接在houdini中安装（在较早版本中的shoudini中无法在shelf内找到，在这些未被内置到houdini的版本中，这组工具名称为gamedev）</p>
-<ol>
-<li><strong>flowmap相关节点功能</strong></li>
-</ol>
-<ul>
-<li>grid<ul>
-<li>细分</li>
-</ul>
-</li>
-<li>flowmap<ul>
-<li>初始化向量场</li>
-</ul>
-</li>
-<li>flowmap_brush<ul>
-<li>向量场笔刷</li>
-</ul>
-</li>
-<li>flowmap_to_color<ul>
-<li>将向量映射到颜色</li>
-<li>并添加uv（如有uv则直接沿用）</li>
-</ul>
-</li>
-<li>flowmap_visualize<ul>
-<li>可视化flowmap效果</li>
-</ul>
-</li>
-<li>maps_baker<ul>
-<li>导出</li>
-<li>输出顶点色，并设置gamma（1-线性空间）</li>
-</ul>
-</li>
-<li>flowmap_guide<ul>
-<li>输入flowmap field(flowmap向量场)和曲线</li>
-<li>利用曲线修改向量场</li>
-</ul>
-</li>
-<li>flowma_obstacle<ul>
-<li>输入模型和向量场</li>
-<li>以模型和flowmap绘制平面进行检测，模型作为障碍，阻挡flow</li>
-</ul>
-</li>
-</ul>
-<h4 id="Flowmap的烘焙和相关设置"><a href="#Flowmap的烘焙和相关设置" class="headerlink" title="Flowmap的烘焙和相关设置"></a>Flowmap的烘焙和相关设置</h4><ul>
-<li><p>flowmap贴图设置：</p>
-<ul>
-<li>无压缩或高质量</li>
-<li>确认色彩空间</li>
-</ul>
-</li>
-<li><p>Houdini</p>
-<ul>
-<li>Labs Map Baker节点</li>
-<li>导出时注意gamma矫正选项、uv匹配</li>
-<li>用Labs UV transfer节点来匹配高模和低模的UV</li>
-</ul>
-</li>
-</ul>
-<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a>作业</h3><h4 id="实现流动效果"><a href="#实现流动效果" class="headerlink" title="实现流动效果"></a>实现流动效果</h4><p>我也是第一次听说flowmap这个概念，然后看看我的桌面壁纸发现：</p>
-<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220802184553447.png" alt="image-20220802184553447"></p>
-<p>这不就是flowmap做的水流效果吗？也是非常有趣。</p>
-<p>作业直接拿去年图形学作业用的水面贴图拿过来用了。flowmap是用Flowmap painter画的。</p>
-<p>中间平滑插值的一步看到图像其实很想用三角函数来做，但实操发现影响好像不太大，并且这个计算比起教程里的消耗会更大一点，所以还是没什么必要。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float flowLerp = (cos(2*UNITY_PI * _Time*0.1 * _TimeSpeed)+1)/2;//abs((0.5-phase0)/0.5);//</span><br></pre></td></tr></table></figure>
-
-<p>中间过程中一直发现有锯齿，最后发现是纹理压缩的问题，默认是法线质量压缩，在一些边缘处就会出现奇怪的锯齿</p>
-<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220816163919751.png" alt="image-20220816163919751"></p>
-<p>把压缩模式换成无压缩就好了（这也是为什么人家工具导出的就是png格式）。</p>
-<p>感觉flowmap很适合放在球面上，加一点自发光和半透明，做成朝一个方向旋转的水元素效果。一时间想不起来这种效果的案例哪里有了。</p>
-<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/Flowmap.gif" alt="Flowmap"></p>
-<p>感觉可以再进一步做一个顶点噪声扰动也许效果更好</p>
-<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Zq4y157c9">https://www.bilibili.com/video/BV1Zq4y157c9</a> </p>
-<p>【技术美术百人计划】图形 2.8 flowmap的实现——流动效果实现</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.8%20flowmap%E7%9A%84%E5%AE%9E%E7%8E%B0/" data-id="cmfe1kyaz0027ykuh4xmtbyjn" class="article-share-link">
-        Share
-      </a>
-      
-    </footer>
-
-  </div>
-
-  
-
-  
-
-</article>
-    
     <article id="post-TA/百人计划/图形3.1 深度与模板测试" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -697,7 +550,255 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.1%20%E6%B7%B1%E5%BA%A6%E4%B8%8E%E6%A8%A1%E6%9D%BF%E6%B5%8B%E8%AF%95/" data-id="cmfe1kyaz002bykuhgy5f4lnc" class="article-share-link">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.1%20%E6%B7%B1%E5%BA%A6%E4%B8%8E%E6%A8%A1%E6%9D%BF%E6%B5%8B%E8%AF%95/" data-id="cmfe1u6ph0027scuh75yr8oad" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+
+  
+
+</article>
+    
+    <article id="post-TA/百人计划/图形2.7.2 GPU硬件架构概述" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.7.2%20GPU%E7%A1%AC%E4%BB%B6%E6%9E%B6%E6%9E%84%E6%A6%82%E8%BF%B0/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.025Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+        
+      
+      
+        <h1 id="图形-2-7-2-GPU硬件架构概述"><a href="#图形-2-7-2-GPU硬件架构概述" class="headerlink" title="图形 2.7.2 GPU硬件架构概述"></a>图形 2.7.2 GPU硬件架构概述</h1><h4 id="思考"><a href="#思考" class="headerlink" title="思考"></a><strong>思考</strong></h4><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822162918576.png" alt="image-20220822162918576"></p>
+<h3 id="简述"><a href="#简述" class="headerlink" title="简述"></a><strong>简述</strong></h3><p>GPU是Graphics Processing Unit（图形处理单元）的缩写。顾名思义，GPU最初就是用于更高效的图像的绘制和图元数据处理。和CPU相比，GPU简化了控制模块与Cache模块，但是具有大量的ALU（算术逻辑单元），并且可以进行并行运算。因此，CPU更擅长逻辑、控制、串行运算，GPU更易于运行并行程序。</p>
+<p>GPU和通常所说的显卡严格来说是据有区别的，GPU是显卡（Video card、Display card、Graphics card）最核心的部件，但除了GPU，显卡还有扇热器、通讯元件、与主板和显示器连接的各类插槽。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822162950559.png" alt="image-20220822162950559"></p>
+<p>我们通常所说的显卡和GPU实际上具有一定区别。GPU是显卡的核心部分，再加上散热器，以及和主板、显示器的各种插槽等，就构成了显卡。显卡不能独立工作，需要装载到主板上，结合CPU、内存、显存、显示器等硬件组成完整的PC</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822163026806.png" alt="image-20220822163026806"></p>
+<p>当前市场主流的GPU厂商有Nvidia、AMD、ARM、Imagination、Qualcomm、苹果。</p>
+<p>目前在PC、手机、VR一体机等设备上，GPU都发挥着作用，为我们在设备上绘制出更快速、优质的画面奠定了基础。甚至除了绘制，在人工智能领域，近几年神经网络能够成为主流，GPU在其中也起到重要的作用。</p>
+<h3 id="发展历史"><a href="#发展历史" class="headerlink" title="发展历史"></a><strong>发展历史</strong></h3><p>1999年，Nvidia的GeForce 256 发布，Nvidia将GPU定义为“集成了变换，照明，三角形设置&#x2F;裁剪和渲染引擎的单芯片处理器，每秒能够处理至少1000万个多边形。GeForce 256被认为是第一块完成商业化的GPU，将GPU引入市场，是市场上第一款采用硬件加速T&amp;L（Transformation&amp;Lighting）的消费级卡。而在GeForce 256之前，也并非没有“具有完整T&amp;L引擎的显卡”，但是它们从未引入市场。实际上，20世纪70年代就有了“GPU”的概念，索尼于1994年PS1推出时使用“GPU”的术语。该系统有一个32位索尼GPU（由东芝设计）。这个阶段的GPU也已经基本具备渲染、Z缓冲、Alpha混合、雾计算、模板缓冲、纹理映射、纹理过滤等功能。</p>
+<p>从下面开始，以Nvidia的GPU发展过程为代表来讲述现代GPU和GPU架构的发展历史。</p>
+<p>2001年的GeForce3 开始，引入了可编程的渲染管线（可编程顶点着色器，可配置的32位浮点片段着色管线）。</p>
+<p>2006年推出了GeForce8 系列（G8x），也正是在这一代的GPU的基础上，开始有了GPU架构——Tesla架构。</p>
+<p>2010年的Fermi架构是第一个完整的GPU计算架构，是NVIDIA GPU 架构自初代 G80 以来最重大的飞跃。后来的Kepler架构、Maxwell架构都是基于Fermi架构的基础。</p>
+<p>2012年的Kepler架构显卡（600，700系列）和2014年的Maxwell架构显卡采用28nm工艺制造，使性能提高了20%。</p>
+<p>2014年的Maxwell架构，立体像素全局光照VXGI技术首次让游戏GPU能够提供实时动态全局光照</p>
+<p>2016年的GeForce GTX系列采用接替Maxwell的Pascal架构。Pascal 架构将处理器和数据集成在同一个程序包内，以实现更高的计算效率。1080系列、1060系列都是基于Pascal架构。</p>
+<p>2017年发布的Volta 架构配备了640 个Tensor core，这是专为深度学习设计的内核，每秒可提供超过100 兆次浮点运算(TFLOPS) 的深度学习效能，比前一代的Pascal 架构快5 倍以上。使用Volta架构的Titan V显卡也是专用于AI和仿真。</p>
+<p>从2018年开始的Turing架构，融合了Volta专用的Tensor Core，同时增加了RT core，这是光线追踪技术的核心。RT Core 能够以高达每秒 10 Giga Rays 的速度对光线和声音在 3D  环境中的传播进行加速计算。Turing 架构将实时光线追踪运算加速至上一代 NVIDIA Pascal架构的 25 倍，并能以高出 CPU  30 多倍的速度进行电影效果的最终帧渲染。为了体现对光线追踪的支持，NVIDIA在这之后的显卡前缀都采用了RTX。</p>
+<p>2020年的RTX 30系列采用了最新的Ampere架构。Ampere架构的Tensor core采用新的Tensor Float32（TF32）与64位浮点（FP64）精度标准。RT core也进行了更新，运算能力达到第一代的两倍。</p>
+<h3 id="GPU架构组成"><a href="#GPU架构组成" class="headerlink" title="GPU架构组成"></a><strong>GPU架构组成</strong></h3><p>每一代的GPU架构虽然具有差异，但也有一些相同的概念和组成部分。</p>
+<p>以Fermi架构为例，Fermi架构拥有16个SM （Stream Multiprocessor 流多处理器&#x2F;计算单元）。SM支持并发执行多个thread。Kepler、Maxwell架构中甚至对SM升级为SMX、SMM。程序员编写的Shader是在SM上运行的。</p>
+<p>每个SM包含：</p>
+<ul>
+<li>2个Warp Scheduler</li>
+<li>2个Dispatch Unit（分发单元）</li>
+<li>2个Warp（线程束）</li>
+<li>16组LD&#x2F;ST（加载存储单元）</li>
+<li>4个SFU（特殊函数单元）</li>
+<li>128KB Register File（寄存器）</li>
+<li>64KB Shared Memory &#x2F;L1 Cache</li>
+<li>Uniform Cache（全局缓存）</li>
+</ul>
+<p>每个Warp包含32个Core（也叫做SP——Stream Processor）；</p>
+<p>每个Core包含1个FPU（浮点数单元），1个ALU（算术逻辑单元）</p>
+<p>Warp Scheduler负责Warp调度，Warp Scheduler的指令通过Dispatch Units送到运算核心（Core）执行。</p>
+<p>LD&#x2F;ST(Load&#x2F;Store)加载&#x2F;存储模块用于辅助一个Warp从Shared Memory或显存加载或存储数据。</p>
+<p>对于L1 Cache，部分GPU架构中是与Shared Memory共用的（如Fermi架构）。</p>
+<p>Turing：</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822163459068.png" alt="image-20220822163459068"></p>
+<p>共性：</p>
+<ul>
+<li>GPC（图形处理簇）</li>
+<li>TPC（纹理处理簇）</li>
+<li>Thread（线程）</li>
+<li>SM、SMX、SMM（流多处理器）</li>
+<li>Warp线程束、Warp Scheduler（Warp编排器）</li>
+<li>SP（Streaming Processor，流处理器）</li>
+<li>Core（执行数学运算的核心）</li>
+<li>ALU（逻辑运算单元）</li>
+<li>FPU（浮点运算单元）</li>
+<li>SFU（特殊函数单元）</li>
+<li>ROP（render output unit，渲染输入单元）</li>
+<li>Load&#x2F;Store Unit（加载存储单元）</li>
+<li>L1 Cache</li>
+<li>L2 Cache</li>
+<li>Shared Memory（共享内存）</li>
+</ul>
+<h3 id="微观物理架构"><a href="#微观物理架构" class="headerlink" title="微观物理架构"></a><strong>微观物理架构</strong></h3><ul>
+<li>GPC<ul>
+<li>TPC<ul>
+<li>SM<ul>
+<li>Poly Morph Engine（多边形引擎）</li>
+<li>L1 Cache</li>
+<li>Shared Memory</li>
+<li>Core<ul>
+<li>ALU</li>
+<li>FPU</li>
+<li>Execution Context（执行上下文）<ul>
+<li>汇编代码会被GPU推送到执行上下文（Execution Context），然后ALU会逐条获取（Detch）、解码（Decode）汇编指令，并执行它们。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="GPU存储架构"><a href="#GPU存储架构" class="headerlink" title="GPU存储架构"></a><strong>GPU存储架构</strong></h3><h4 id="内存架构"><a href="#内存架构" class="headerlink" title="内存架构"></a><strong>内存架构</strong></h4><p>GPU的存储架构分级由</p>
+<ul>
+<li>Register File (Memory)寄存器<ul>
+<li>位于每个SM中，访问速度最快的存储体，用于存放线程执行时所需的变量</li>
+</ul>
+</li>
+<li>Shared Memory共享内存<ul>
+<li>位于每个SM中</li>
+</ul>
+</li>
+<li>L1 Cache</li>
+<li>L2 Cache</li>
+<li>Constant Memory常量内存<ul>
+<li>位于每个SM中和片外的RAM存储器中</li>
+</ul>
+</li>
+<li>Texture Memory纹理内存<ul>
+<li>位于每个SM中和片外的RAM存储器中</li>
+</ul>
+</li>
+<li>Global Memory全局内存<ul>
+<li>位于片外存储体。容量大，访问延迟高、传输速度较慢，使用二级缓存L2 Cache做缓冲</li>
+</ul>
+</li>
+<li>Local Memory本地内存<ul>
+<li>一般位于片内存储体，变量、数组、结构体等都存放在此处，但是有大数组、大结构体以至于寄存器区放不下他们，编译器在编译阶段就会将他们放到片外的DDR芯片中（最好的情况也会放到L2 Cache），且将他们标记为“Local”型</li>
+</ul>
+</li>
+</ul>
+<p>构成，它们的存取速度从寄存器到显存依次变慢。</p>
+<p>他们物理上所在的位置，决定了他们的速度、大小以及访问规则</p>
+<table>
+<thead>
+<tr>
+<th>存储类型</th>
+<th>访问周期</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>寄存器</td>
+<td>1</td>
+</tr>
+<tr>
+<td>共享内存</td>
+<td>1~32</td>
+</tr>
+<tr>
+<td>L1缓存</td>
+<td>1~32</td>
+</tr>
+<tr>
+<td>L2缓存</td>
+<td>32~64</td>
+</tr>
+<tr>
+<td>纹理、常量缓存</td>
+<td>400~600</td>
+</tr>
+<tr>
+<td>全局内存</td>
+<td>400~600</td>
+</tr>
+</tbody></table>
+<h4 id=""><a href="#" class="headerlink" title=""></a></h4><p>在不同的平台（PC或移动设备），GPU的存储架构分为分离式和耦合式（是否共享内存）。</p>
+<p>分离式架构中CPU和GPU各自有独立的缓存和内存，通过PCI-e总线通讯，缺点是PCI-e相对于两者具有低带宽和高延迟，数据的传输成为其中的性能瓶颈。一般用于PC；</p>
+<p>耦合式架构中CPU与GPU共享内存和缓存。AMD的APU采用的就是这种架构。目前主要是用在游戏主机、移动设备中，如PS4，智能手机。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/1617944-20190906001850363-356121869.png" alt="img" style="zoom:67%;" />
+
+<p>在储存管理方面，分离式架构中CPU与GPU各自拥有独立的内存，两者共享一套虚拟地址空间，必要时会进行内存拷贝。对于耦合式架构，GPU没有独立的内存，与CPU共享系统内存，由MMU进行存储管理。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822173521235.png" alt="image-20220822173521235"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822173644684.png" alt="image-20220822173644684"></p>
+<h3 id="GPU逻辑管线"><a href="#GPU逻辑管线" class="headerlink" title="GPU逻辑管线"></a><strong>GPU逻辑管线</strong></h3><p>我们根据GPU的渲染过程来了解每个部分在GPU中发挥的作用。以Fermi的SM为例</p>
+<p>1、程序通过图形API(DX、GL、WEBGL)发出draw call指令，指令会被推送到驱动程序，驱动会检查指令的合法性，然后会把指令放到GPU可以读取的Push buffer中。</p>
+<p>2、经过一段时间或者显式调用flush指令后，驱动程序把Push buffer的内容发送给GPU，GPU通过主机接口（Host Interface）接受这些命令，并通过前端（Front End）处理这些命令。</p>
+<p>3、在图元分配器(Primitive Distributor)中开始工作分配，处理index buffer中的顶点产生三角形分成批次(batches)，然后发送给多个GPCs（Graphics Processing Cluster）。</p>
+<p>4、在GPC中，每个SM中的Poly Morph Engine负责通过三角形索引(triangle indices)取出三角形的数据(vertex data)——Vertex Fetch。</p>
+<p>5、在获取数据之后，在SM中以32个线程为一组的线程束(Warp)来调度，来开始处理顶点数据。</p>
+<p>6、SM的warp调度器会按照顺序分发指令给整个warp，单个warp中的线程会锁步(lock-step)执行各自的指令，如果线程碰到不激活执行的情况也会被遮掩(be masked  out)。</p>
+<p>7、warp中的指令可以被一次完成，也可能经过多次调度，例如通常SM中的LD&#x2F;ST(加载存取)单元数量明显少于基础数学操作单元。</p>
+<p>8、由于某些指令比其他指令需要更长的时间才能完成，特别是内存加载，warp调度器可能会简单地切换到另一个没有内存等待的warp，这是GPU如何克服内存读取延迟的关键，只是简单地切换活动线程组。为了使这种切换非常快，调度器管理的所有warp在寄存器文件中都有自己的寄存器。这里就会有个矛盾产生，Shader需要越多的寄存器，就会给warp留下越少的空间，就会产生越少的warp，这时候在碰到内存延迟的时候就会只是等待，而没有可以运行的warp可以切换。</p>
+<p>9、一旦warp完成了vertex shader的所有指令，运算结果会被Viewport Transform模块处理，三角形会被裁剪然后准备栅格化，GPU会使用L1和L2缓存来进行vertex shader和pixel shader的数据通信。</p>
+<p>10、接下来这些三角形将被分割，再分配给多个GPC，三角形的范围决定着它将被分配到哪个光栅引擎(raster engines)，每个raster engines覆盖了多个屏幕上的tile，这等于把三角形的渲染分配到多个tile上面。也就是像素阶段就把按三角形划分变成了按显示的像素划分了。</p>
+<p>11、SM上的Attribute Setup保证了从vertex shader来的数据经过插值后是pixel shade是可读的。</p>
+<p>12、GPC上的光栅引擎(raster engines)在它接收到的三角形上工作，来负责这些这些三角形的像素信息的生成（同时会处理裁剪Clipping、背面剔除和Early-Z剔除）。</p>
+<p>13、32个像素线程将被分成一组，或者说8个2x2的像素块，这是在像素着色器上面的最小工作单元，在这个像素线程内，如果没有被三角形覆盖就会被遮掩，SM中的warp调度器会管理像素着色器的任务。</p>
+<p>14、接下来的阶段就和vertex shader中的逻辑步骤完全一样，但是变成了在像素着色器线程中执行。 由于不耗费任何性能可以获取一个像素内的值，导致锁步执行非常便利，所有的线程可以保证所有的指令可以在同一点。</p>
+<p>15、最后一步，现在像素着色器已经完成了颜色的计算还有深度值的计算，在这个点上，我们必须考虑三角形的原始api顺序，然后才将数据移交给ROP(render output  unit，渲染输入单元)，一个ROP内部有很多ROP单元，在ROP单元中处理深度测试，和framebuffer的混合，深度和颜色的设置必须是原子操作，否则两个不同的三角形在同一个像素点就会有冲突和错误。</p>
+<h3 id="SIMD和SIMT"><a href="#SIMD和SIMT" class="headerlink" title="SIMD和SIMT"></a><strong>SIMD和SIMT</strong></h3><ul>
+<li>SIMD（Single Instruction Multiple Data），单指令多数据，在GPU的ALU内，一条指令可以处理多维向量（一般是4D）的数据，比如以下shader指令<ul>
+<li>float4 c&#x3D;a+b;</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">;对于没有SIMD的处理单元，需要4条指令将4个float数值相加，汇编如下</span><br><span class="line">ADD c.x, a.x, b.x</span><br><span class="line">ADD c.y, a.y, b.y</span><br><span class="line">ADD c.z, a.z, b.z</span><br><span class="line">ADD c.w, a.w, b.w</span><br><span class="line">;有了SIMD技术，只需一条指令</span><br><span class="line">SIMD_ADD c,a,b</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>SIMT（Single Instruction Multiple Threads），单指令多线程，是SIMD的升级版，可对GPU中单个SM中的多个Core同时处理同一指令，并且每个Core存取的数据可以不同</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SIMT_ADD c,a,b</span><br><span class="line">;上述指令会被同时送入在单个SM中被编组的所有Core中，同时执行运算，但a,b,c的值可以不同</span><br><span class="line">;相当于</span><br><span class="line">__global__ void add(float *a, float *b, float *c) &#123;</span><br><span class="line">	int i = blockIdx.x * blockDim.x + threadIdx.x;</span><br><span class="line">	a[i] = b[i] + c[i];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="co-issue"><a href="#co-issue" class="headerlink" title="co-issue"></a><strong>co-issue</strong></h4><p>co-issue是为了解决SIMD运算单元无法充分利用的问题。如下图，由于float的数量不同，ALU的利用率也不同</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822171640666.png" alt="image-20220822171640666"></p>
+<p>为了解决着色器在低维向量的利用率低的问题，可以通过合并1D与3D或2D与2D的指令。例如下图，DP3指令用了3D数据，ADD指令只有1D数据，co-issue会自动将它们合并，在同一个ALU只需一个指令周期即可执行完</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822171813268.png" alt="image-20220822171813268"></p>
+<p>但是对于向量运算单元（Vector ALU），如果其中一个变量既是操作数又是存储数的情况，无法使用co-issue</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a><strong>总结</strong></h3><ul>
+<li>vs和fs都是在同一个单元中执行的，vs按照三角形来并行处理，fs按照像素来并行处理。</li>
+<li>vs和fs中的数据通过L1和L2缓存传递</li>
+<li>warp和thread都是逻辑上的概念，sm和sp、core都是物理上的概念。线程束≠流处理器数</li>
+</ul>
+<h4 id="优化建议："><a href="#优化建议：" class="headerlink" title="优化建议："></a><strong>优化建议：</strong></h4><ol>
+<li>尽量使用自己扩展的几何实例化代替unity提供的静态合批，动态合批。前者将合并mesh增加额外的vbo内存占用。后者则会增加cpu端的耗时开销。</li>
+<li>尽量减少顶点数与三角形面数。前者减少vs计算，另外可以减少gpu显存中frameData的内存存储。后者减少fs的消耗</li>
+<li>避免每帧提交buffer数据，比如unity的CPU版本粒子系统。可使用GPU版本粒子系统，将修改数据移动到gpu端。另外特别提醒尽量避免大片的透明粒子特效，这将造成严重的overdraw</li>
+<li>减少渲染状态的设置与获取。例如在update中获取设置shader的属性或公共变量。因为前面说到cpu通过MMIO获取寄存器数据，这将耗费更多的时间周期。</li>
+<li>3D物件应使用LOD减少处理的顶点与面数消耗，开启mipmap减少贴图缓存命中的丢失</li>
+<li>避免Alpha Test的使用，造成Early-Z失效</li>
+<li>避免三角面过小，这会加剧过度绘制的情况。也就是一个三角形只占3个像素点，却使用了12个线程去计算像素值，然后遮蔽其余9个的计算机结果。</li>
+<li>在寄存器数量与变体中寻找平衡，使用if变量达成静态分支，取代变体。一方面可以减少变体数量，一方面可以使得URP中的SRP Batch更高效合批</li>
+<li>避免动态的判断分支。也就是Shader中if true和false都会走的情况</li>
+<li>减少复杂函数调用。</li>
+</ol>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a><strong>参考资料</strong></h3><p>[1] <a target="_blank" rel="noopener" href="https://www.cnblogs.com/timlly/p/11471507.html#22-gpu%E5%8E%86%E5%8F%B2">https://www.cnblogs.com/timlly/p/11471507.html#22-gpu%E5%8E%86%E5%8F%B2</a></p>
+<p>[2] <a target="_blank" rel="noopener" href="https://www.nvidia.cn/data-center/ampere-architecture/">https://www.nvidia.cn/data-center/ampere-architecture/</a></p>
+<p>[3] <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Graphics_processing_unit">图形处理单元 - 维基百科，自由的百科全书 (wikipedia.org)</a></p>
+<p>[4] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1aM4y1g75f">https://www.bilibili.com/video/BV1aM4y1g75f</a></p>
+<p>[5] <a target="_blank" rel="noopener" href="https://www.daimajiaoliu.com/daima/486fc2a23900400">云渲染与分布式并行集群渲染技术 (daimajiaoliu.com)</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.7.2%20GPU%E7%A1%AC%E4%BB%B6%E6%9E%B6%E6%9E%84%E6%A6%82%E8%BF%B0/" data-id="cmfe1u6ph0029scuh4ca046ad" class="article-share-link">
         Share
       </a>
       
@@ -878,7 +979,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.5%20BUMP%E5%9B%BE%E6%94%B9%E8%BF%9B/" data-id="cmfe1kyax001vykuh9h0t2s6i" class="article-share-link">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.5%20BUMP%E5%9B%BE%E6%94%B9%E8%BF%9B/" data-id="cmfe1u6pf001zscuh26mj434x" class="article-share-link">
         Share
       </a>
       
@@ -1054,7 +1155,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.6%20%E4%BC%BD%E9%A9%AC%E6%A0%A1%E6%AD%A3/" data-id="cmfe1kyax001zykuh6mvvfima" class="article-share-link">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.6%20%E4%BC%BD%E9%A9%AC%E6%A0%A1%E6%AD%A3/" data-id="cmfe1u6pg0021scuh3bmg9kcd" class="article-share-link">
         Share
       </a>
       
@@ -1199,7 +1300,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A21.4PC%E6%89%8B%E6%9C%BA%E5%9B%BE%E5%BD%A2API%E4%BB%8B%E7%BB%8D/" data-id="cmfe1kyau001pykuh3lf6ajlg" class="article-share-link">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A21.4PC%E6%89%8B%E6%9C%BA%E5%9B%BE%E5%BD%A2API%E4%BB%8B%E7%BB%8D/" data-id="cmfe1u6pc001pscuh3q1oaopa" class="article-share-link">
         Share
       </a>
       
@@ -1401,7 +1502,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.1%E8%89%B2%E5%BD%A9%E7%A9%BA%E9%97%B4/" data-id="cmfe1kyau001rykuhe52e8mhb" class="article-share-link">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.1%E8%89%B2%E5%BD%A9%E7%A9%BA%E9%97%B4/" data-id="cmfe1u6pc001rscuhao8e6nbh" class="article-share-link">
         Share
       </a>
       
@@ -1680,7 +1781,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.2%E6%A8%A1%E5%9E%8B%E4%B8%8E%E6%9D%90%E8%B4%A8%E5%9F%BA%E7%A1%80/" data-id="cmfe1kyaw001tykuh2u1f6ldr" class="article-share-link">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.2%E6%A8%A1%E5%9E%8B%E4%B8%8E%E6%9D%90%E8%B4%A8%E5%9F%BA%E7%A1%80/" data-id="cmfe1u6pc001tscuh36tzecju" class="article-share-link">
         Share
       </a>
       
@@ -1804,7 +1905,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.3%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0%E4%BB%8B%E7%BB%8D/" data-id="cmfe1kyax001xykuh6cjd6qlp" class="article-share-link">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.3%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0%E4%BB%8B%E7%BB%8D/" data-id="cmfe1u6pe001vscuh7mao9yie" class="article-share-link">
         Share
       </a>
       
@@ -1968,7 +2069,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.4%20%E4%BC%A0%E7%BB%9F%E7%BB%8F%E9%AA%8C%E5%85%89%E7%85%A7%E6%A8%A1%E5%9E%8B/" data-id="cmfe1kyay0021ykuh0hlheowl" class="article-share-link">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.4%20%E4%BC%A0%E7%BB%9F%E7%BB%8F%E9%AA%8C%E5%85%89%E7%85%A7%E6%A8%A1%E5%9E%8B/" data-id="cmfe1u6pf001xscuh5fsed2qu" class="article-share-link">
         Share
       </a>
       
@@ -2213,7 +2314,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A21.1%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF/" data-id="cmfe1kyat001hykuh01ee2t5p" class="article-share-link">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A21.1%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF/" data-id="cmfe1u6pb001jscuhhb5q2gpe" class="article-share-link">
         Share
       </a>
       

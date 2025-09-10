@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形3.6 纹理压缩" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.6%20%E7%BA%B9%E7%90%86%E5%8E%8B%E7%BC%A9/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.027Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h1 id="图形3-6-纹理压缩"><a href="#图形3-6-纹理压缩" class="headerlink" title="图形3.6 纹理压缩"></a>图形3.6 纹理压缩</h1><h3 id="1-什么是纹理压缩"><a href="#1-什么是纹理压缩" class="headerlink" title="1. 什么是纹理压缩"></a><strong>1. 什么是纹理压缩</strong></h3><p>纹理压缩：是为了解决<strong>内存、带宽</strong>问题，专为在计算机图形渲染系统中存储纹理而使用的图像压缩技术。</p>
+<h4 id="1-1-图片与纹理"><a href="#1-1-图片与纹理" class="headerlink" title="1.1 图片与纹理"></a><strong>1.1 图片与纹理</strong></h4><ul>
+<li>图片格式<ul>
+<li>图片格式是图片文件的存储格式，通常在磁盘、内存中储存和传输文件时使用。</li>
+<li>例如：jpg、png、gif、bmp等</li>
+</ul>
+</li>
+<li>纹理格式<ul>
+<li>纹理格式是显卡能够直接进行采样的纹理数据格式，通常在向显卡中加载纹理时使用。</li>
+</ul>
+</li>
+<li>纹理管线<ul>
+<li>纹理压缩格式基于块压缩，能够更快读取像素所需字节块进行解压所以支持随机访问。</li>
+<li>图片压缩格式基于整张图片进行压缩，无法直接实现单个像素的解析。</li>
+<li>图片压缩格式无法被GPU识别，还需要经CPU解压缩成非压缩纹理格式才能被识别。</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824164504787.png" alt="image-20220824164504787"></p>
+<h3 id="2-常见纹理压缩格式"><a href="#2-常见纹理压缩格式" class="headerlink" title="2. 常见纹理压缩格式"></a><strong>2. 常见纹理压缩格式</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824164711622.png" alt="image-20220824164711622"></p>
+<h4 id="2-1-非压缩格式"><a href="#2-1-非压缩格式" class="headerlink" title="2.1 非压缩格式"></a><strong>2.1 非压缩格式</strong></h4><table>
+<thead>
+<tr>
+<th align="center">非压缩格式</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">RGBA8888(RGBA32)</td>
+<td>一个像素32位，包含A通道（一个像素消耗4字节）</td>
+</tr>
+<tr>
+<td align="center">RGBA4444(RGBA16)</td>
+<td>一个像素16位，包含A通道（一个像素消耗2字节）</td>
+</tr>
+<tr>
+<td align="center">RGB888(RGB24)</td>
+<td>一个像素24位，无A通道（一个像素消耗3字节）</td>
+</tr>
+<tr>
+<td align="center">RGB565(RGB16)</td>
+<td>一个像素16位，无A通道（一个像素消耗2字节）</td>
+</tr>
+</tbody></table>
+<h4 id="2-2-压缩格式"><a href="#2-2-压缩格式" class="headerlink" title="2.2 压缩格式"></a><strong>2.2 压缩格式</strong></h4><h5 id="DXTC"><a href="#DXTC" class="headerlink" title="DXTC"></a><strong>DXTC</strong></h5><p>DXTC纹理压缩格式来源于S3公司提出的S3TC算法，基本思想是把4x4的像素块压缩成一个64或128位的数据块，优点是创建了一个固定大小且独立的编码片段，没有共享查找表或其他依赖关系，简化了解码过程。</p>
+<ul>
+<li><p>DXT1(BC1)</p>
+<ul>
+<li>每个块有2个16位RGB颜色值（RGB565），代表了此4x4像素块中颜色极端值，然后通过线性插值计算出两个中间颜色值，16个2位索引值则表示了每一个像素的颜色值索引；</li>
+<li>(索引2个极端颜色+2个计算中间颜色)</li>
+<li>适用于不具有透明度信息的贴图（或一位（0、1）透明信息-完全不透明或完全透明）<ul>
+<li>有透明信息时，只计算一个中间颜色值，剩下的一个索引表示透明信息</li>
+</ul>
+</li>
+<li>参照RGB24的压缩率-64&#x2F;(24*16) &#x3D;1&#x2F;6 </li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824165255015.png" alt="image-20220824165255015"></li>
+</ul>
+</li>
+<li><p>DXT2&#x2F;3(BC2)</p>
+<ul>
+<li>DXT2&#x2F;3与DXT1类似，表示颜色信息的64位数据块不变，另外附加了64位数据来表示每个像素的Alpha信息，整个数据块变为128位</li>
+<li>每个像素占用8位，0-3表示透明信息，4-7表示颜色信息</li>
+<li>压缩率（RGBA32）：128&#x2F;(32*16) &#x3D; 1&#x2F;4</li>
+</ul>
+</li>
+<li><p>DXT4&#x2F;5(BC3)</p>
+<ul>
+<li>DXT4&#x2F;5与DXT2&#x2F;3的差异在于其Alpha信息使用了线性插值，表示颜色信息的64位数据块依然不变，Alpha信息则由2个8位Alpha极端值和16个3位索引值组成。</li>
+<li>压缩率（RGBA32）：128&#x2F;(32*16) &#x3D; 1&#x2F;4</li>
+</ul>
+</li>
+<li><p>在Unity内贴图类型选为法线后会采用DXTnm压缩格式（居于DXT5），该格式会把法线贴图R通道存入A通道，然后RB通道清除为1，这样可以将法线XY信息分别存入到RGB&#x2F;A中分别进行压缩，以获得更高的精度，然后再根据XY构建出Z通道数据。</p>
+</li>
+</ul>
+<h5 id="ATI1-2"><a href="#ATI1-2" class="headerlink" title="ATI1&#x2F;2"></a><strong>ATI1&#x2F;2</strong></h5><ul>
+<li><p>ATI1</p>
+<ul>
+<li>为ATI公司开发的纹理压缩格式，也被称为BC4，其每个数据块存储单个颜色的数据通道，以与DXT5中的Alpha数据相同的方式进行编码，常用于存储高度图，光滑度贴图，效果与原始图像基本无差异；</li>
+<li>压缩率（R8）：64&#x2F;(8*16)&#x3D;1&#x2F;2</li>
+</ul>
+</li>
+<li><p>ATI2</p>
+<ul>
+<li>也被称为BC5，每个块中存储两个颜色通道的数据，同上以与DX5中Alpha数据相同的方式进行编码，相当于存储了两个BC4块。</li>
+<li>压缩率（RG16）：128&#x2F;(8*16)&#x3D;1&#x2F;2</li>
+</ul>
+</li>
+<li><p>如果是在将法线存储在XY双通道中采用BC5格式压缩，由于每个通道都有自己的索引，因此法线贴图XY信息可以比在BC1中保留更多的保真度，缺点是需要使用两倍内存，也需要更多带宽才能将纹理传递到着色器中；</p>
+</li>
+</ul>
+<h5 id="BC6-7"><a href="#BC6-7" class="headerlink" title="BC6&#x2F;7"></a><strong>BC6&#x2F;7</strong></h5><p>仅在D3D11级图形硬件中受支持，他们每个块占用16字节，BC7针对8为RGB或RGBA数据，BC6针对RGB半精度浮点数据，因此BC6是唯一一个可以原生存储HDR的BC格式</p>
+<ul>
+<li>BC6是专门针对HDR图像设计的压缩算法，压缩比为1&#x2F;6</li>
+<li>BC7是专门针对LDR图像设计的压缩算法，压缩比为1&#x2F;3<ul>
+<li>该格式用于高质量的RGBA压缩，可以显著减少由于压缩法线带来的错误效果</li>
+</ul>
+</li>
+</ul>
+<h5 id="ETC"><a href="#ETC" class="headerlink" title="ETC"></a><strong>ETC</strong></h5><p>DirectX选择了DXTC作为标准压缩格式，对于Opengl则选择了爱立信研发的ETC格式，几乎所有安卓设备都可以支持ETC压缩，所以其在移动平台上被广泛使用。</p>
+<p>ETC与DXTC具有相同的特点，将4x4的像素单元压缩成64位数据块，并将像素单元水平或竖直朝向分为两个区块，每个像素颜色等于基础颜色加上索引指向的亮度范围。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824183152849.png" alt="image-20220824183152849"></p>
+<ul>
+<li><p>ETC1</p>
+<ul>
+<li>每个数据块分区中的4位亮度索引信息会从16个内置亮度表中获取当前像素单元对应的亮度表，每个像素的2位像素索引值可以从亮度表的四个值中选取对应的亮度补充值</li>
+<li>压缩率（RGB24）：64&#x2F;(16*24)&#x3D;1&#x2F;6</li>
+</ul>
+</li>
+<li><p>ETC2</p>
+<ul>
+<li>ETC1的扩展，支持了Alpha通道的压缩，硬件要求Opengl ES3.0和Opengl4.3以上</li>
+</ul>
+</li>
+<li><p>差别</p>
+<ul>
+<li>ETC1要求长宽为2的幂次的贴图，适用于所有安卓设备，压缩率比较高，但不适合带Alpha通道的贴图</li>
+<li>ETC2要求长宽能被4整除的贴图，设备有硬件要求，支持Alpha通道压缩，内存占用大于ETC1</li>
+</ul>
+</li>
+</ul>
+<h5 id="ASTC"><a href="#ASTC" class="headerlink" title="ASTC"></a><strong>ASTC</strong></h5><p>ASTC是ARM和AMD联合开发的纹理压缩格式，各项指标都不错，</p>
+<ul>
+<li>优点<ul>
+<li>可根据不同图片选择不同压缩率的算法</li>
+<li>图片不需要为2的幂次</li>
+<li>同时支持LDR和HDR</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>兼容性不够完善</li>
+<li>解码时间较长</li>
+</ul>
+</li>
+</ul>
+<p>ASTC也是基于块的压缩算法，与BC7类似，数据块大小固定为128位，不同的是块中像素数量可变，从4x4到12x12像素都有。</p>
+<p>每个数据块中存储了两个插值端点，但不一定存储的是颜色信息，也可能是Layer信息，这样可以用来对Normal或Alpha进行更好的压缩</p>
+<p>对于块中每个像素，存储对应插值端点的权重，存储的权重数量可以少于纹素数量，可通过插值得到每一个纹素的权重值，然后再进行颜色的计算。</p>
+<ul>
+<li>数据块构成<ul>
+<li>11位：权重、高度信息、特殊块标识</li>
+<li>2位：Part数量</li>
+<li>4位：16种插值端点模式（如LDR&#x2F;HDR，RGB&#x2F;RGBA）</li>
+<li>111位：插值端点信息，纹素权重值，配置信息</li>
+</ul>
+</li>
+</ul>
+<h5 id="PVRTC"><a href="#PVRTC" class="headerlink" title="PVRTC"></a><strong>PVRTC</strong></h5><p>由Imagination公司专为PowerVR显卡设计，仅支持Iphone，Ipad和部分安卓机。</p>
+<p>不同于DXTC和ETC这类基于块的算法，PVRTC将图像分为了低频和高频信号，低频信号由两张低分辨率图像AB组成，高频信号则是低精度的调制图像，记录了每个像素混合的权重，解码时AB图像经过双线性插值放大，然后根据调制图像的权重进行混合</p>
+<ul>
+<li>PVRTC<ul>
+<li>PVRTC 2-bpp(bit per pixel)</li>
+<li>PVRTC 4-bpp把一个4x4的像素单元压缩成一个64位数据块，每一个块中存储一个32位（每个像素2位）的调制数据，一个1位的调制标识，15位(RGB555&#x2F;RGBA4443)的颜色A，1位颜色A不透明标识（决定按照RGB还是RGBA进行存储），14位(RGB554&#x2F;RGBA4433)颜色B，1位颜色B不透明标识</li>
+<li>压缩率（RGB）：64&#x2F;(24*16) &#x3D; 1&#x2F;6</li>
+<li>压缩率（RGBA）：64&#x2F;(32*16) &#x3D; 1&#x2F;8</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-3-总结"><a href="#2-3-总结" class="headerlink" title="2.3 总结"></a><strong>2.3 总结</strong></h4><ul>
+<li>画质比较<ul>
+<li>RGBA&gt;ASTC 4x4&gt;ASTC6x6&gt;ETC2 ≈ETC1</li>
+</ul>
+</li>
+<li>压缩比</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">压缩格式</th>
+<th align="center">压缩率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">DXT1</td>
+<td align="center">1&#x2F;6</td>
+</tr>
+<tr>
+<td align="center">DXT2&#x2F;3</td>
+<td align="center">1&#x2F;4</td>
+</tr>
+<tr>
+<td align="center">DXT4&#x2F;5</td>
+<td align="center">1&#x2F;4</td>
+</tr>
+<tr>
+<td align="center">ATI1</td>
+<td align="center">1&#x2F;4</td>
+</tr>
+<tr>
+<td align="center">ATI2</td>
+<td align="center">1&#x2F;4</td>
+</tr>
+<tr>
+<td align="center">BC6</td>
+<td align="center">1&#x2F;6</td>
+</tr>
+<tr>
+<td align="center">BC7</td>
+<td align="center">1&#x2F;3</td>
+</tr>
+<tr>
+<td align="center">ASTC</td>
+<td align="center">1&#x2F;4~1&#x2F;35.95</td>
+</tr>
+<tr>
+<td align="center">PVRTC</td>
+<td align="center">1&#x2F;6</td>
+</tr>
+</tbody></table>
+<h3 id="3-实际应用中的选择"><a href="#3-实际应用中的选择" class="headerlink" title="3. 实际应用中的选择"></a><strong>3. 实际应用中的选择</strong></h3><ul>
+<li>PC<ul>
+<li>低质量使用DXT1，不支持A通道，使用DXT5格式支持A通道</li>
+<li>高质量使用BC7，支持A通道</li>
+</ul>
+</li>
+<li>安卓<ul>
+<li>低质量使用ETC1，不支持A通道</li>
+<li>低质量使用ETC2，支持A通道（Opengl ES3.0&#x2F;Opengl 4.3以上版本）</li>
+<li>高质量使用ASTC（Android5.0&#x2F;Opengl ES3.1以上版本）</li>
+</ul>
+</li>
+<li>IOS<ul>
+<li>高质量使用ASTC（Iphone6以上版本）</li>
+<li>低质量使用PVRTC2（支持Iphone6以下版本）</li>
+</ul>
+</li>
+</ul>
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a>作业</h3><p>结合今天课程，针对ASTC与ETC2这两个格式进行打包测试，分析内存占用占比。</p>
+<p>3.7的作业正好也差不多。。。放个链接</p>
+<p><a target="_blank" rel="noopener" href="https://xzyw7.github.io/post/Lyp-tjMR_/#%E4%BD%9C%E4%B8%9A">https://xzyw7.github.io/post/Lyp-tjMR_/#%E4%BD%9C%E4%B8%9A</a></p>
+<p>(ASTC6x6&amp;ETC2)最后包体的体积是非常接近的</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824023612935.png" alt="image-20220824023612935"></p>
+<p>ASCT</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824024417255.png" alt="image-20220824024417255"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824024516591.png" alt="image-20220824024516591"></p>
+<p>ETC2</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824024425619.png" alt="image-20220824024425619"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824024506074.png" alt="image-20220824024506074"></p>
+<p>就包体而言ASCT6x6是更大一些的，但是最后的内存占用却小了一些。</p>
+<p>（帧率的差别应该主要来源于CPU的性能差别，ASTC的CPU性能占用稍高，也就是解码的消耗）</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824025009019.png" alt="image-20220824025009019"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824025016354.png" alt="image-20220824025016354"></p>
+<p>再用单张贴图的压缩结果来看看各种压缩格式的效果（ASTC压缩实在是有点猛，相比也会占用更多CPU时间）</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824021751226.png" alt="image-20220824021751226"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824021823244.png" alt="image-20220824021823244"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824021805123.png" alt="image-20220824021805123"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824021840952.png" alt="image-20220824021840952"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824021857439.png" alt="image-20220824021857439"></p>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Av411K7bt">https://www.bilibili.com/video/BV1Av411K7bt</a></p>
+<p>【技术美术百人计划】图形 3.6 纹理压缩——包体瘦身术</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.6%20%E7%BA%B9%E7%90%86%E5%8E%8B%E7%BC%A9/" data-id="cmfe1kyb1002jykuhblvv1ldw" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.5%20Early-z%E5%92%8CZ-prepass/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.7%20%E7%A7%BB%E5%8A%A8%E7%AB%AFTB(D)R%E6%9E%B6%E6%9E%84%E5%9F%BA%E7%A1%80/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

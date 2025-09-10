@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="jumbotron">
+  <div class="video">
+    
+    <div class="video-frame">
+      <img src="/images/ocean/overlay-hero.png" alt="Decorative image frame">
+    </div>
+    
+    <div class="video-media">
+      <video playsinline="" autoplay="" loop="" muted="" data-autoplay="" poster="/images/ocean/ocean.png"
+        x5-video-player-type="h5">
+        <source src="/images/ocean/ocean.mp4" type="video/mp4">
+        <source src="/images/ocean/ocean.ogv" type="video/ogg">
+        <source src="/images/ocean/ocean.webm" type="video/webm">
+        <p>Your user agent does not support the HTML5 Video element.</p>
+      </video>
+      <div class="video-overlay"></div>
+    </div>
+    <div class="video-inner text-center text-white">
+      <h1><a href="/">XZYW7&#39;s Blog</a></h1>
+      <p></p>
+      <div><img src="/images/hexo-inverted.svg" class="brand" alt="XZYW7&#39;s Blog"></div>
+    </div>
+    <div class="video-learn-more">
+      <a class="anchor" href="#landingpage"><i class="fe fe-mouse"></i></a>
+    </div>
+  </div>
+</section>
+<div id="landingpage">
+  <section class="outer">
+  <article class="articles">
+    
+    <h1 class="page-type-title"></h1>
+    
+    
+    <article id="post-TA/Graphics/GAMES/Ray Tracing Note" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/Graphics/GAMES/Ray%20Tracing%20Note/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.013Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+        
+      
+      
+        <p>[TOC]</p>
+<h2 id="Whitted-Style-Ray-Tracing"><a href="#Whitted-Style-Ray-Tracing" class="headerlink" title="Whitted-Style Ray Tracing"></a>Whitted-Style Ray Tracing</h2><h3 id="Ray-Casting"><a href="#Ray-Casting" class="headerlink" title="Ray Casting"></a>Ray Casting</h3><p>基于针孔相机模型</p>
+<p>从眼睛向某个像素投射光线，击中场景中最近的物体相交点，（解决深度测试），连接交点与光源，判定遮挡（解决阴影），如果没有遮挡，则依据着色模型进行着色。</p>
+<h3 id="Recursive-（Whitted-Style）Ray-Tracing"><a href="#Recursive-（Whitted-Style）Ray-Tracing" class="headerlink" title="Recursive （Whitted-Style）Ray Tracing"></a>Recursive （Whitted-Style）Ray Tracing</h3><p>依据镜面反射和折射，计算出反射光线和折射光线，进行递归计算</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220304230619622.png" alt="image-20220304230619622" style="zoom:50%;" />
+
+<h3 id="光线求交"><a href="#光线求交" class="headerlink" title="光线求交"></a>光线求交</h3><h4 id="Ray-Equation"><a href="#Ray-Equation" class="headerlink" title="Ray Equation"></a>Ray Equation</h4><p>$r(t)&#x3D;o+td ,  0\le t\le+ \infin$</p>
+<h4 id="与球求交"><a href="#与球求交" class="headerlink" title="与球求交"></a>与球求交</h4><p>$p:(p-c)^2-R^2&#x3D;0$ ,联立$(o+td-c)^2-R^2&#x3D;0$，求解得到正的、较小的t值，可推广至一般隐式曲面。</p>
+<h4 id="与三角形求交"><a href="#与三角形求交" class="headerlink" title="与三角形求交"></a>与三角形求交</h4><h5 id="一般方法"><a href="#一般方法" class="headerlink" title="一般方法"></a>一般方法</h5><ol>
+<li>光线与平面求交</li>
+</ol>
+<p>​	定义平面：一个方向（法线方向）与一个点（平面上的点）,</p>
+<p>​	$p:(p-p^{‘}) \cdot N  \to ax+by+cz+d&#x3D;0$ ,同样代入求解,$t&#x3D;\frac{(p^{‘}-o)\cdot N}{d\cdot N}$，检验$0\le t\le+ \infin$</p>
+<ol start="2">
+<li>判定交点是否在三角形内（叉乘）</li>
+</ol>
+<h5 id="Moller-Trumbore-Algorithm"><a href="#Moller-Trumbore-Algorithm" class="headerlink" title="Moller Trumbore Algorithm"></a>Moller Trumbore Algorithm</h5><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220304233012291-16476226716761.png" alt="image-20220304233012291" style="zoom:50%;" />
+
+<p>假设光线和三角形平面有一个交点，则该点既可以用光线方程描述，也可以用三角形的重心坐标描述，以此构建方程，确定重心坐标非负，即可判定光线是否和三角形相交</p>
+<h4 id="光线与表面求交的加速"><a href="#光线与表面求交的加速" class="headerlink" title="光线与表面求交的加速"></a>光线与表面求交的加速</h4><h5 id="简单的光线-场景求交"><a href="#简单的光线-场景求交" class="headerlink" title="简单的光线-场景求交"></a>简单的光线-场景求交</h5><ol>
+<li>测试光线和每个物体的交点</li>
+<li>找到最近的交点（最小的t）</li>
+</ol>
+<h5 id="包围盒Bounding-Volumes"><a href="#包围盒Bounding-Volumes" class="headerlink" title="包围盒Bounding Volumes"></a>包围盒Bounding Volumes</h5><h6 id="轴对齐包围盒AABB"><a href="#轴对齐包围盒AABB" class="headerlink" title="轴对齐包围盒AABB"></a>轴对齐包围盒AABB</h6><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220304234531792.png" alt="image-20220304234531792" style="zoom:50%;" />
+
+<p>对于三维的情况</p>
+<ul>
+<li>只有当光线进入了所有的投影对面，光线才进入了盒子</li>
+<li>当光线离开了任意一个对面，光线就离开了盒子</li>
+</ul>
+<p>对于每个对面，计算$t_{min}和t_{max}$，对于三维盒子，$t_{enter}&#x3D;max(t_{min}),t_{exit}&#x3D;min(t_{max})$</p>
+<p>如果进入时间小于离开时间，光线则在这段时间内在盒子里，即有交点</p>
+<p>因为正的t才是有意义的，只要$t_{enter}&lt;t_{exit} {&amp;&amp;}t_{exit}\ge0$，则光线与盒子有交点，如果此时$t_{enter}&lt;0$，表示光线出发点在盒子当中。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220304235816614.png" alt="image-20220304235816614" style="zoom:50%;" />
+
+<h2 id="加速结构"><a href="#加速结构" class="headerlink" title="加速结构"></a>加速结构</h2><h3 id="空间划分（Spatial-Partitions）"><a href="#空间划分（Spatial-Partitions）" class="headerlink" title="空间划分（Spatial Partitions）"></a>空间划分（Spatial Partitions）</h3><h4 id="八叉树Oct-Tree-KD-Tree-BSP-Tree"><a href="#八叉树Oct-Tree-KD-Tree-BSP-Tree" class="headerlink" title="八叉树Oct-Tree &#x2F; KD-Tree &#x2F; BSP-Tree"></a>八叉树Oct-Tree &#x2F; KD-Tree &#x2F; BSP-Tree</h4><h4 id="KD-Tree"><a href="#KD-Tree" class="headerlink" title="KD-Tree"></a>KD-Tree</h4><p>物体只存在叶子节点中</p>
+<p>光线只与被判定相交的叶子结点中所有物体判定求交</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220305161528199-16476227401752.png" alt="image-20220305161528199" style="zoom:50%;" />
+
+<h4 id="BVH（Bounding-Volume-Hierarchy"><a href="#BVH（Bounding-Volume-Hierarchy" class="headerlink" title="BVH（Bounding Volume Hierarchy)"></a>BVH（Bounding Volume Hierarchy)</h4><ul>
+<li><p>解决物体与包围盒相交、一个物体出现在多个叶子结点的问题</p>
+</li>
+<li><p>找到一个包围盒，递归地把物体进行划分，重新构建包围盒</p>
+</li>
+<li><p>选取节点中最长的轴进行划分</p>
+</li>
+<li><p>取在中间的物体进行节点划分</p>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220305162233644.png" alt="image-20220305162233644" style="zoom:50%;" />
+
+<p>场景发生变化，则需要重新构建BVH</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220305162838657.png" alt="image-20220305162838657" style="zoom:50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220305162847780.png" alt="image-20220305162847780" style="zoom:50%;" />
+
+<h2 id="辐射度量学"><a href="#辐射度量学" class="headerlink" title="辐射度量学"></a>辐射度量学</h2><p>Why,What,How</p>
+<h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><h4 id="Radiant-Energy-and-Flux"><a href="#Radiant-Energy-and-Flux" class="headerlink" title="Radiant Energy and Flux"></a>Radiant Energy and Flux</h4><ul>
+<li><p>Radiant Energy是电磁辐射的能量，$Q[J&#x3D;Joule]$</p>
+</li>
+<li><p>Radiant flux(power) 是单位时间的能量，$\Phi &#x3D;\frac{dQ}{dt} [W&#x3D;Watt][lm&#x3D;lumen]$,lumen衡量光源亮度</p>
+</li>
+</ul>
+<h4 id="Solid-Angles"><a href="#Solid-Angles" class="headerlink" title="Solid Angles"></a>Solid Angles</h4><p>Anlge：$\theta&#x3D;\frac{l}{r}$</p>
+<p>Solid Angle:$\Omega&#x3D;\frac{A}{r^2}$</p>
+<p>球有 $4\pi$ 的立体角</p>
+<p>Differential Solid Angle：</p>
+<p>$dA&#x3D;(rd\theta)(r \sin\theta d\phi)&#x3D;r^2\sin\theta d\theta d\phi$</p>
+<p>$d\omega&#x3D;\frac{dA}{r^2}&#x3D;\sin\theta d\theta d\phi$</p>
+<h4 id="Radiant-Intensity"><a href="#Radiant-Intensity" class="headerlink" title="Radiant Intensity"></a>Radiant Intensity</h4><p>单位立体角的power<br>$$<br>I(\omega)&#x3D;\frac{d\Phi}{d\omega}[\frac{W}{sr}][\frac{lm}{sr}&#x3D;cd&#x3D;candela]<br>$$</p>
+<h4 id="Irradiance（辐射照度）"><a href="#Irradiance（辐射照度）" class="headerlink" title="Irradiance（辐射照度）"></a>Irradiance（辐射照度）</h4><p>单位面积的power:The power per(perpendicular&#x2F;projected) unit area incident on a surface point<br>$$<br>E(x)&#x3D;\frac{d\Phi(x)}{dA}[\frac{W}{m^2}][\frac{lm}{m^2}&#x3D;lux]<br>$$</p>
+<h5 id="Lambert’s-Cosine-Law"><a href="#Lambert’s-Cosine-Law" class="headerlink" title="Lambert’s Cosine Law"></a>Lambert’s Cosine Law</h5><p>$E&#x3D;\frac{\Phi}{A}\cos\theta$</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220305181403183.png" alt="image-20220305181403183" style="zoom:50%;" />
+
+<h4 id="Radiance-辐射率"><a href="#Radiance-辐射率" class="headerlink" title="Radiance(辐射率)"></a>Radiance(辐射率)</h4><p>物体表面单位立体角、单位投射面积的power:The power emitted,reflected,transmitted or received by a surface, per unit solid angle,per projected unit area</p>
+<p>&#x3D;&#x3D;这里为什么cos在下面呢？这部分光线本身所在面积A，而由于角度，表面测量的面积为$\frac{A}{\cos\theta}$,因此，代表着该表面上的辐射照度Irradiance,其实增加了&#x3D;&#x3D;，而上面Lambert‘s Cosine Law定义的是表面面积为A，刚好相反。<br>$$<br>L(p,\omega)&#x3D;\frac{d^2\Phi(p,\omega)}{d\omega dA \cos\theta}[\frac{W}{sr\ m^2}][\frac{cd}{m^2}&#x3D;\frac{lm}{sr\ m^2}&#x3D;nit]<br>$$<br><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220305234631162.png" alt="image-20220305234631162" style="zoom:50%;" /></p>
+<h5 id="Incident-Radiance"><a href="#Incident-Radiance" class="headerlink" title="Incident Radiance"></a>Incident Radiance</h5><p>光线从某个方向到达表面单位立体角的Irradiance<br>$$<br>L_i(p,\omega)&#x3D;\frac{dE(p)}{d\omega\cos\theta}<br>$$</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220305234924339.png" alt="image-20220305234924339" style="zoom:50%;" />
+
+<h5 id="Exiting-Radiance"><a href="#Exiting-Radiance" class="headerlink" title="Exiting Radiance"></a>Exiting Radiance</h5><p>光线离开表面单位投射面积上的Intensity<br>$$<br>L(p,\omega)&#x3D;\frac{dI(p,\omega)}{dA\cos\theta}<br>$$</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220305235512827.png" alt="image-20220305235512827" style="zoom:50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306001005140.png" alt="image-20220306001005140" style="zoom:50%;" />
+
+<h3 id="BRDF"><a href="#BRDF" class="headerlink" title="BRDF"></a>BRDF</h3><p>微小表面从某个微小方向上接受的irradiance，分配到某个方向</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306002133557.png" alt="image-20220306002133557" style="zoom:50%;" />
+
+<p>BRDF告诉我们，光线从每个吸收方向反射多少到每个出射方向</p>
+<p>任意一个出射方向的radiance微分，除以入射点上的irradiance微分</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306002710943.png" alt="image-20220306002710943" style="zoom:50%;" />
+
+<h3 id="反射方程"><a href="#反射方程" class="headerlink" title="反射方程"></a>反射方程</h3><p>对于一个出射方向的radiance，等于BRDF乘以每一个入射方向的radiance进行积分（把每个方向的入射光线对出射方向radiance的贡献加起来）</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306003241967.png" alt="image-20220306003241967" style="zoom:50%;" />
+
+<h3 id="渲染方程"><a href="#渲染方程" class="headerlink" title="渲染方程"></a>渲染方程</h3><p>即反射方程加自发光项</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306003933911.png" alt="image-20220306003933911" style="zoom:50%;" />
+
+<h4 id="深入理解渲染方程："><a href="#深入理解渲染方程：" class="headerlink" title="深入理解渲染方程："></a>深入理解渲染方程：</h4><p>考虑一个点光源在一个反射方向上的渲染方程</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306004433528.png" alt="image-20220306004433528" style="zoom:50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306004443153.png" alt="image-20220306004443153" style="zoom:50%;" />
+
+<p>那么由这种情况可以推测，如果是面光源，则只需要对面光源进行积分（计算直接光照时可以使用）</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306004607488.png" alt="image-20220306004607488" style="zoom:50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306004823056.png" alt="image-20220306004823056" style="zoom:50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306005126998.png" alt="image-20220306005126998" style="zoom:50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306005304523.png" alt="image-20220306005304523" style="zoom:50%;" />
+
+
+
+<h2 id="蒙特卡洛路径追踪——求解渲染方程"><a href="#蒙特卡洛路径追踪——求解渲染方程" class="headerlink" title="蒙特卡洛路径追踪——求解渲染方程"></a>蒙特卡洛路径追踪——求解渲染方程</h2><h3 id="蒙特卡洛积分"><a href="#蒙特卡洛积分" class="headerlink" title="蒙特卡洛积分"></a>蒙特卡洛积分</h3><p>计算定积分 $\int_a^bf(x)dx$ ，在积分域随机采样 $X_i \sim p(x)$ ，蒙特卡洛积分 $F_N&#x3D;\frac{1}{N}\sum_{i&#x3D;1}^N \frac{f(X_i)}{p(X_i)}$,以采样点的概率为权重，对采样的函数值进行加权求和。</p>
+<p>推导<br>$$<br>利用样本均值对随机变量f(x)的无偏估计<br>\E(g(x))&#x3D;\int_{x\in S}g(x)p(x)d\mu \approx \frac{1}{N}\sum_{i&#x3D;1}^N g(x_i)<br>\通常更希望估计单个函数的积分，因此令f(x)&#x3D;g(x)p(x)<br>\\int_{x\in S}f(x)d\mu\approx\frac{1}{N}\sum_{i&#x3D;1}^N\frac{f(x_i)}{p(x_i)}<br>$$</p>
+<h3 id="路径追踪"><a href="#路径追踪" class="headerlink" title="路径追踪"></a>路径追踪</h3><h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>Whitted Style ray tracing 中总是光滑的物体，产生reflections和refractions，在表面根据光照模型计算颜色，直到diffuse表面才发生停止。无法渲染复杂材质，也无法表现diffuse表面之间的反射。</p>
+<h4 id="求解渲染方程"><a href="#求解渲染方程" class="headerlink" title="求解渲染方程"></a>求解渲染方程</h4><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306191509519.png" alt="image-20220306191509519" style="zoom:50%;" />
+
+<h5 id="忽略自发光项的直接光照情况，"><a href="#忽略自发光项的直接光照情况，" class="headerlink" title="忽略自发光项的直接光照情况，"></a>忽略自发光项的直接光照情况，</h5><p>$L_o(p,\omega_o)&#x3D;\int_{\Omega^+}L_i(p,\omega_i)f_r(p,\omega_o,\omega_i)(n\cdot \omega_i)d\omega_i$ ，使用蒙特卡洛积分求解</p>
+<p>此时 $f(x)&#x3D;L_i(p,\omega_i)f_r(p,\omega_o,\omega_i)(n\cdot \omega_i)$ ,$p(\omega_i)&#x3D;\frac{1}{2\pi}$(半球面均匀采样)<br>$$<br>L_o(p,\omega_o)&#x3D;\int_{\Omega^+}L_i(p,\omega_i)f_r(p,\omega_o,\omega_i)(n\cdot \omega_i)d\omega_i<br>\\approx\frac{1}{N}\sum_{i&#x3D;1}^{N}\frac{L_i(p,\omega_i)f_r(p,\omega_o,\omega_i)(n\cdot \omega_i)}{p(\omega_i)}<br>$$<br><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306192828414.png" alt="image-20220306192828414" style="zoom:50%;" /></p>
+<h5 id="间接光照"><a href="#间接光照" class="headerlink" title="间接光照"></a>间接光照</h5><p>等同于从P点观测Q点的直接光照。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306193020106.png" alt="image-20220306193020106" style="zoom:50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306193055533.png" alt="image-20220306193055533" style="zoom:50%;" />
+
+<h5 id="递归光线数量"><a href="#递归光线数量" class="headerlink" title="递归光线数量"></a>递归光线数量</h5><p>取N&#x3D;1，反射的光线则不会爆炸。（在pdf采样出的光线中，随机选取一个）</p>
+<p>与之相对的，需要增加每个像素的光线路径采样数，将radiance取平均。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306193813503.png" alt="image-20220306193813503" style="zoom:50%;" />
+
+<p>在这一部分当中，将摄像机位置和像素连线，就隐式构成了透视投影。如果直接按像素平面的法向投射光线，则形成正交投影。</p>
+<h5 id="递归出口"><a href="#递归出口" class="headerlink" title="递归出口"></a>递归出口</h5><p>真实场景光线弹射无数次，但是在计算机中需要递归出口。因此引入了RR（Russian Roulette）</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306194500300.png" alt="image-20220306194500300" style="zoom:50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306194555964.png" alt="image-20220306194555964" style="zoom:50%;" />
+
+<p>在生存概率为P的情况下，光线弹射次数的期望是多少？$1&#x2F;p$ </p>
+<h5 id="采样光源"><a href="#采样光源" class="headerlink" title="采样光源"></a>采样光源</h5><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306205859562.png" alt="image-20220306205859562" style="zoom:50%;" />
+
+<p>很难击中光源。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306210040279.png" alt="image-20220306210040279" style="zoom:50%;" />
+
+<p>渲染方程是在半球面上进行采样，因此需要将渲染方程写成对光源上的dA积分</p>
+<p>因为只对光源部分进行积分，所以使用蒙特卡洛积分求解时，积分域只在光源上，因此取光源面积A，pdf&#x3D;1&#x2F;A</p>
+<p>只需要求dw与dA的关系</p>
+<p>将dA投影在半球面上</p>
+<p>$d\omega&#x3D;\frac{dA\cos\theta^{‘}}{||x^{‘}-x||^2}$ ,<br>$$<br>L_o(p,\omega_o)&#x3D;\int_{\Omega^+}L_i(p,\omega_i)f_r(p,\omega_o,\omega_i)(n\cdot \omega_i)d\omega_i<br>\&#x3D;\int_AL_i(p,\omega_i)f_r(p,\omega_o,\omega_i)\frac{\cos\theta\cos\theta^{‘}}{||x^{‘}-x||^2}dA<br>$$<br>着色结果来源于两部分</p>
+<ul>
+<li>光源（直接光照，不需要RR）</li>
+<li>其他反射物(借鉴光照，需要RR)</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220306211237150.png" alt="image-20220306211237150" style="zoom:50%;" />
+
+<p>直接光照部分，是使用了光源采样的改写渲染方程， $pdf&#x3D;1&#x2F;A$ ，间接光照部分，还是原来的渲染方程, $pdf&#x3D;1&#x2F;2\pi$ ,</p>
+<p>最后加上直接光源部分计算光源是否被遮挡</p>
+<h5 id="其他问题"><a href="#其他问题" class="headerlink" title="其他问题"></a>其他问题</h5><h6 id="半球均匀采样"><a href="#半球均匀采样" class="headerlink" title="半球均匀采样"></a>半球均匀采样</h6><h6 id="重要性采样"><a href="#重要性采样" class="headerlink" title="重要性采样"></a>重要性采样</h6><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/360420413">https://zhuanlan.zhihu.com/p/360420413</a></p>
+<p>​	选择更适合的pdf</p>
+<h6 id="多重重要性采样"><a href="#多重重要性采样" class="headerlink" title="多重重要性采样"></a>多重重要性采样</h6><p>采样球面和光源，将其结合起来</p>
+<h6 id="像素重建滤波（pixel-reconstruction-filter）"><a href="#像素重建滤波（pixel-reconstruction-filter）" class="headerlink" title="像素重建滤波（pixel reconstruction filter）"></a>像素重建滤波（pixel reconstruction filter）</h6><h6 id="gamma矫正，曲线，色彩空间，HDR"><a href="#gamma矫正，曲线，色彩空间，HDR" class="headerlink" title="gamma矫正，曲线，色彩空间，HDR"></a>gamma矫正，曲线，色彩空间，HDR</h6><p>radiance和颜色的换算过程</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/Graphics/GAMES/Ray%20Tracing%20Note/" data-id="cmfe1kyb2002rykuhhqje1zn0" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+
+  
+
+</article>
+    
+    <article id="post-TA/Graphics/GAMES/Real-time Environment Mapping" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/Graphics/GAMES/Real-time%20Environment%20Mapping/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.013Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+        
+      
+      
+        <h2 id="Real-time-Environment-Mapping实时环境光照"><a href="#Real-time-Environment-Mapping实时环境光照" class="headerlink" title="Real-time Environment Mapping实时环境光照"></a>Real-time Environment Mapping实时环境光照</h2><p>环境光照：认为来自无限远的（低频）光照</p>
+<ul>
+<li>spherical map</li>
+<li>cube map</li>
+</ul>
+<h3 id="Shading-from-environment-lighting（IBL）"><a href="#Shading-from-environment-lighting（IBL）" class="headerlink" title="Shading from environment lighting（IBL）"></a>Shading from environment lighting（IBL）</h3><p>不考虑visibility的shading<br>$$<br>\int_{\Omega^+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos \theta_id\omega_i<br>$$</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502161513389.png" alt="image-20220502161513389" style="zoom:67%;" />
+
+
+
+<p>当BRDF是glossy时，积分域较小</p>
+<p>当BRDF是diffuse时，积分域光滑</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502161654849.png" alt="image-20220502161654849" style="zoom: 67%;" />
+
+<h4 id="the-split-sum-approximation-step1"><a href="#the-split-sum-approximation-step1" class="headerlink" title="the split sum approximation-step1"></a>the split sum approximation-step1</h4><p>$$<br>L_0(p,w_o)\simeq\frac{\int_{\Omega_{fr}}L_i(p,w_i)dw_i}{\int_{\Omega_{fr}}dw_i}\cdot \int_{\Omega^+}f_r(p,w_i,w_o)\cos\theta_idw_i<br>$$</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502162610965.png" alt="image-20220502162610965" style="zoom:67%;" />
+
+<p>相当于Prefiltering of the environment lighting，滤波的大小取决于brdf的范围。</p>
+<p>对环境贴图生成预计算的Mipmap，中间的filter size使用三线性插值。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502162130291.png" alt="image-20220502162130291" style="zoom:67%;" />
+
+
+
+<h4 id="the-split-sum-approximation-step2"><a href="#the-split-sum-approximation-step2" class="headerlink" title="the split sum approximation-step2"></a>the split sum approximation-step2</h4><p>对BRDF积分的部分：</p>
+<p>预计算，所有可能的变量参数。但是这样参数变量很多，参数空间维度非常大。</p>
+<p>关注BRDF中的F项和NDF项</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502163841478.png" alt="image-20220502163841478" style="zoom:67%;" />
+
+<ul>
+<li><p>Fresnel Term</p>
+<ul>
+<li>Schlick‘s approximation</li>
+<li>$R(\theta) &#x3D; R_0+ (1-R_0)(1-\cos\theta)^5$</li>
+</ul>
+</li>
+<li><p>NDF Term</p>
+<ul>
+<li>Beckmann distribution</li>
+<li>$D(h)&#x3D;\frac{e^{-\frac{\tan^2\theta_h}{\alpha^2}}}{\pi\alpha^2\cos^4\theta_h}$</li>
+</ul>
+</li>
+</ul>
+<p>反射率、粗糙度、角度($n\cdot v$ )这些参数，再次分离变量</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502164106506.png" alt="image-20220502164106506" style="zoom:67%;" />
+
+<p>这种变形将反射率$R_0$拆分出来了</p>
+<p>只需要对两个参数Roughness和$\cos\theta$ 储存到参数空间</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502164321504.png" alt="image-20220502164321504" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502164618363.png" alt="image-20220502164618363" style="zoom:67%;" />
+
+<h3 id="Shadow-from-environment-lighting环境光照中的阴影"><a href="#Shadow-from-environment-lighting环境光照中的阴影" class="headerlink" title="Shadow from environment lighting环境光照中的阴影"></a>Shadow from environment lighting环境光照中的阴影</h3><p>Difficult</p>
+<p>多光源问题：SM的耗费和光源数量是线性关系</p>
+<p>采样问题：可见项V很复杂，V不能从环境中分离出来。</p>
+<p>工业界的解决方案：从最亮的几个光源生成阴影</p>
+<p>Related research：</p>
+<ul>
+<li>Imperfect shadow maps</li>
+<li>Light cuts（解决offline的多光源问题）</li>
+<li>RTRT(Realtime ray tracing)</li>
+<li>PRT</li>
+</ul>
+<h3 id="Real-time-environment-lighting-global-illumination"><a href="#Real-time-environment-lighting-global-illumination" class="headerlink" title="Real-time environment lighting(&amp; global illumination)"></a>Real-time environment lighting(&amp; global illumination)</h3><h4 id="Background-knowledge"><a href="#Background-knowledge" class="headerlink" title="Background knowledge"></a>Background knowledge</h4><h5 id="Frequency-and-filtering"><a href="#Frequency-and-filtering" class="headerlink" title="Frequency and filtering"></a>Frequency and filtering</h5><p>函数乘积的积分可以看作滤波 $\int_{\Omega}f(x)g(x)dx$ </p>
+<p>低频信息：光滑函数、变化较慢</p>
+<p>积分的频率是是由f(x)或g(x)中频率最低的决定的。</p>
+<h5 id="Basis-function"><a href="#Basis-function" class="headerlink" title="Basis function"></a>Basis function</h5><p>一系列函数可以通用地表示其他函数。<br>$$<br>f(x)&#x3D;\sum_ic_i\cdot B_i(x)<br>$$<br>傅里叶级数是一组基函数</p>
+<p>Polynomial series多项式系列也可以表示一组基函数</p>
+<h4 id="Spherical-Harmonics-SH-球谐函数"><a href="#Spherical-Harmonics-SH-球谐函数" class="headerlink" title="Spherical Harmonics(SH)球谐函数"></a>Spherical Harmonics(SH)球谐函数</h4><ul>
+<li><p>定义在球面上的一组二维基函数 $\theta,\phi$ </p>
+</li>
+<li><p>Analogous to Fourier series in 1D类似傅里叶级数在一维的情况</p>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502221255549.png" alt="image-20220502221255549" style="zoom:67%;" />
+
+<p>第l阶SH有2l+1个</p>
+<p>SH适用于直接分析球面上的性质。像如果把球面参数化映射到平面上，用Fourier series去展开，有一样的效果，但是像边缘的地方，重映射到球面时很可能出现裂缝，做不到Harmonic。</p>
+<ul>
+<li><p>每个基函数$B_i(\omega)$ 由Legendre polynomial(勒让德多项式)组成</p>
+</li>
+<li><p>Projection投影（投影到SH空间）：获取每个基函数的系数<br>$$<br>c_i &#x3D; \int_{\Omega}f(\omega)B_i(\omega)d\omega<br>$$</p>
+</li>
+<li><p>Reconstruction</p>
+</li>
+</ul>
+<h4 id="Prefiltered-env-lighting"><a href="#Prefiltered-env-lighting" class="headerlink" title="Prefiltered env. lighting"></a>Prefiltered env. lighting</h4><p>Prefiltering + single query &#x3D; no filtering + multiple queries(模糊后沿一个方向采样，相当于不滤波，在多个方向采样)</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502224119631.png" alt="image-20220502224119631" style="zoom:67%;" />
+
+<p>Lighting是球面上的函数，BRDF也是球面上的函数</p>
+<p>diffuse BRDF表现为低通滤波，那么任意频率的环境光照亮diffuse BRDF的结果(product integral)，都是低频的</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502224902989.png" alt="image-20220502224902989" style="zoom:67%;" />
+
+<ul>
+<li>仍然没有考虑shadow</li>
+</ul>
+<h4 id="Precomputed-Radiance-Transfer-PRT-预计算辐射度传递"><a href="#Precomputed-Radiance-Transfer-PRT-预计算辐射度传递" class="headerlink" title="Precomputed Radiance Transfer(PRT)预计算辐射度传递"></a>Precomputed Radiance Transfer(PRT)预计算辐射度传递</h4><p>Handles shadows and global illumination</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502225226205.png" alt="image-20220502225226205" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502225724366.png" alt="image-20220502225724366" style="zoom:67%;" />
+
+<p>认为场景其他部分不变，只有光照发生变化。</p>
+<ul>
+<li><p>对于每个着色点（vertex）预计算light和light transport</p>
+</li>
+<li><p>将lighting用basis functions表示 $L(i)&#x3D;\sum l_iB_i(i)$ </p>
+</li>
+<li><p>light transport 是可以预计算的，投影到基函数空间</p>
+<ul>
+<li>确定观察方向V，BRDF，ndotL都是一个与i有关的球面函数</li>
+</ul>
+</li>
+</ul>
+<h5 id="DiffuseCase"><a href="#DiffuseCase" class="headerlink" title="DiffuseCase"></a>DiffuseCase</h5><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502230413737.png" alt="image-20220502230413737" style="zoom:67%;" />
+
+<p>预计算light transport，代表着场景是静态的。光源可以是预计算动态的</p>
+<ul>
+<li>SH的优秀性质<ul>
+<li>正交</li>
+<li>容易投影&#x2F;重建</li>
+<li>易于旋转<ul>
+<li>旋转SH基函数，等于同阶SH基函数的线性组合</li>
+</ul>
+</li>
+<li>易于卷积</li>
+<li>基函数少：低频</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502231709479.png" alt="image-20220502231709479" style="zoom:67%;" />
+
+<h6 id="light-transport预计算"><a href="#light-transport预计算" class="headerlink" title="light transport预计算"></a>light transport预计算</h6><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502231730780.png" alt="image-20220502231730780" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502231919672.png" alt="image-20220502231919672" style="zoom:67%;" />
+
+<h6 id="另一种途径"><a href="#另一种途径" class="headerlink" title="另一种途径"></a>另一种途径</h6><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503123735337.png" alt="image-20220503123735337" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503123849095.png" alt="image-20220503123849095" style="zoom:67%;" />
+
+<p>积分内部，两个SHbasis相乘，p不等于q时，是正交的。</p>
+<p>最终只需要对p求和，和前面的结果是相同的。</p>
+<h5 id="GlossyCase"><a href="#GlossyCase" class="headerlink" title="GlossyCase"></a>GlossyCase</h5><p>在light transport 投影到SH时，给定任何一个观察方向o，light transport是不同的向量（BRDF）   （diffuse情况不受到o的影响）</p>
+<p>因此需要对每一个o方向进行预计算。（在工业化的应用场景中，是光照探针插值？）</p>
+<p>将$T_i(o)$ 这个与o相关的二维函数再次投影到o方向的SHbasis。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503124712129.png" alt="image-20220503124712129" style="zoom:67%;" />
+
+<h5 id="不足"><a href="#不足" class="headerlink" title="不足"></a>不足</h5><ul>
+<li><p>比较适用于描述低频函数（高频需要更多的SH）</p>
+</li>
+<li><p>动态光照，静态场景、材质：改变场景、材质会使预计算的light transport 无效</p>
+</li>
+<li><p>大量的预计算数据</p>
+</li>
+</ul>
+<h5 id="Wavelet"><a href="#Wavelet" class="headerlink" title="Wavelet"></a>Wavelet</h5><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503171333786.png" alt="image-20220503171333786"></p>
+<p>不同的小波定义域不同。支持全频率的表示。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503171719115.png" alt="image-20220503171719115" style="zoom: 33%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503171744708.png" alt="image-20220503171744708" style="zoom: 33%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503171753212.png" alt="image-20220503171753212" style="zoom: 33%;" />
+
+<p>留下高频信息，低频信息放在左上角。</p>
+<ul>
+<li>不足：不支持光照旋转</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/Graphics/GAMES/Real-time%20Environment%20Mapping/" data-id="cmfe1kyb3002vykuh51u7041z" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+
+  
+
+</article>
+    
+    <article id="post-TA/Graphics/GAMES/Real-time Global Illumination" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/Graphics/GAMES/Real-time%20Global%20Illumination/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.013Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+        
+      
+      
+        <h2 id="Real-time-Global-Illumination-in-3D"><a href="#Real-time-Global-Illumination-in-3D" class="headerlink" title="Real-time Global Illumination(in 3D)"></a>Real-time Global Illumination(in 3D)</h2><p>全局光照 &#x3D; 直接光照（光线弹射一次）+ 间接光照（光线弹射大于一次）</p>
+<h3 id="Reflective-Shadow-Maps-RSM"><a href="#Reflective-Shadow-Maps-RSM" class="headerlink" title="Reflective Shadow Maps(RSM)"></a>Reflective Shadow Maps(RSM)</h3><p>用间接光照照亮一个点p需要知道什么？</p>
+<ul>
+<li>哪些surface patches are directly lit<ul>
+<li>shadow mapping可以提供这个信息</li>
+</ul>
+</li>
+<li>每个surface patch对p的贡献是什么<ul>
+<li>每个surface patch作为area light，把他们都加起来</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220512222030784.png" alt="image-20220512222030784" style="zoom:67%;" />
+
+<p>假设被直接光照亮的次级光源是diffuse的</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220512222601390.png" alt="image-20220512222601390" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220512225823209.png" alt="image-20220512225823209" style="zoom:67%;" />
+
+<p>（它这里分母四次方是因为点乘当中没有归一化）</p>
+<p>忽略次级光源对shading point的可见性。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220512230920138.png" alt="image-20220512230920138" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220512230929309.png" alt="image-20220512230929309" style="zoom:67%;" />
+
+<p>总结：其实就是shadow mapping的思想，把所有次级光源看作diffuse，着色的时候进行对次级光源采样</p>
+<p>这是对于单个光源。问题是无法处理过多光源，也没有考虑间接光照部分的可见项，并且有非常多的采样。</p>
+<p>可以看作Virtual point light（VPL）方法的光栅化版</p>
+<h3 id="Light-Propagation-Volumes-LPV"><a href="#Light-Propagation-Volumes-LPV" class="headerlink" title="Light Propagation Volumes(LPV)"></a>Light Propagation Volumes(LPV)</h3><p>CryEngine3引入的技术，快速、质量高</p>
+<ul>
+<li><p>核心问题</p>
+<ul>
+<li>shading point来自不同方向的radiance</li>
+</ul>
+</li>
+<li><p>思想</p>
+<ul>
+<li>Radiance在空间中沿直线传播并且不改变</li>
+<li>使用3D网格将直接光照的表面传输到其他地方</li>
+</ul>
+</li>
+<li><p>步骤</p>
+<ul>
+<li><p>&#x3D;&#x3D;Generation&#x3D;&#x3D; of radiance point set scene representation生成radiance点集</p>
+<ul>
+<li>找到直接光照表面</li>
+<li>应用RSM</li>
+<li>可能使用简化的diffuse surface patches（virtual light sources）</li>
+</ul>
+</li>
+<li><p>&#x3D;&#x3D;Injection&#x3D;&#x3D; of point cloud of virtual light source into radiance volume</p>
+<ul>
+<li>预细分场景为3D网格</li>
+<li>对于每个格子，找到包含的virtual light source</li>
+<li>Sum up their directional light distribution</li>
+<li>Project to first 2 orders of SHs（4 in total）投影到2阶SH</li>
+</ul>
+</li>
+<li><p>Volumetric radiance &#x3D;&#x3D;propagetion&#x3D;&#x3D;</p>
+<ul>
+<li>对于每个网格，收集6个表面接收到的radiance</li>
+<li>Sum up，and again use SH to represent</li>
+<li>重复传播若干次至收敛</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514211324813.png" alt="image-20220514211324813" style="zoom:67%;" /></li>
+</ul>
+</li>
+<li><p>Scene &#x3D;&#x3D;lighting&#x3D;&#x3D; with final light propagation volume</p>
+<ul>
+<li>对于每个shading point，找到所在的grid cell</li>
+<li>取网格中的incident radiance（from all directions）</li>
+<li>Shade</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>问题</p>
+<ul>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514211513120.png" alt="image-20220514211513120" style="zoom:67%;" /></li>
+<li>因为认为同一网格radiance相同 ——light leaking</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514213435555.png" alt="image-20220514213435555" style="zoom:67%;" /></li>
+<li>同样假设格子间的visibility不计算</li>
+</ul>
+</li>
+</ul>
+<h3 id="Voxel-Global-Illumination-VXGI"><a href="#Voxel-Global-Illumination-VXGI" class="headerlink" title="Voxel Global Illumination(VXGI)"></a>Voxel Global Illumination(VXGI)</h3><ul>
+<li><p>two-pass algorithm</p>
+</li>
+<li><p>Two main differences with RSM</p>
+<ul>
+<li>Directly illuminated pixels -&gt; （hierachical） voxels</li>
+<li>Sampling on RSM -&gt; tracing reflected cones in 3D(Note the inaccuracy in sampling RSM) （Cone tracing）</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514220033906.png" alt="image-20220514220033906" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514220348504.png" alt="image-20220514220348504" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514220600084.png" alt="image-20220514220600084" style="zoom:67%;" />
+
+<p>问题：体素化的复杂度</p>
+<h2 id="Real-time-Global-Illumination-Screen-Space"><a href="#Real-time-Global-Illumination-Screen-Space" class="headerlink" title="Real-time Global Illumination(Screen Space)"></a>Real-time Global Illumination(Screen Space)</h2><p>Screen space：利用从相机渲染场景得到的直接光照信息Direct illumination</p>
+<p>相当于post processing on existing rendering</p>
+<h3 id="Screen-Space-Ambient-Occlusion-SSAO"><a href="#Screen-Space-Ambient-Occlusion-SSAO" class="headerlink" title="Screen Space Ambient Occlusion(SSAO)"></a>Screen Space Ambient Occlusion(SSAO)</h3><p>环境光遮蔽AO，Crytek</p>
+<p>AO就是场景中物体之间的contact shadow，易于实现，增强场景中的相对位置信息</p>
+<ul>
+<li><p>SSAO</p>
+<ul>
+<li>An approximation of GI</li>
+<li>in screen space</li>
+</ul>
+</li>
+<li><p>Key idea 1</p>
+<ul>
+<li>假设不知道间接光照</li>
+<li>假设它是一个常数，对于所有shading points，来自不同方向</li>
+<li>idea1相当于Ambient的思路</li>
+</ul>
+</li>
+<li><p>Key idea 2&amp;3</p>
+<ul>
+<li>考虑different visibility（towards all directions）at different shading points</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514222931272.png" alt="image-20220514222931272" style="zoom:67%;" /></li>
+<li>（3D建模软件里大概叫天光）</li>
+<li>此外，假设是diffuse材质</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514223032378.png" alt="image-20220514223032378" style="zoom:67%;" />
+
+<h4 id="Theory"><a href="#Theory" class="headerlink" title="Theory"></a>Theory</h4><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514223158769.png" alt="image-20220514223158769" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514223535289.png" alt="image-20220514223535289" style="zoom:67%;" />
+
+<p>$K_a * L_i^{indir}*albedo$ </p>
+<p>在diffuse、间接光照为常数的情况下，这是准确的</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514223901474.png" alt="image-20220514223901474" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514224020238.png" alt="image-20220514224020238" style="zoom:67%;" />
+
+<p>投影立体角（Projected solid angle）</p>
+<p>（实际上解释了$cos\theta dw_i$ 半球积分为$\pi$  ）</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514224235118.png" alt="image-20220514224235118" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514224537665.png" alt="image-20220514224537665" style="zoom:67%;" />
+
+<p>但是这样是没有加权平均的</p>
+<h4 id="如何实时计算ka项"><a href="#如何实时计算ka项" class="headerlink" title="如何实时计算ka项"></a>如何实时计算ka项</h4><ul>
+<li>世界空间<ul>
+<li>ray casting</li>
+</ul>
+</li>
+<li>屏幕空间<ul>
+<li>post-rendering pass</li>
+<li>不用预计算</li>
+<li>不依赖场景复杂度</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514224953129.png" alt="image-20220514224953129" style="zoom:67%;" />
+
+<p>只考虑一定范围内有没有遮挡物</p>
+<ul>
+<li>SSAO</li>
+<li>假设任何一个shading point 在周围体积采样点，判断点被shading point看到的结果</li>
+<li>使用相机的depth buffer来判断</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514225151550.png" alt="image-20220514225151550" style="zoom:67%;" /></li>
+<li>按理说只需要考虑法线方向的半球就可以了，但法线信息可能是不知道的</li>
+<li>因此做法是，只有过半的点在内部（红点），才开始使用AO，使用球而不是半球，但是只有过半的点才开始计算</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514225603651.png" alt="image-20220514225603651" style="zoom:67%;" /></li>
+<li>也没有cos项的权重，但这一点可以忽略了</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514230015563.png" alt="image-20220514230015563" style="zoom:67%;" /></li>
+</ul>
+<p>其他问题：False occlusions</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220514230147163.png" alt="image-20220514230147163" style="zoom:67%;" />
+
+<ul>
+<li><p>Choosing samples</p>
+<ul>
+<li>采样越多越精确，但考虑速度只用16个</li>
+<li>少量sample得到结果，再降噪</li>
+</ul>
+</li>
+<li><p>Horizon based ambient occlusion（HBAO）</p>
+<ul>
+<li>也是在屏幕空间</li>
+<li>近似ray tracing 深度缓冲</li>
+<li>需要知道法线（normal map），只采样半球</li>
+<li>（有法线可以对不同方向进行加权计算）</li>
+</ul>
+</li>
+</ul>
+<h3 id="Screen-Space-Directional-Occlusion-SSDO"><a href="#Screen-Space-Directional-Occlusion-SSDO" class="headerlink" title="Screen Space Directional Occlusion(SSDO)"></a>Screen Space Directional Occlusion(SSDO)</h3><ul>
+<li>SSDO<ul>
+<li>SSAO的提高</li>
+<li>考虑更多的实际间接光照</li>
+</ul>
+</li>
+<li>思路<ul>
+<li>不必假设接受的间接光照是uniform的</li>
+<li>一部分间接光照信息是已知的（间接光照&#x3D;次级光源提供的直接光照（RSM））</li>
+</ul>
+</li>
+<li>SSDO使用的直接光照信息不来自于RSM，来自于摄像机</li>
+<li>类似于path tracing<ul>
+<li>在shading point发射随机的光线</li>
+<li>如果没有遇到障碍物，是直接光照</li>
+<li>如果遇到障碍，是间接光照</li>
+</ul>
+</li>
+<li>比较<ul>
+<li>AO假设间接光照来源非常远，DO假设间接光照来源周围</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515131429453.png" alt="image-20220515131429453" style="zoom:67%;" /></li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515131937025.png" alt="image-20220515131937025" style="zoom:67%;" />
+
+<p>类似HBAO，考虑点p的局部半球</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515132410638.png" alt="image-20220515132410638" style="zoom:67%;" />
+
+<p>采样到的点不被挡住，则没有间接光照，被挡住，则有间接光照，并且把它们加起来。</p>
+<p>如图3，会出这样的问题，P-A没有被挡住，但在屏幕空间的深度判断下，将它认为是挡住的，P-B则相反。</p>
+<ul>
+<li>SSDO质量更接近离线渲染</li>
+<li>仍然只是小范围的GI</li>
+<li>可见性偏差</li>
+<li>屏幕空间的问题，丢失了不可见表面的信息（一切SS都会出现这种问题）</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515132917610.png" alt="image-20220515132917610" style="zoom:67%;" />
+
+<h3 id="Screen-Space-Reflection-SSR"><a href="#Screen-Space-Reflection-SSR" class="headerlink" title="Screen Space Reflection(SSR)"></a>Screen Space Reflection(SSR)</h3><ul>
+<li>SSR<ul>
+<li>RTR中实施GI的方式</li>
+<li>在屏幕空间进行光线追踪</li>
+<li>不需要3D信息</li>
+</ul>
+</li>
+<li>基本任务<ul>
+<li>求交<ul>
+<li>光线和场景</li>
+</ul>
+</li>
+<li>着色<ul>
+<li>从交点像素到着色点</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>反射本身就是全局光照</p>
+<p>假设场景没有反射，要加入反射，反射出来的东西都是屏幕上已有的东西。</p>
+<ul>
+<li>对于每个像素（镜面反射）<ul>
+<li>计算反射光线</li>
+<li>和屏幕上的物体求交</li>
+<li>使用交点颜色做反射色</li>
+</ul>
+</li>
+<li>对于一定roughness的材质，根据BRDF考虑采样的反射光线数量</li>
+<li>甚至可以加上法线信息</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515133949777.png" alt="image-20220515133949777" style="zoom:67%;" />
+
+<p>对于地面任何一个点，可以描述它的反射光，如何求交？</p>
+<ul>
+<li>Linear Raymarch<ul>
+<li>每一步检测深度值</li>
+<li>质量取决于step size</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515134334564.png" alt="image-20220515134334564" style="zoom:67%;" />
+
+<ul>
+<li>Hierarchy ray trace<ul>
+<li>Generate Depth Mip map<ul>
+<li>下采样使用最小深度而不是平均</li>
+<li>类似于3D空间的层次结构（BVH，KD-tree）</li>
+<li>能快速舍弃不可能相交的像素</li>
+<li>最小值建立一个保守的判断逻辑</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515134751855.png" alt="image-20220515134751855" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515134931819.png" alt="image-20220515134931819" style="zoom:67%;" />
+
+<p>先保守一点只走一步，没有交点，就可以多走一些，如果终于遇到了最小深度交点，就有可能和场景相交了，就需要少走一些。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515135234170.png" alt="image-20220515135234170" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515135328284.png" alt="image-20220515135328284" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515135417034.png" alt="image-20220515135417034"  />
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515135432576.png" alt="image-20220515135432576"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515135443096.png" alt="image-20220515135443096"></p>
+<p>最小层级都有交点，或者离开了屏幕，就可以停止了。</p>
+<p>局限：Mipmap上判断不了起点不在2^k上像素的深度最小值</p>
+<ul>
+<li>问题：，因为只在屏幕空间中计算<ul>
+<li>Hidden Geometry Problem</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515140428156.png" alt="image-20220515140428156" style="zoom:67%;" /></li>
+<li>Edge Cutoff</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515140620129.png" alt="image-20220515140620129" style="zoom:67%;" /></li>
+</ul>
+</li>
+</ul>
+<h4 id="Shading-using-SSR"><a href="#Shading-using-SSR" class="headerlink" title="Shading using SSR"></a>Shading using SSR</h4><p>和path tracing没有差别，只需要假设diffuse reflectors&#x2F;secondary lights</p>
+<ul>
+<li>是否引入平方衰减？<ul>
+<li>不需要，只要是算radiance，就不用，只有irradiance才会有伴随面积变大，能量衰减的效果。</li>
+</ul>
+</li>
+<li>是否考虑了着色点和次级光源之间的可见性？<ul>
+<li>是的，因为ray trace</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220515140938022.png" alt="image-20220515140938022" style="zoom:67%;" />
+
+<p>可以解决</p>
+<ul>
+<li><p>Sharp、bulrry reflections</p>
+</li>
+<li><p>Contact hardening(specular的lobe在非常近的距离，也只会采样很少的范围)</p>
+</li>
+<li><p>Specular elongation（被拉长，还是brdf的lobe采样的原因）</p>
+</li>
+<li><p>Per-pixel roughness and normal</p>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/Graphics/GAMES/Real-time%20Global%20Illumination/" data-id="cmfe1kyb3002xykuhd6ea9b19" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+
+  
+
+</article>
+    
+    <article id="post-TA/Graphics/GAMES/Real-time Physically-Based Materials" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/Graphics/GAMES/Real-time%20Physically-Based%20Materials/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.013Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+        
+      
+      
+        <h2 id="Real-time-Physically-Based-Materials-Surface-models"><a href="#Real-time-Physically-Based-Materials-Surface-models" class="headerlink" title="Real-time Physically-Based Materials(Surface models)"></a><strong>Real-time Physically-Based Materials(Surface models)</strong></h2><h3 id="PBR"><a href="#PBR" class="headerlink" title="PBR"></a><strong>PBR</strong></h3><h4 id="PBR与PBR材质"><a href="#PBR与PBR材质" class="headerlink" title="PBR与PBR材质"></a><strong>PBR与PBR材质</strong></h4><ul>
+<li><p>PBR</p>
+<ul>
+<li>一切基于物理，如材质、光照、相机、light transport等</li>
+<li>不仅限于材质，但通常指材质</li>
+</ul>
+</li>
+<li><p>RTR中的PBR</p>
+<ul>
+<li>实时渲染的材质种类、准确度等是不如离线的</li>
+<li>实时渲染的PB通常并不真的physically based</li>
+</ul>
+</li>
+</ul>
+<h4 id="RTR中的PBR材质"><a href="#RTR中的PBR材质" class="headerlink" title="RTR中的PBR材质"></a><strong>RTR中的PBR材质</strong></h4><ul>
+<li>Surface<ul>
+<li>大部分是微表面模型（使用错误，所以不太PBR）与Disney原则的BRDF（美术友好，但也不太PBR）</li>
+</ul>
+</li>
+<li>Volumes<ul>
+<li>大部分关注性能和近似的single&#x2F;multiple scattering（云、头发、皮肤等）</li>
+</ul>
+</li>
+<li>通常在使用上会使用很多hacks，并且非常关注性能</li>
+</ul>
+<h3 id="Microfacet-BRDF微表面BRDF"><a href="#Microfacet-BRDF微表面BRDF" class="headerlink" title="Microfacet BRDF微表面BRDF"></a><strong>Microfacet BRDF微表面BRDF</strong></h3><p>在GAMES101中根据微表面模型提出了以下的BRDF模型吧<br>$$<br>f(i,o)&#x3D;\frac{F(i,h)G(i,o,h)D(h)}{4(n,i)(n,o)}<br>$$</p>
+<h4 id="Fresnel"><a href="#Fresnel" class="headerlink" title="Fresnel"></a><strong>Fresnel</strong></h4><ul>
+<li>反射随着grazing angle（掠射角）增加会增多</li>
+</ul>
+<p>在物理上需要考虑光线的极化-s极化与p极化</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220928111429350.png" alt="image-20220928111429350"></p>
+<ul>
+<li>近似-Schlick’s approx<br>$$<br>R(\theta)&#x3D;R_0+(1-R_0)(1-\cos\theta)^5<br>\R_0&#x3D;(\frac{n_1-n_2}{n_1+n_2})^2<br>$$</li>
+</ul>
+<h4 id="Normal-Distribution-Function"><a href="#Normal-Distribution-Function" class="headerlink" title="Normal Distribution Function"></a><strong>Normal Distribution Function</strong></h4><p>描述微表面的法线分布</p>
+<ul>
+<li><p>法线集中</p>
+<ul>
+<li>Glossy-specular</li>
+</ul>
+</li>
+<li><p>法线分散</p>
+<ul>
+<li>Diffuse</li>
+</ul>
+</li>
+<li><p>常用的法线分布函数模型</p>
+<ul>
+<li>Bechmann</li>
+<li>GGX</li>
+<li>其他Detailed Model</li>
+</ul>
+</li>
+</ul>
+<h5 id="Bechmann-NDF"><a href="#Bechmann-NDF" class="headerlink" title="Bechmann NDF"></a><strong>Bechmann NDF</strong></h5><p>$$<br>D(h)&#x3D;\frac{e^{-\frac{\tan^2\theta_h}{\alpha^2}}}{\pi\alpha^2\cos^4\theta_h}<br>$$</p>
+<ul>
+<li>$\alpha$: roughness</li>
+<li>$\theta_h$ : 半程向量h与法线夹角</li>
+<li>近似于用高斯函数来建立模型，alpha描述了标准差，也即光滑程度</li>
+<li>分母归一化保证了projected solid angle的积分域为1</li>
+<li>定义在slope space（坡度空间）上<ul>
+<li>高斯函数的surpport（支撑集） 是无限大的，但可以映射到-90~90度的空间</li>
+</ul>
+</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220928114334006.png" alt="image-20220928114334006"></li>
+<li>描述的是各向同性的结果</li>
+</ul>
+<h5 id="GGX（Trowbridge-Reitz）"><a href="#GGX（Trowbridge-Reitz）" class="headerlink" title="GGX（Trowbridge-Reitz）"></a><strong>GGX（Trowbridge-Reitz）</strong></h5><ul>
+<li>Long tail(拖尾表现更好)</li>
+<li>过渡渐变看起来更自然</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001172957712.png" alt="image-20221001172957712" style="zoom:50%;" />
+
+
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001174745586.png" alt="image-20221001174745586"></p>
+<h5 id="Extending-GGX-GTR"><a href="#Extending-GGX-GTR" class="headerlink" title="Extending GGX(GTR)"></a><strong>Extending GGX(GTR)</strong></h5><ul>
+<li>GTR（Generalized Trowbridge-Reitz）</li>
+<li>更长的拖尾</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001175309985.png" alt="image-20221001175309985"></p>
+<h4 id="Shadowing-Masking-Term"><a href="#Shadowing-Masking-Term" class="headerlink" title="Shadowing-Masking Term"></a><strong>Shadowing-Masking Term</strong></h4><ul>
+<li>Geometry term G（几何遮蔽项）</li>
+<li>表示微表面自遮挡的数量，表现为入射光线被遮挡产生shadow，反射到眼睛的光线被遮挡为mask<ul>
+<li>Shadowing-light</li>
+<li>Masking-eye</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001180224677.png" alt="image-20221001180224677"></p>
+<ul>
+<li>为什么需要几何遮蔽项<ul>
+<li>考虑如果没有G项，掠射角的入射和出射会发生什么？</li>
+<li>根据Fresnel，在掠射部分的反射会变成1，</li>
+<li>BRDF分母接近0，最后的结果是在边缘部分接近白色，这是不合理的。</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001181331248.png" alt="image-20221001181331248"></li>
+</ul>
+</li>
+</ul>
+<h5 id="Smith-Shadowing-masking-term"><a href="#Smith-Shadowing-masking-term" class="headerlink" title="Smith Shadowing-masking term"></a><strong>Smith Shadowing-masking term</strong></h5><p>假设法线为一种统计学分布模型，</p>
+<ul>
+<li>将shadowing和masking的部分分开考虑</li>
+<li>假设$G(i,o,m)\simeq G_1(i,m)G_1(o,m)$</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001182858495.png" alt="image-20221001182858495"></p>
+<h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a><strong>问题</strong></h4><ul>
+<li>在Multiple Bounces（多次弹射）中产生的能量损失（在粗糙度高时更明显）</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001183353105.png" alt="image-20221001183353105" style="zoom:50%;" />
+
+<p>（如下图）在仅有的Uniform的全局光照下去照亮物体，对于specular的物体发生的正确反射，导致和背景融为一体。(<strong>白炉测试</strong>)</p>
+<p>Roughness的部分会使反射光更容易被遮挡。因此在实际光线多次发生Bounce的过程中，只考虑一次Bounce，会导致能量损失</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001183951640.png" alt="image-20221001183951640"></p>
+<ul>
+<li>Accurate methods[Heitz et al. 206]</li>
+<li>在实时渲染中较慢</li>
+<li>Basic idea<ul>
+<li>Being occluded &#x3D; next bounce happening</li>
+<li>被遮挡代表着下一次弹射发生</li>
+</ul>
+</li>
+</ul>
+<h4 id="Kulla-county-Approx"><a href="#Kulla-county-Approx" class="headerlink" title="Kulla-county Approx"></a><strong>Kulla-county Approx</strong></h4><p><a target="_blank" rel="noopener" href="https://fpsunflower.github.io/ckulla/data/s2017_pbs_imageworks_slides_v2.pdf">https://fpsunflower.github.io/ckulla/data/s2017_pbs_imageworks_slides_v2.pdf</a></p>
+<ul>
+<li><p>依据经验来补全多次反射的能量</p>
+</li>
+<li><p>2D BRDF lobe中出射的总能量<br>$$<br>E(\mu_0)&#x3D;\int^{2\pi}_0\int^1_0f(\mu_o,\mu_i,\phi)\mu_id\mu_id\phi<br>\\mu&#x3D;\sin\theta<br>$$</p>
+</li>
+</ul>
+<p>在上式中注意$\mu d\mu d\phi$ 的部分，换成$\sin\theta$ ，即$\cos\theta\sin\theta d\theta d\phi$ ，也即球面参数化（$\theta$, $\phi$）的表达。</p>
+<ul>
+<li>丢失的能量<ul>
+<li>我们可以设计一个 additiional lobe，使得这部分积分为$1-E(\mu_o)$ </li>
+<li>出射的BRDF lobe和入射方向是不同的</li>
+<li>考虑交换性，可以是如下形式$c(1-E(\mu_i))(1-E(\mu_o))$</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>f_{ms}(\mu_o,\mu_i)&#x3D;\frac{(1-E(\mu_i))(1-E(\mu_o))}{\pi(1-E_{avg})}<br>\E_{avg}&#x3D;2\int_0^1E(\mu)\mu d\mu<br>$$</p>
+<ul>
+<li>$E_{avg}$ 的处理<ul>
+<li>对于复杂的积分，在split sum中，我们的处理方式是——precompute&#x2F;tabulate预计算或制表</li>
+<li>$E_{avg}$ 的维度是多少 &#x2F; $E_{avg}$ 有多少参数<ul>
+<li>只需考虑$\mu_0$ 和roughness</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001194632992.png" alt="image-20221001194632992"></p>
+<ul>
+<li>验证</li>
+</ul>
+<p>$$<br>E_{ms}(\mu_o)&#x3D;\int^{2\pi}<em>0\int^1_0f</em>{ms}(\mu_o,\mu_i,\phi)\mu_id\mu_id\phi<br>\&#x3D;2\pi\int^1_0\frac{(1-E(\mu_i))(1-E(\mu_o))}{\pi(1-E_{avg})}\mu_id\mu_i<br>\&#x3D;2\frac{1-E(\mu_o)}{1-E_{avg}}\int_0^1(1-E(\mu_i))\mu_id\mu_i<br>\&#x3D;\frac{1-E(\mu_o)}{1-E_{avg}}(1-E_{avg})<br>\&#x3D;1-E(\mu_o)<br>$$</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001194824094.png" alt="image-20221001194824094"></p>
+<ul>
+<li>以上的内容基于没有颜色（白色）的BRDF</li>
+<li>但如果考虑其他颜色，也就代表着光线能量的吸收，也即能量的减少（损失）<ul>
+<li>因此我们只需要计算整体的能量损失</li>
+</ul>
+</li>
+<li>定义Average Fresnel平均菲涅尔<ul>
+<li>忽略入射角每次反射平均反射的能量</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>F_{avg}&#x3D;\frac{f_0^1F(\mu)\mu d\mu}{f_0^1\mu d\mu}&#x3D;2\int_0^1F(\mu)\mu d\mu<br>$$</p>
+<p>而$E_{avg}$ 代表我们能看到的能量（不参与多次bounce）</p>
+<p>所以最后的能量可以分类为：</p>
+<ul>
+<li>直接看到的能量$F_{avg}E_{avg}$</li>
+<li>一次弹射后被看到的能量$F_{avg}(1-E_{avg})F_{avg}E_{avg}$</li>
+<li>….</li>
+<li>k次弹射后被看到的能量$F_{avg}^k(1-E_{avg})^kF_{avg}E_{avg}$</li>
+</ul>
+<p>相加起来的级数求和（这一部分直接和没有颜色的BRDF相乘）<br>$$<br>\frac{F_{avg}E_{avg}}{1-F_{avg}(1-E_{avg})}<br>$$</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001200140171.png" alt="image-20221001200140171"></p>
+<p>再来解释一遍带颜色的多次弹射的能量损失。</p>
+<p>我们之间所做的计算都是基于没有颜色，也就是白色，也就是不吸收能量，所得到的结果。但是，如果物体存在颜色，也即会吸收能量，那么，在multi-bounces的过程中，每次弹射，都会吸收对应的能量，而我们用平均的菲涅尔来定义，这样就能忽略弹射的角度，而把所有的弹射加起来后，把这一部分由于颜色吸收能量带来的损失，和前面的乘起来，就是最后的结果。</p>
+<h5 id="Undesirable-Hack"><a href="#Undesirable-Hack" class="headerlink" title="Undesirable Hack"></a><strong>Undesirable Hack</strong></h5><ul>
+<li>将Microfacet BRDF和一个diffuse lobe结合起来（在CV中的材质识别普遍使用）</li>
+<li>这是不科学的（Cook-Torrance BRDF就是这么干的）</li>
+<li>微表面已经将表面解释成表面的某种分布了，又怎么会加上一部分的理想漫反射呢<ul>
+<li>物理不正确，且能量不守恒</li>
+<li>（但也有加上diffuse后保证能量守恒的处理方式，这肯定也是存在的）</li>
+</ul>
+</li>
+</ul>
+<h3 id="Linearly-Transformed-Cosines（LTC）"><a href="#Linearly-Transformed-Cosines（LTC）" class="headerlink" title="Linearly Transformed Cosines（LTC）"></a><strong>Linearly Transformed Cosines（LTC）</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001213010346.png" alt="image-20221001213010346"></p>
+<p>线性变换余弦方法——多边形光照下的微表面BRDF着色</p>
+<ul>
+<li><p>解决microfacet model 的shading问题</p>
+</li>
+<li><p>主要基于GGX法线分布（其他模型也是可以的）</p>
+</li>
+<li><p>不考虑shadows</p>
+</li>
+<li><p>多边形光源</p>
+</li>
+<li><p>想法</p>
+<ul>
+<li>任意2D的BRDF lobe可以被线性变换为余弦</li>
+<li>光源的形状也可以被变换</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001213451716.png" alt="image-20221001213451716" style="zoom:50%;" /></li>
+</ul>
+</li>
+</ul>
+<p>在cosine lobe上积分变换后的光源是有解析解的</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001213822511.png" alt="image-20221001213822511"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001213659851.png" alt="image-20221001213659851"></p>
+<h4 id="做法"><a href="#做法" class="headerlink" title="做法"></a><strong>做法</strong></h4><p>认为多边形光源内部发出的光是uniform的，即Li是相同的，即从任意位置观察的多边形光源的Li是相同的<br>$$<br>\omega_i&#x3D;\frac{M\omega_i’}{||M\omega_i’||}<br>\L(\omega_o)&#x3D;L_i\cdot \int_PF(\omega_i)d\omega_i<br>\&#x3D;L_i\cdot \int_P\cos(\omega_i’)d\frac{M\omega_i’}{||M\omega_i’||}<br>\&#x3D;L_i\cdot \int_{P’}\cos(\omega_i’)Jd \omega_i’<br>$$</p>
+<h3 id="Disney-Principled-BRDF迪士尼原则的BRDF"><a href="#Disney-Principled-BRDF迪士尼原则的BRDF" class="headerlink" title="Disney Principled BRDF迪士尼原则的BRDF"></a><strong>Disney Principled BRDF迪士尼原则的BRDF</strong></h3><ul>
+<li>微表面模型的缺陷<ul>
+<li>微表面模型不适合表现真实的物理材质</li>
+<li>微表面模型缺少diffuse项</li>
+<li>解释不了多层的材质</li>
+<li>基于物理的参数艺术上不好用<ul>
+<li>反射率n-ik（复数）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Disney Principled BRDF<ul>
+<li>Art directable, 不要求物理上正确</li>
+<li>实时渲染中认为是PBR的</li>
+<li>需要使用更直接的参数，使用尽可能少的参数</li>
+<li>参数最好是0-1的。如果有必要，也最好允许能够超出这个范围</li>
+<li>所有有关联的参数应该鲁棒且合理</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002112204105.png" alt="image-20221002112204105" style="zoom:50%;" />
+
+<ul>
+<li>sheen<ul>
+<li>类似天鹅绒的光泽效果</li>
+</ul>
+</li>
+<li>clearcoat<ul>
+<li>清漆</li>
+</ul>
+</li>
+</ul>
+<h2 id="Non-Photorrealistic-rendering-NPR"><a href="#Non-Photorrealistic-rendering-NPR" class="headerlink" title="Non-Photorrealistic rendering(NPR)"></a><strong>Non-Photorrealistic rendering(NPR)</strong></h2><p>NPR——stylization（fast and reliable）</p>
+<ul>
+<li>来源于真实感渲染</li>
+<li>利用抽象</li>
+<li>强化重点</li>
+</ul>
+<p>应用</p>
+<ul>
+<li>艺术</li>
+<li>可视化</li>
+<li>指示说明</li>
+<li>教育</li>
+<li>娱乐</li>
+</ul>
+<p>风格化</p>
+<ul>
+<li>描边</li>
+<li>阴影</li>
+<li>色块</li>
+<li>。。。</li>
+</ul>
+<h3 id="Outline-Rendering"><a href="#Outline-Rendering" class="headerlink" title="Outline Rendering"></a><strong>Outline Rendering</strong></h3><ul>
+<li>描边不只是轮廓</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002121116909.png" alt="image-20221002121116909"></p>
+<ul>
+<li><p>Boundary</p>
+</li>
+<li><p>Crease</p>
+<ul>
+<li>折痕</li>
+</ul>
+</li>
+<li><p>Material edge</p>
+</li>
+<li><p>Silhouette</p>
+<ul>
+<li>在物体外部轮廓上，要求有多个面共享的边界</li>
+</ul>
+</li>
+</ul>
+<h4 id="shading方法"><a href="#shading方法" class="headerlink" title="shading方法"></a><strong>shading方法</strong></h4><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002121509079.png" alt="image-20221002121509079"></p>
+<ul>
+<li>描边粗细不一致</li>
+</ul>
+<h4 id="Geometry方法"><a href="#Geometry方法" class="headerlink" title="Geometry方法"></a><strong>Geometry方法</strong></h4><p>背面渲染成黑色沿顶点法线外扩</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002121836905.png" alt="image-20221002121836905"></p>
+<h4 id="postprocess方法"><a href="#postprocess方法" class="headerlink" title="postprocess方法"></a><strong>postprocess方法</strong></h4><p>图像边缘检测的方法</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002132828971.png" alt="image-20221002132828971" style="zoom:50%;" />
+
+<h3 id="Color-blocks色块"><a href="#Color-blocks色块" class="headerlink" title="Color blocks色块"></a><strong>Color blocks色块</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002133535272.png" alt="image-20221002133535272"></p>
+<ul>
+<li>Hard shading： thresholding on shading</li>
+<li>posterization： thresholding on final image</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002133741767.png" alt="image-20221002133741767"></p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002133857329.png" alt="image-20221002133857329" style="zoom: 67%;" />
+
+<h3 id="Strokes-Surfaces-Stylization"><a href="#Strokes-Surfaces-Stylization" class="headerlink" title="Strokes Surfaces Stylization"></a><strong>Strokes Surfaces Stylization</strong></h3><ul>
+<li>sketch</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002134051191.png" alt="image-20221002134051191" style="zoom:50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002135210430.png" alt="image-20221002135210430" style="zoom:50%;" />
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/Graphics/GAMES/Real-time%20Physically-Based%20Materials/" data-id="cmfe1kyb3002zykuhct225or5" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+
+  
+
+</article>
+    
+    <article id="post-TA/Graphics/GAMES/A Glimpse of Industrial Solutions" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/Graphics/GAMES/A%20Glimpse%20of%20Industrial%20Solutions/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.012Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+        
+      
+      
+        <h2 id="A-Glimpse-of-Industrial-Solutions"><a href="#A-Glimpse-of-Industrial-Solutions" class="headerlink" title="A Glimpse of Industrial Solutions"></a><strong>A Glimpse of Industrial Solutions</strong></h2><h3 id="Anti-aliasing"><a href="#Anti-aliasing" class="headerlink" title="Anti-aliasing"></a><strong>Anti-aliasing</strong></h3><h4 id="Temporal-Anti-Aliasing-TAA"><a href="#Temporal-Anti-Aliasing-TAA" class="headerlink" title="Temporal Anti-Aliasing(TAA)"></a><strong>Temporal Anti-Aliasing(TAA)</strong></h4><ul>
+<li><p>Why aliasing</p>
+<ul>
+<li>光栅化中逐像素采样率不足</li>
+<li>因此，终极解决方案是使用更多样本</li>
+</ul>
+</li>
+<li><p>TAA</p>
+<ul>
+<li>复用上一帧的样本</li>
+<li>Almost exactly the same as in RTRT</li>
+</ul>
+</li>
+<li><p>Notes on AA</p>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002193628481.png" alt="image-20221002193628481"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002194058432.png" alt="image-20221002194058432"></p>
+<h4 id="Temporal-Super-Resolution"><a href="#Temporal-Super-Resolution" class="headerlink" title="Temporal Super Resolution"></a><strong>Temporal Super Resolution</strong></h4><ul>
+<li>Super resolution(super sampling)<ul>
+<li>Literal understanding: increasing resolution</li>
+<li>Source 1(DLSS 1.0): out of nowhere&#x2F;completely guessed</li>
+<li>Source 2(DLSS 2.0): from temporal information</li>
+<li>Key idea of DLSS 2.0<ul>
+<li>TAA-like application</li>
+<li>Temporally reuse samples to increase resolution</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="Super-sampling-and-DLSS"><a href="#Super-sampling-and-DLSS" class="headerlink" title="Super sampling and DLSS"></a><strong>Super sampling and DLSS</strong></h3><ul>
+<li>DLSS2.0 Main Problem<ul>
+<li>Upon temporal failure, clamping is no longer an option</li>
+<li>Because we need a clear value for each smaller pixel</li>
+<li>Key is <strong>how to use temporal info</strong> smarter than clamping</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002195029254.png" alt="image-20221002195029254"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002195128656.png" alt="image-20221002195128656"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002195713542.png" alt="image-20221002195713542"></p>
+<h3 id="Deferred-Shading"><a href="#Deferred-Shading" class="headerlink" title="Deferred Shading"></a><strong>Deferred Shading</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002200002876.png" alt="image-20221002200002876"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002200406831.png" alt="image-20221002200406831"></p>
+<h3 id="Tiled-Shading"><a href="#Tiled-Shading" class="headerlink" title="Tiled Shading"></a><strong>Tiled Shading</strong></h3><ul>
+<li>Improvement: tiled shading<ul>
+<li>subdivide the screen into tiles</li>
+</ul>
+</li>
+<li>Key observation<ul>
+<li>Not all lights can illuminate a specific tile</li>
+<li>Mostly due to the <strong>square falloff with distance</strong></li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002200639721.png" alt="image-20221002200639721"></p>
+<h4 id="Clustered-Shading"><a href="#Clustered-Shading" class="headerlink" title="Clustered Shading"></a><strong>Clustered Shading</strong></h4><p>除了屏幕空间的分块，还要在深度上分割</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002200758956.png" alt="image-20221002200758956"></p>
+<h3 id="LoD-solutions"><a href="#LoD-solutions" class="headerlink" title="LoD solutions"></a><strong>LoD solutions</strong></h3><ul>
+<li>Choosing the right lod to use can save computation</li>
+<li>The use of multiple lod<ul>
+<li>Called “Cascaded” by the RTR industry</li>
+</ul>
+</li>
+<li>EX:<ul>
+<li>Cascaded shadow maps</li>
+<li>Cascaded LPV</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002201617049.png" alt="image-20221002201617049"></p>
+<ul>
+<li>Key challenge<ul>
+<li>Transition between different Levels</li>
+<li>Usually need some &#x3D;&#x3D;overlapping and blending&#x3D;&#x3D; near boundaries</li>
+</ul>
+</li>
+<li>Another Example: Geometric LOD<ul>
+<li>生成一套不同三角面数的简化的模型</li>
+<li>基于相机距离选择合适的物体(or part of obj, s.t. no triangle  will be larger than a pixel)</li>
+<li>Popping artifacts（突然出现）——leave it to TAA</li>
+<li>Nanite in UE5（动态选取Lod）</li>
+<li>Technical difficulties<ul>
+<li>不同的部位使用不同层级，如何处理接缝cracks?</li>
+<li>动态加载(load)和调度(schedule)不同层级，如何最好地利用缓存(cache)和带宽(bandwidth)？</li>
+<li>Representing geometry using triangles or geometry textures(几何纹理)</li>
+<li>Clipping and culling for faster performance</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="GI-Solutions"><a href="#GI-Solutions" class="headerlink" title="GI Solutions"></a><strong>GI Solutions</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002202736585.png" alt="image-20221002202736585"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002202944302.png" alt="image-20221002202944302"></p>
+<h3 id="Uncovered-Topic"><a href="#Uncovered-Topic" class="headerlink" title="Uncovered Topic"></a><strong>Uncovered Topic</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002203533485.png" alt="image-20221002203533485"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/Graphics/GAMES/A%20Glimpse%20of%20Industrial%20Solutions/" data-id="cmfe1kyb2002tykuhb4i797cs" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+
+  
+
+</article>
+    
+    <article id="post-hello-world" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h2 class="article-title" itemprop="name">
+    <a href="/2025/09/10/hello-world/">Hello World</a>
+  </h2>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/hello-world/" class="article-date">
+  <time datetime="2025-09-09T16:25:58.669Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+        
+      
+      
+        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/hello-world/" data-id="cmfe1kyak0008ykuh1h5da426" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+
+  
+
+</article>
+    
+    <article id="post-Diary/2022-09-04" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h2 class="article-title" itemprop="name">
+    <a href="/2022/09/04/Diary/2022-09-04/">2022年9月4日 周日</a>
+  </h2>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/09/04/Diary/2022-09-04/" class="article-date">
+  <time datetime="2022-09-04T07:30:41.000Z" itemprop="datePublished">2022-09-04</time>
+</a>
+      
+    </div>
+    
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+        
+      
+      
+        <p>多吓人啊，暑假已经要结束了。<br>就在明天，就要开启人生的新阶段——去实习了。</p>
+<p>本该在大四秋招的时候，参加了实习。怎么说呢，只能说是暑期实习无望的无奈之举。一边继续参加秋招，一边实习工作，这段经历就起不到任何作用。但其实，就我自己来说，还是挺适合的。一方面参与国产自研引擎的工作，也算是比较期待的。一方面，没有实习的工作经验，这也能做一些铺垫和学习。再者就是，如果有机会转正，也算是为秋招&#x2F;春招留下一条后路。因此，也算是只赚不亏的吧。</p>
+<p>翻了翻上次的日记，运动和练琴的计划，运动倒是好好地落实了。练琴确是到现在没碰过一次。。。。<br>这也是有原因的。刚做完米哈游笔试休息了几天，推进了不鸣和友塔的进度，也往前学了百人。网易互娱的测试题就开始了。。。8天的时间。这一做又是做到昨天。<br>中间还穿插了各种各样的事情，友塔养🐟，不鸣实习offer，雷火9月1日一天两面，9月2日体检，一天做两家笔试，昨天也是，一天两家笔试，并且搜狐畅游还是引擎岗。。。合着8月底投的引擎岗一周就进笔试了，七月底的TA到现在也是初筛。。。TA这么卷了吗？。。还是需求太少，相对比例更低。。。</p>
+<p>忙着忙着，不知不觉地暑假就要结束了，明天也开始要上人生中的第一天班。<br>一个半月的时间，也做了很多事吧，但仍然有更多想做的事来不及去做。想一想今年剩下的四个月和明年的小半年时间，除了毕设，还要学一大堆东西。来不及停下歇息，被生活推着推着，就推到了人生的新阶段了。<br>今天摸鱼的最后一天，也不知道做什么。。。不想学也不想玩，摆烂小半天</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/09/04/Diary/2022-09-04/" data-id="cmfe1kyan000lykuhcbzze12h" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%97%A5%E5%B8%B8/" rel="tag">日常</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+
+  
+
+</article>
+    
+    <article id="post-Diary/2022-07-19" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h2 class="article-title" itemprop="name">
+    <a href="/2022/07/19/Diary/2022-07-19/">2022年7月19日</a>
+  </h2>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/07/19/Diary/2022-07-19/" class="article-date">
+  <time datetime="2022-07-19T14:32:15.000Z" itemprop="datePublished">2022-07-19</time>
+</a>
+      
+    </div>
+    
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+        
+      
+      
+        <p>独居生活的第三天也快结束了。<br>除了昨天准备了一天的简历和作品，其余时间基本都什么都没做。<br>作息和吃饭也一团糟。<br>从明天开始一定要进入正常的生活状态。<br>不然为什么要留在学校？</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/07/19/Diary/2022-07-19/" data-id="cmfe1kyam000hykuh5ics071c" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%97%A5%E5%B8%B8/" rel="tag">日常</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+
+  
+
+</article>
+    
+    <article id="post-Diary/2022-05-12" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h2 class="article-title" itemprop="name">
+    <a href="/2022/05/12/Diary/2022-05-12/">2022年5月12日 周四 小雨</a>
+  </h2>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/05/12/Diary/2022-05-12/" class="article-date">
+  <time datetime="2022-05-12T10:51:46.000Z" itemprop="datePublished">2022-05-12</time>
+</a>
+      
+    </div>
+    
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+        
+      
+      
+        <p>需要纪念一下，这个日子。<br>成年人的崩溃，往往只在一瞬间。</p>
+        
+          <p>
+            <a class="article-more-link" href="/2022/05/12/Diary/2022-05-12/">
+              Read More...
+            </a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/05/12/Diary/2022-05-12/" data-id="cmfe1kyak000aykuheimbayn1" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%97%A5%E5%B8%B8/" rel="tag">日常</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+
+  
+
+</article>
+    
+    <article id="post-Diary/2022-05-11" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h2 class="article-title" itemprop="name">
+    <a href="/2022/05/10/Diary/2022-05-11/">2022年5月11日 周三</a>
+  </h2>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/05/10/Diary/2022-05-11/" class="article-date">
+  <time datetime="2022-05-10T15:57:49.000Z" itemprop="datePublished">2022-05-10</time>
+</a>
+      
+    </div>
+    
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+        
+      
+      
+        <p>原来前面那篇就是昨天写的，太不可思议了，但其实已经过了快48小时了。<br>感觉这40多个小时经历了好多……</p>
+<p>今天拍摄完了雷人的元宇宙视频，虽然其实已经超出预期了，效果竟然还不错。全程非常欢乐。<br>有好多需要处理的事，开始一件件冒头了。</p>
+        
+          <p>
+            <a class="article-more-link" href="/2022/05/10/Diary/2022-05-11/">
+              Read More...
+            </a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/05/10/Diary/2022-05-11/" data-id="cmfe1kyam000eykuhddve6ycl" class="article-share-link">
+        Share
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%97%A5%E5%B8%B8/" rel="tag">日常</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+
+  
+
+</article>
+    
+  </article>
+  
+
+  
+  <nav class="page-nav">
+    <a class="extend prev" rel="prev" href="/page/4/">Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/6/">Next</a>
+  </nav>
+  
+</section>
+</div>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-bar-chart tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_site_pv"></span></li>
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

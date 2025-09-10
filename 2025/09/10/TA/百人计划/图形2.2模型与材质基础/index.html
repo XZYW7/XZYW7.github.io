@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形2.2模型与材质基础" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.2%E6%A8%A1%E5%9E%8B%E4%B8%8E%E6%9D%90%E8%B4%A8%E5%9F%BA%E7%A1%80/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.022Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="图形2-2模型与材质基础"><a href="#图形2-2模型与材质基础" class="headerlink" title="图形2.2模型与材质基础"></a>图形2.2模型与材质基础</h2><h3 id="一、渲染管线与模型基础"><a href="#一、渲染管线与模型基础" class="headerlink" title="一、渲染管线与模型基础"></a>一、渲染管线与模型基础</h3><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723154809728.png" alt="image-20220723154809728" style="zoom:80%;" />
+
+<h4 id="uv"><a href="#uv" class="headerlink" title="uv"></a>uv</h4><p>在建模软件中完成UV展开，UV放置在一个横向u，纵向v，（0-1）的二维坐标系中</p>
+<p>展开后的uv在sp等软件中绘制贴图</p>
+<h4 id="模型信息"><a href="#模型信息" class="headerlink" title="模型信息"></a>模型信息</h4><p>模型的表达（以obj为例）</p>
+<ul>
+<li>v顶点坐标</li>
+<li>vt对应纹理坐标 texcoord</li>
+<li>vn顶点法线</li>
+<li>f面</li>
+<li>顶点色（fbx）</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th><strong>#</strong></th>
+<th><strong>obj格式</strong></th>
+<th><strong>fbx格式</strong></th>
+<th><strong>备注</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>多个object</td>
+<td>支持</td>
+<td>支持</td>
+<td>在文件中存放多个三维模型</td>
+</tr>
+<tr>
+<td>单object拥有多个材质</td>
+<td>支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>Polygons面</td>
+<td>支持</td>
+<td>支持</td>
+<td>易于被3ds max等软件编辑加工  注：导入到ue4时，必须为三角形面</td>
+</tr>
+<tr>
+<td>Normal</td>
+<td>支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>Material</td>
+<td>支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>光滑组（<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Smoothing_group">Smoothing Group</a>）</td>
+<td>支持</td>
+<td>支持</td>
+<td>光滑组中的点或面使用平均法线来计算光照，使得整个mesh区域看起来更平滑</td>
+</tr>
+<tr>
+<td>uv套数</td>
+<td>1</td>
+<td>多套</td>
+<td></td>
+</tr>
+<tr>
+<td>顶点Color</td>
+<td>不支持</td>
+<td>支持</td>
+<td>导入ue4时，Vertex Color Import Option设置为Replace</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.unrealengine.com/zh-CN/Engine/Content/Importing/FBX/StaticMeshes/#%E9%9D%99%E6%80%81%E7%BD%91%E6%A0%BC%E4%BD%93lod">ue4 lod</a></td>
+<td>不支持</td>
+<td>支持</td>
+<td>导入ue4时，勾选Import Mesh LODs</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.unrealengine.com/zh-CN/Engine/Content/Importing/FBX/StaticMeshes/#%E7%A2%B0%E6%92%9E">ue4 simple collision</a></td>
+<td>支持</td>
+<td>支持</td>
+<td>任意凸体碰撞命名规则：UCX_[RenderMeshName]、UCX_[RenderMeshName]_00</td>
+</tr>
+<tr>
+<td>socket插槽</td>
+<td>不支持</td>
+<td>支持</td>
+<td>命名规则：SOCKET_[RenderMeshName]、SOCKET_[RenderMeshName]_01</td>
+</tr>
+<tr>
+<td>skeleton骨骼</td>
+<td>不支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>skeletal mesh网格</td>
+<td>不支持</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>animation sequence</td>
+<td>不支持</td>
+<td>支持</td>
+<td>fbx可在文件中存放多个动作序列</td>
+</tr>
+</tbody></table>
+<h3 id="二、材质基础"><a href="#二、材质基础" class="headerlink" title="二、材质基础"></a>二、材质基础</h3><ul>
+<li><p>材质</p>
+<ul>
+<li><p>描述物体对光的接收与散射</p>
+</li>
+<li><p>漫反射</p>
+</li>
+<li><p>镜面反射</p>
+</li>
+<li><p>折射</p>
+<ul>
+<li>菲涅尔定律可以描述反射与折射的比例</li>
+</ul>
+</li>
+<li><p>粗糙镜面反射glossy（磨砂金属）</p>
+</li>
+<li><p>粗糙镜面折射（毛玻璃）</p>
+</li>
+<li><p>多层材质</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723160309345.png" alt="image-20220723160309345" style="zoom:50%;" />
+</li>
+<li><p>次表面散射（Subsurface scattering）</p>
+<ul>
+<li><p>光线传入物体内部后，经过多次弹射再离开物体表面</p>
+</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723160453573.png" alt="image-20220723160453573" style="zoom:80%;" />
+</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723160606384.png" alt="image-20220723160606384" style="zoom:50%;" /></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>改变材质表面</p>
+<ul>
+<li>使用法线贴图对法线做出调整，影响光照计算的结果</li>
+</ul>
+</li>
+</ul>
+<h3 id="三、模型数据解析"><a href="#三、模型数据解析" class="headerlink" title="三、模型数据解析"></a>三、模型数据解析</h3><ul>
+<li><p>顶点动画</p>
+<ul>
+<li>在vs中改变模型的顶点位置，达到模型运动的效果</li>
+<li>（需要一定数量的顶点，效果才比较明显）</li>
+</ul>
+</li>
+<li><p>纹理动画</p>
+<ul>
+<li>在fs中修改模型uv信息，使采样贴图时发生位移而产生运动效果</li>
+</ul>
+</li>
+<li><p>顶点色</p>
+<ul>
+<li>在渲染时影响输出结果，控制颜色范围</li>
+<li>例：当前顶点色达到一定值，就认定为阴影中</li>
+<li>片元当中使用重心坐标插值</li>
+</ul>
+</li>
+<li><p>顶点法线与面法线</p>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723162706622.png" alt="image-20220723162706622" style="zoom: 67%;" />
+
+<h3 id="四、扩展"><a href="#四、扩展" class="headerlink" title="四、扩展"></a>四、扩展</h3><p>NPR中，通常在vs中将顶点往法线方向偏移（模型背面），然后在fs中直接输出一个颜色，达到描边效果。</p>
+<p>BackFacing描边时，线条断开就是因为没有平滑顶点之间的法线（面法线外扩），法线不连续导致的。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723162821829.png" alt="image-20220723162821829" style="zoom:80%;" />
+
+
+
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a>作业</h3><h4 id="顶点色还可以做什么"><a href="#顶点色还可以做什么" class="headerlink" title="顶点色还可以做什么"></a>顶点色还可以做什么</h4><ul>
+<li>在渲染上<ul>
+<li>直接作为物体颜色</li>
+<li>与贴图颜色混合。</li>
+<li>取代一些光照：如教程中罪恶装备案例对阴影的处理</li>
+</ul>
+</li>
+<li>其他应用<ul>
+<li>不直接用于渲染，正如贴图，顶点色还可以储存其他信息、属性</li>
+</ul>
+</li>
+</ul>
+<h4 id="模型光滑组对法线有什么影响"><a href="#模型光滑组对法线有什么影响" class="headerlink" title="模型光滑组对法线有什么影响"></a>模型光滑组对法线有什么影响</h4><p>首先要知道什么是光滑组，这其实也是我第一次见这个名词。</p>
+<p>光滑组：（smoothing group）是用来设置边缘线的光滑显示的。</p>
+<p>光滑组定义了模型边缘渲染的方式（flat shading和Gouraud&#x2F;Phong shading），也就是101中所说的着色频率（Shading frequencies）</p>
+<p>这也就控制了所说的边缘“软硬”</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/20210720084550788.png" alt="在这里插入图片描述" style="zoom:50%;" />
+
+<p>那这样回答这个问题就很简单了</p>
+<p>Flat shading使用的是面法线；gouraud shading使用的是顶点法线；在vs中计算顶点着色，片元对颜色插值；phong shading使用顶点法线，片元上对法线插值后，在fs中计算光照。</p>
+<p>光滑组所做的也就是决定模型哪些部分采用法线插值</p>
+<p>因此光滑组的作用也很有趣，让一个模型的着色方式不同，来表现同一模型的不同细节。</p>
+<h5 id="过渡部分"><a href="#过渡部分" class="headerlink" title="过渡部分"></a>过渡部分</h5><p>尝试了Maya中对应的“软硬边”功能，因为非常值得思考的是，在光滑组与非光滑组的过渡部分如何处理？</p>
+<center>
+<figure>
+    <img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723175542376.png" alt="image-20220723175542376" style="width: 30%;display:inline;margin:0" />
+    <img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723175557394.png" alt="image-20220723175557394" style="width: 34%;display:inline;margin:0" />
+</figure>
+</center>
+
+
+
+
+
+
+
+
+
+<p>我们来研究这里的细节。首先对于完整的硬边三角形和软边三角形不必说。</p>
+<p>对于硬边三角形的顶点法线，就是面法线，因此，4个硬边相接的顶点上，出现了4个顶点法线，分别是用1256这四个面法线代替的。关注2354这里的顶点法线，只有完整的硬边面5，还保持着面法线，</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723180155081.png" alt="image-20220723180155081" style="zoom:50%;" />
+
+<p>我尝试对这个顶点剩余的硬边进行软化，观察这个顶点法线是否变化</p>
+<center>
+    <figure>
+        <img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723180950650.png" alt="image-20220723180950650" style="width:40%;display:inline;margin:0" />
+        <img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723181006044.png" alt="image-20220723181006044" style="width:40%;display:inline;margin:0" />
+    </figure>
+</center>
+
+<p>出现明显的偏移，因此可以得出结论</p>
+<p>软边会使相邻两个面的面法线进行插值得到一个顶点法线。</p>
+<p>像这里4条边，只需要3条软边，就完成了周围四个面法线（其实是面法线所代替的4个顶点法线）的插值得到的顶点法线，这和4条软边是一样的。</p>
+<center>
+    <figure>
+    <img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723182303248.png" alt="image-20220723182303248" style="width:34%;display:inline;margin:0" />
+    <img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723182545394.png" alt="image-20220723182545394" style="width:40%;display:inline;margin:0" />
+    </figure>
+</center>
+
+<p>研究了半天，放了个最简单的例子，其实就理解为软边会使相邻两个面法线插值好了</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723185549252.png" alt="image-20220723185549252"></p>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1kh411U7F7">https://www.bilibili.com/video/BV1kh411U7F7</a> 【技术美术百人计划】图形 2.2 模型与材质基础</p>
+<p>[2]<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1X7411F744">https://www.bilibili.com/video/BV1X7411F744</a> GAMES101-现代计算机图形学入门-闫令琪</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.2%E6%A8%A1%E5%9E%8B%E4%B8%8E%E6%9D%90%E8%B4%A8%E5%9F%BA%E7%A1%80/" data-id="cmfe1kyaw001tykuh2u1f6ldr" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.1%E8%89%B2%E5%BD%A9%E7%A9%BA%E9%97%B4/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.3%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0%E4%BB%8B%E7%BB%8D/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

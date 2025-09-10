@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形3.2 混合模式及剔除" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.2%20%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E5%8F%8A%E5%89%94%E9%99%A4/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.026Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h1 id="图形-3-2-混合模式及剔除"><a href="#图形-3-2-混合模式及剔除" class="headerlink" title="图形 3.2 混合模式及剔除"></a>图形 3.2 混合模式及剔除</h1><h3 id="一、什么是混合模式"><a href="#一、什么是混合模式" class="headerlink" title="一、什么是混合模式"></a>一、什么是混合模式</h3><ul>
+<li>混合<ul>
+<li>就是两种颜色混在一起。具体就是把某一像素位置原来的颜色和将要画上去的颜色，通过某种方式混在一起，从而实现新的效果</li>
+</ul>
+</li>
+<li>透过红色玻璃看绿色玻璃<ul>
+<li>可以先绘制绿色玻璃，再绘制红色玻璃。在绘制红色的时候，利用混合功能，把将要绘制上去的红色和原来的颜色（绿色）进行混合，于是得到新的颜色</li>
+<li>也可以理解成，绿色首先对背景施加影响，无论红色玻璃存在与否，这个影响都是存在的，所以首先计算后面的绿色。然后再考虑前面的红色的影响。这也是我理解透明物体从后往前绘制的原理的一种方式。</li>
+</ul>
+</li>
+</ul>
+<p><strong>最终颜色&#x3D;Shader计算后的颜色值*源因子(SrcFactor)+累计颜色*目标因子(DstFactor)</strong></p>
+<h3 id="二、混合模式的类型"><a href="#二、混合模式的类型" class="headerlink" title="二、混合模式的类型"></a>二、混合模式的类型</h3><p>PS中的混合模式</p>
+<p><img src="/%E5%9B%BE%E5%BD%A23.2%20%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E5%8F%8A%E5%89%94%E9%99%A4/image-20220817000953004.png" alt="image-20220817000953004"></p>
+<h4 id="ShaderLab内的混合"><a href="#ShaderLab内的混合" class="headerlink" title="ShaderLab内的混合"></a>ShaderLab内的混合</h4><ol>
+<li><p>如果颜色的某一分量超过1.0，则会被自动截取位1.0，不需要考虑越界的问题。</p>
+</li>
+<li><p>再所有着色器执行完毕，所有纹理都被应用，所有像素准备被呈现到屏幕之后，使用Blend命令来操作这些像素混合。</p>
+</li>
+<li><p>语法</p>
+<table>
+<thead>
+<tr>
+<th align="left">语法</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Blend Off</td>
+<td>关闭blend混合（默认）</td>
+</tr>
+<tr>
+<td align="left">Blend SrcFactor DstFactor</td>
+<td>配置并启动混合计算</td>
+</tr>
+<tr>
+<td align="left">Blend SrcFactor DstFactor, SrcFactorA DstFactorA</td>
+<td>同上，但是使用不同的要素来混合Alpha通道</td>
+</tr>
+<tr>
+<td align="left">BlendOp Value</td>
+<td>如果使用BlendOp命令，则混合操作将设置为该值。否则，混合操作默认为Add。</td>
+</tr>
+<tr>
+<td align="left">BlendOp OpColor, OpAlpha</td>
+<td>同上，但是使用不同的操作来处理alpha通道</td>
+</tr>
+<tr>
+<td align="left">AlphaToMaskOn</td>
+<td>常用于开启MSAA的地表植被的渲染</td>
+</tr>
+</tbody></table>
+</li>
+</ol>
+<h4 id="Blend和BlendOp"><a href="#Blend和BlendOp" class="headerlink" title="Blend和BlendOp"></a>Blend和BlendOp</h4><figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">finalValue = sourceFactor * sourceValue operation destinationFactor * destinationValue</span><br><span class="line"><span class="comment">//finalValue: GPU写入目标缓冲区的值</span></span><br><span class="line"><span class="comment">//sourceFactor: Blend命令中定义</span></span><br><span class="line"><span class="comment">//sourceValue: 片元着色器输出的值</span></span><br><span class="line"><span class="comment">//operation: 混合操作</span></span><br><span class="line"><span class="comment">//destinationFactor: Blend命令中定义</span></span><br><span class="line"><span class="comment">//destinationValue: 目标缓冲区现有值的值</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>可以写在Pass中或SubShader中(BlendOp在同一个代码块中还必须有一个Blend命令)</li>
+<li>启用混合会禁用GPU上的一些优化（主要是隐藏表面去除Early-Z）</li>
+</ul>
+<h3 id="三、混合模式的实现方式"><a href="#三、混合模式的实现方式" class="headerlink" title="三、混合模式的实现方式"></a>三、混合模式的实现方式</h3><h4 id="Unity附带的Blend枚举"><a href="#Unity附带的Blend枚举" class="headerlink" title="Unity附带的Blend枚举"></a>Unity附带的Blend枚举</h4><figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//混合模式</span></span><br><span class="line">[Enum(UnityEngine.Rendering.BlendOp)] _BlendOp (&quot;BlendOp&quot;, <span class="type">float</span>) = <span class="number">0</span></span><br><span class="line">[Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend (&quot;SrcBlend&quot;, <span class="type">float</span>) = <span class="number">1</span></span><br><span class="line">[Enum(UnityEngine.Rendering.BlendMode)]</span><br><span class="line">_DstBlend (&quot;DstBlend&quot;, <span class="type">float</span>) = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//深度开关</span></span><br><span class="line"><span class="comment">//ZWriteMode没有内置，只有两种状态，也可以用Toogle</span></span><br><span class="line">[Enum(Off, <span class="number">0</span>, On, <span class="number">1</span>)] _ZWriteMode (&quot;ZWriteMode&quot;, <span class="type">float</span>) = <span class="number">1</span></span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">SubShader&#123;</span><br><span class="line">    Tag &#123;&quot;RenderType&quot; = &quot;Transparent&quot; &quot;Queue&quot; = &quot;Transparent&quot;&#125;</span><br><span class="line">    ZWrite [_ZWriteMode]</span><br><span class="line">    Blend [_SrcBlend] [_DstBlend]</span><br><span class="line">    <span class="comment">//这部分定义是CPU阶段的渲染设置，并不传入shader，不用定义uniform</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Photoshop的Blend实现方式"><a href="#Photoshop的Blend实现方式" class="headerlink" title="Photoshop的Blend实现方式"></a>Photoshop的Blend实现方式</h4><p>自己查吧</p>
+<ul>
+<li>普通的Blend<ul>
+<li>Blend SrcAlpha OneMinusSrcAlpha<ul>
+<li>&#x2F;&#x2F;Alpha混合 Alpha Blending</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>变暗Darken<ul>
+<li>BlendOp Min</li>
+<li>Blend One One</li>
+<li>min(当前颜色，缓存颜色)*1</li>
+</ul>
+</li>
+<li>正片叠底<ul>
+<li>Blend Discolors Zero</li>
+<li>当前颜色*缓存颜色+缓存颜色*0</li>
+</ul>
+</li>
+<li>滤色Screen<ul>
+<li>Blend OneMinusDstColor One 或Blend One OneMinusSrcColor</li>
+<li>Src*(1-Dst)+Dst*1 &#x3D; Src+Dst-Src*Dst</li>
+<li>当前颜色*(1-缓存颜色)+缓存颜色*1 或 当前颜色*1 + 缓存颜色* (1-缓存颜色)</li>
+</ul>
+</li>
+<li>变亮Lighten<ul>
+<li>BlendOp Max</li>
+<li>Blend One One</li>
+<li>max(当前颜色，缓存颜色)</li>
+</ul>
+</li>
+<li>线性减淡LinearDodge<ul>
+<li>Blend One One</li>
+<li>缓存颜色*1+当前颜色*1</li>
+</ul>
+</li>
+<li>颜色加深ColorBurn<ul>
+<li>高级Opengl混合</li>
+<li>此模式目前仅在具有GL_KHR_blend_equation_advanced或GL_NV_blend_equation_advanced扩展支持的Opengl硬件上可用</li>
+<li>1-（1-Dst）&#x2F;Src</li>
+</ul>
+</li>
+<li>。。。</li>
+</ul>
+<h3 id="四、剔除的实现方式"><a href="#四、剔除的实现方式" class="headerlink" title="四、剔除的实现方式"></a>四、剔除的实现方式</h3><ul>
+<li>法线剔除<ul>
+<li>也称背面消隐，根据法线朝向判断哪个面被剔除掉，可以用来控制是否双面渲染</li>
+<li>Cull + [Off, Front, Back]</li>
+</ul>
+</li>
+<li>面裁切<ul>
+<li>Clip函数会参数小于某像素点直接在片元阶段丢弃，常用于制作溶解，裁剪等效果</li>
+<li>Clip();&#x2F;&#x2F;默认会切掉0.5的部分，或者使用if</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(input.posInObjectCoords.y &gt; <span class="number">0.5</span>) <span class="keyword">discard</span>;</span><br><span class="line"><span class="comment">//剔除模式</span></span><br><span class="line">[Enum(UnityEngine.Rendering.CullMode)] _CullMode (&quot;CullMode&quot;, <span class="type">float</span>) = <span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>开启双面渲染相当于绘制了两次</li>
+<li>Clip函数在某些PowerVR的机型上效率低</li>
+<li>面裁切Clip使用AlphaTest队列</li>
+</ul>
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a>作业</h3><p>实现常用的混合模式，并设计使用界面</p>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1sL4y1v7SS">https://www.bilibili.com/video/BV1sL4y1v7SS</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.2%20%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E5%8F%8A%E5%89%94%E9%99%A4/" data-id="cmfe1kyaz0029ykuha73o7ec2" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.7%20%E7%A7%BB%E5%8A%A8%E7%AB%AFTB(D)R%E6%9E%B6%E6%9E%84%E5%9F%BA%E7%A1%80/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.3%20%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E4%B8%8E%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

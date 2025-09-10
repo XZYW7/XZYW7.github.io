@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形2.7 LDR与HDR" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.7%20LDR%E4%B8%8EHDR/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.025Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h1 id="图形-2-7-LDR与HDR"><a href="#图形-2-7-LDR与HDR" class="headerlink" title="图形 2.7  LDR与HDR"></a>图形 2.7  LDR与HDR</h1><h3 id="一、基本概念"><a href="#一、基本概念" class="headerlink" title="一、基本概念"></a>一、基本概念</h3><p>HDR &#x3D; High Dynamic Range（高动态范围）</p>
+<p>LDR &#x3D; Low Dynamic Range（低动态范围）</p>
+<p>动态范围 &#x3D; 最高亮度&#x2F;最低亮度</p>
+<ul>
+<li><p>对于显示器来说，实际的物理亮度是不同意的。因此需要匹配LDR0-1的范围</p>
+</li>
+<li><p>自然界中的亮度是HDR的</p>
+<ul>
+<li>在显示时需要转换到LDR的范围（Tone mapping色调映射）</li>
+</ul>
+</li>
+<li><p>LDR</p>
+<ul>
+<li>8位精度</li>
+<li>单通道0-1（0-255）</li>
+<li>常用LDR图片储存格式<ul>
+<li>jpg、png等</li>
+</ul>
+</li>
+<li>拾色器、一般图片、电脑屏幕</li>
+</ul>
+</li>
+<li><p>HDR</p>
+<ul>
+<li>远高于8位精度</li>
+<li>单通道可以超过1</li>
+<li>常用HDR图片储存格式<ul>
+<li>hdr&#x2F;tif&#x2F;exr&#x2F;raw</li>
+</ul>
+</li>
+<li>HDRI、真实世界</li>
+</ul>
+</li>
+</ul>
+<h4 id="为什么需要HDR"><a href="#为什么需要HDR" class="headerlink" title="为什么需要HDR"></a>为什么需要HDR</h4><ul>
+<li>更好地色彩，更高的动态范围和更丰富的细节，并有效地防止画面国宝，超过亮度值1的色彩也能很好地表现，像素光亮度变得正常，视觉传达更真实。</li>
+<li>HDR有超过1的数值，范围更大，能让bloom的表现更好。</li>
+</ul>
+<h4 id="一些HDR图网站"><a href="#一些HDR图网站" class="headerlink" title="一些HDR图网站"></a>一些HDR图网站</h4><p><a target="_blank" rel="noopener" href="http://www.hdrlabs.com/sibl/archive.html">http://www.hdrlabs.com/sibl/archive.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.openfootage.net/hdri-panorama/">https://www.openfootage.net/hdri-panorama/</a></p>
+<h3 id="二、Unity中的HDR"><a href="#二、Unity中的HDR" class="headerlink" title="二、Unity中的HDR"></a>二、Unity中的HDR</h3><h4 id="Camera-HDR设置"><a href="#Camera-HDR设置" class="headerlink" title="Camera-HDR设置"></a>Camera-HDR设置</h4><ul>
+<li>场景将渲染为HDR图像缓冲区</li>
+<li>后处理：Bloom&amp;Tone mapping</li>
+<li>完成转换HDR-&gt;LDR</li>
+<li>LDR图像发送给显示器</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730183404967.png" alt="image-20220730183404967" style="zoom:67%;" />
+
+<h4 id="Lightmap-HDR设置"><a href="#Lightmap-HDR设置" class="headerlink" title="Lightmap HDR设置"></a>Lightmap HDR设置</h4><ul>
+<li>选择High Quality 将启用HDR光照贴图支持，而Normal Quality将切换为使用RGBM编码</li>
+<li>RGBM编码：将颜色存储在RGB通道中，将乘数M储存在Alpha通道中</li>
+</ul>
+<p>（项目设置-Player-Other settings-Lightmap Encoding）</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730183556522.png" alt="image-20220730183556522" style="zoom:67%;" />
+
+<h4 id="拾色器HDR设置"><a href="#拾色器HDR设置" class="headerlink" title="拾色器HDR设置"></a>拾色器HDR设置</h4><figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[HDR] _BackColor(&quot;BackColor&quot;, Color) = (<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>使用Intensity滑动条可调整颜色强度</li>
+<li>每增加1，提供的光亮增加一倍</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730183703721.png" alt="image-20220730183703721"></p>
+<h4 id="HDR的优缺点"><a href="#HDR的优缺点" class="headerlink" title="HDR的优缺点"></a>HDR的优缺点</h4><ul>
+<li>优点<ul>
+<li>画面中亮度超过1的部分不会被截为1，增加亮部细节并减少曝光</li>
+<li>减少画面较暗部分的色阶感</li>
+<li>更好地支持Bloom</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>渲染速度较慢，需要更多显存</li>
+<li>不支持硬件AA</li>
+<li>部分手机不支持</li>
+</ul>
+</li>
+</ul>
+<h3 id="三、HDR与Bloom"><a href="#三、HDR与Bloom" class="headerlink" title="三、HDR与Bloom"></a>三、HDR与Bloom</h3><p>Bloom用于表现高光的晕光效果</p>
+<p><em>为实现泛光，我们像平时那样渲染一个有光场景，提取出场景的HDR颜色缓冲以及只有这个场景明亮区域可见的图片。被提取的带有亮度的图片接着被模糊，结果被添加到HDR场景上面。（learnopengl）</em></p>
+<h4 id="unity中的BLoom"><a href="#unity中的BLoom" class="headerlink" title="unity中的BLoom"></a>unity中的BLoom</h4><p>Untiy会首先进行下采样（down sample）来计算高光像素，并存在RT中，完成次数由一个参数控制，再up回去，并将下采样的RT加入进去。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730184829163.png" alt="image-20220730184829163" style="zoom:50%;" />
+
+<p>我对这个操作目前的理解是，和learnopengl中为了完成高斯模糊是一样的</p>
+<p><img src="https://learnopengl-cn.github.io/img/05/07/bloom_gaussian.png" alt="img"></p>
+<p>在毛星云大佬的  《高品质后处理：十种图像模糊算法的总结与实现》中也可以看到对各种模糊算法的解释，如果说是以多次的Box filtering来近似高斯模糊或者其他模糊效果的话，就很好理解了。</p>
+<h3 id="四、HDR与Tone-mapping"><a href="#四、HDR与Tone-mapping" class="headerlink" title="四、HDR与Tone mapping"></a>四、HDR与Tone mapping</h3><p>色调映射就是为了把HDR转化为LDR</p>
+<ul>
+<li>线性映射效果不好</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730185314765.png" alt="image-20220730185314765" style="zoom:50%;" />
+
+
+
+<ul>
+<li>把高光区域和阴影区域像中等亮度方向压缩-&gt;S曲线</li>
+</ul>
+<h4 id="ACES"><a href="#ACES" class="headerlink" title="ACES"></a>ACES</h4><p>ACES（Academy Color Encoding System学院颜色编码系统）</p>
+<p>效果：对比度提高，很好地保留暗处和亮出的细节</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730185423773.png" alt="image-20220730185423773" style="zoom:50%;" />
+
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ACES</span></span><br><span class="line"><span class="comment">//https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/</span></span><br><span class="line">float3 ACESToneMapping(float3 color, <span class="type">float</span> adapted_lum)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">const</span> <span class="type">float</span> A = <span class="number">2.51</span>f;</span><br><span class="line">	<span class="keyword">const</span> <span class="type">float</span> B = <span class="number">0.03</span>f;</span><br><span class="line">	<span class="keyword">const</span> <span class="type">float</span> C = <span class="number">2.43</span>f;</span><br><span class="line">	<span class="keyword">const</span> <span class="type">float</span> D = <span class="number">0.59</span>f;</span><br><span class="line">	<span class="keyword">const</span> <span class="type">float</span> E = <span class="number">0.14</span>f;</span><br><span class="line"></span><br><span class="line">	color *= adapted_lum;</span><br><span class="line">	<span class="keyword">return</span> (color * (A * color + B)) / (color * (C * color + D) + E);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其他Tone mapping曲线</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730185538359.png" alt="image-20220730185538359" style="zoom:50%;" />
+
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Reinhard</span></span><br><span class="line">float3 ReinhardToneMapping(float3 color, <span class="type">float</span> adapted_lum) </span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="type">float</span> MIDDLE_GREY = <span class="number">1</span>;</span><br><span class="line">    color *= MIDDLE_GREY / adapted_lum;</span><br><span class="line">    <span class="keyword">return</span> color / (<span class="number">1.0</span>f + color);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// CE</span></span><br><span class="line">float3 CEToneMapping(float3 color, <span class="type">float</span> adapted_lum) </span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span> - <span class="built_in">exp</span>(-adapted_lum * color);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Filmic</span></span><br><span class="line">float3 F(float3 x)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">const</span> <span class="type">float</span> A = <span class="number">0.22</span>f;</span><br><span class="line">	<span class="keyword">const</span> <span class="type">float</span> B = <span class="number">0.30</span>f;</span><br><span class="line">	<span class="keyword">const</span> <span class="type">float</span> C = <span class="number">0.10</span>f;</span><br><span class="line">	<span class="keyword">const</span> <span class="type">float</span> D = <span class="number">0.20</span>f;</span><br><span class="line">	<span class="keyword">const</span> <span class="type">float</span> E = <span class="number">0.01</span>f;</span><br><span class="line">	<span class="keyword">const</span> <span class="type">float</span> F = <span class="number">0.30</span>f;</span><br><span class="line"> </span><br><span class="line">	<span class="keyword">return</span> ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">float3 Uncharted2ToneMapping(float3 color, <span class="type">float</span> adapted_lum)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">const</span> <span class="type">float</span> WHITE = <span class="number">11.2</span>f;</span><br><span class="line">	<span class="keyword">return</span> F(<span class="number">1.6</span>f * adapted_lum * color) / F(WHITE);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="LUT"><a href="#LUT" class="headerlink" title="LUT"></a>LUT</h4><p>在Color Grading的All None 模式中有一个Lookup Texture（滤镜）</p>
+<ul>
+<li><p>LUT在LDR之间做变换，Tone mapping是映射HDR到LDR</p>
+</li>
+<li><p>调整rgb三个通道的LUT被称为3D LUT</p>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/v2-cc29cf797d187c730f13cfc0bf520714_720w.png" alt="img"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/v2-c7d19e036fe6edf8df4d5e694874df50_720w.jpg" alt="img"></p>
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a>作业</h3><h4 id="结合先行版基础渲染光照介绍（一）试试IBL在HDR和LDR的区别"><a href="#结合先行版基础渲染光照介绍（一）试试IBL在HDR和LDR的区别" class="headerlink" title="结合先行版基础渲染光照介绍（一）试试IBL在HDR和LDR的区别"></a>结合先行版基础渲染光照介绍（一）试试IBL在HDR和LDR的区别</h4><p>相机设置HDR</p>
+<p>左侧探针设置LDR，右侧探针设置HDR，都是1024的分辨率</p>
+<p>在生成的贴图上可以看到，一张是exr后缀的HDR贴图，一张是png后缀的LDR贴图。</p>
+<p>把它放在我们的材质上，说实话我没看出来有啥区别……</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220731223034086.png" alt="image-20220731223034086"></p>
+<p>但是随着Lod层级的增加，就可以看出来区别了</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220731223343672.png" alt="image-20220731223343672" style="width: 50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220731223409296.png" alt="image-20220731223409296" style="width: 50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220731223432177.png" alt="image-20220731223432177" style="width:50%;" />
+
+<p>非常地合情合理，在HDR中储存的辐射度范围是大于0-1的，在mipmap中也会储存更高动态范围的光照，在ibl里的细节也就更丰富。</p>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1VA41137Wp">https://www.bilibili.com/video/BV1VA41137Wp</a> 【技术美术百人计划】图形 2.7  LDR与HDR</p>
+<p>[2] <a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/07%20Bloom/">https://learnopengl-cn.github.io/05%20Advanced%20Lighting/07%20Bloom/</a></p>
+<p>[3] <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/125744132">https://zhuanlan.zhihu.com/p/125744132</a> 高品质后处理：十种图像模糊算法的总结与实现</p>
+<p>[4] Unity Shader入门精要 p361,362</p>
+<p>[5] <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/21983679">https://zhuanlan.zhihu.com/p/21983679</a> Tone mapping进化论</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.7%20LDR%E4%B8%8EHDR/" data-id="cmfe1kyay0023ykuh5sn5fzf4" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.3%20%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E4%B8%8E%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.7.2%20GPU%E7%A1%AC%E4%BB%B6%E6%9E%B6%E6%9E%84%E6%A6%82%E8%BF%B0/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

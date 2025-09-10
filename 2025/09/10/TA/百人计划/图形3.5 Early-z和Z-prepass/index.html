@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形3.5 Early-z和Z-prepass" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.5%20Early-z%E5%92%8CZ-prepass/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.027Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h1 id="图形-3-5-Early-z和Z-prepass-preZ"><a href="#图形-3-5-Early-z和Z-prepass-preZ" class="headerlink" title="图形 3.5 Early-z和Z-prepass(preZ)"></a>图形 3.5 Early-z和Z-prepass(preZ)</h1><h3 id="一、深度测试"><a href="#一、深度测试" class="headerlink" title="一、深度测试"></a><strong>一、深度测试</strong></h3><ul>
+<li><p>fs-Alpha Test-Stencil Test-&#x3D;&#x3D;Depth Test&#x3D;&#x3D;</p>
+</li>
+<li><p>解决物体可见遮挡性的问题</p>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822155007188.png" alt="image-20220822155007188" style="zoom:50%;" />
+
+<p>因为测试阶段发生在fs之后，片元即便被丢弃，已经经过了fs中大量的无用的计算。</p>
+<h3 id="二、提前深度测试Early-Z"><a href="#二、提前深度测试Early-Z" class="headerlink" title="二、提前深度测试Early-Z"></a><strong>二、提前深度测试Early-Z</strong></h3><ul>
+<li>解决过多不必要的片元计算问题</li>
+<li>光栅化-&#x3D;&#x3D;EarlyZ&#x3D;&#x3D;-fs-Alpha Test-Stencil Test-&#x3D;&#x3D;Depth Test&#x3D;&#x3D;</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822155402937.png" alt="image-20220822155402937" style="zoom: 67%;" />
+
+<ul>
+<li>EarlyZ也可以基于模板测试在着色前丢弃片元</li>
+<li><strong>EarlyZ剔除的最小单位不是1像素，而是像素块（2x2）</strong></li>
+</ul>
+<h4 id="2-1-EarlyZ失效"><a href="#2-1-EarlyZ失效" class="headerlink" title="2.1 EarlyZ失效"></a><strong>2.1 EarlyZ失效</strong></h4><p>通常在EarlyZ阶段不仅会进行深度测试，还会写入深度</p>
+<ol>
+<li>开启ALpha Test或Clip&#x2F;discard等手动丢弃片元操作<ul>
+<li>如果手动丢弃片元，导致如果前面的片元丢弃了，深度仍然存在，后续的像素也会被丢弃。</li>
+</ul>
+</li>
+<li>手动修改GPU插值得到的深度</li>
+<li>开启Alpha Blend<ul>
+<li>开启Alpha Blend的物体一般不会开启深度写入ZWrite off</li>
+</ul>
+</li>
+<li>关闭深度测试Depth Test</li>
+<li>开启Multi-Sampling：多重采样会影响周边像素，而EarlyZ无法得知周边像素是否被裁剪，无法提前剔除</li>
+<li>以及其他任何导致需要混合后面颜色的操作</li>
+</ol>
+<p>此外，Early-Z技术会导致**深度数据冲突（depth data hazard）**的问题</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/1617944-20190906001537033-642734220.png" alt="img" style="zoom:50%;" />
+
+<p>避免深度数据冲突的方法之一是在写入深度值之前，再次与frame buffer的值进行对比：</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/1617944-20190906001545523-562795391.png.png" alt="1617944-20190906001545523-562795391.png" style="zoom: 67%;" />
+
+<h4 id="2-2-高效利用EarlyZ"><a href="#2-2-高效利用EarlyZ" class="headerlink" title="2.2 高效利用EarlyZ"></a><strong>2.2 高效利用EarlyZ</strong></h4><p>将不透明物体由近向远渲染，EarlyZ的优化效果最好</p>
+<ul>
+<li>CPU进行深度排序</li>
+<li>场景复杂时，排序消耗增大。</li>
+<li>严格按照从近到远渲染，不能同时搭配合批优化手段</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822155921813.png" alt="image-20220822155921813" style="zoom: 67%;" />
+
+
+
+<h3 id="三、使用Z-Prepass"><a href="#三、使用Z-Prepass" class="headerlink" title="三、使用Z-Prepass"></a><strong>三、使用Z-Prepass</strong></h3><ol>
+<li>在第一个pass即Z-Prepass中只写入深度，不计算输出任何颜色<ul>
+<li>自动计算了最小深度的zbuffer，无需cpu排序</li>
+<li>EarlyZ阶段也可以提升一点效率，虽然本来就没什么计算</li>
+</ul>
+</li>
+<li>第二个pass关闭深度写入，并且将深度比较函数设置为相等</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">SubShader &#123;</span><br><span class="line">    Tags&#123;<span class="string">&quot;RenderType&quot;</span> = <span class="string">&quot;Opaque&quot;</span>&#125;</span><br><span class="line">    <span class="comment">//PreZ</span></span><br><span class="line">    Pass &#123;</span><br><span class="line">        ZWrite On 	<span class="comment">// 开启深度写入</span></span><br><span class="line">        ColorMask <span class="number">0</span> <span class="comment">// 关闭颜色输出</span></span><br><span class="line">        CGROGRAM</span><br><span class="line">        ...<span class="comment">//省略顶点变换部分</span></span><br><span class="line">        ENDCG</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//正常地计算输出颜色</span></span><br><span class="line">    Pass &#123;</span><br><span class="line">        ZWrite Off	<span class="comment">// 关闭深度写入</span></span><br><span class="line">        ZTest Equal <span class="comment">// 深度相等通过</span></span><br><span class="line">        CGPROGRAM</span><br><span class="line">        ...</span><br><span class="line">        ENDCG</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="四、Z-Prepass带来的问题"><a href="#四、Z-Prepass带来的问题" class="headerlink" title="四、Z-Prepass带来的问题"></a><strong>四、Z-Prepass带来的问题</strong></h3><h4 id="4-1-动态批处理问题"><a href="#4-1-动态批处理问题" class="headerlink" title="4.1 动态批处理问题"></a><strong>4.1 动态批处理问题</strong></h4><p>多pass的shader无法进行动态批处理-增加drawcall</p>
+<h5 id="解决方法：提前分离的PrePass"><a href="#解决方法：提前分离的PrePass" class="headerlink" title="解决方法：提前分离的PrePass"></a>解决方法：提前分离的PrePass</h5><p>仍然使用两个pass</p>
+<ol>
+<li>将原先第一个pass（Z-Prepass）单独分离出来为单独一个shader，并使用这个shader将整个场景的Opaque物体渲染一遍（写入深度）</li>
+<li>原先材质只剩下原先的第二个Pass，仍关闭深度写入，并且深度比较函数设置为相等</li>
+</ol>
+<p>两个pass都能够分别被批处理</p>
+<h4 id="4-2-Z-Prepass解决透明渲染"><a href="#4-2-Z-Prepass解决透明渲染" class="headerlink" title="4.2 Z-Prepass解决透明渲染"></a><strong>4.2 Z-Prepass解决透明渲染</strong></h4><p>不写入深度的透明渲染会出现深度穿插错误的问题</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822161301143(1).png" alt="image-20220822161301143(1)"></p>
+<p>（无法看到透明物体的背面）</p>
+<ul>
+<li>如果要用Z-Prepass同时渲染物体背面<ul>
+<li>需要先渲染背面，剔除正面</li>
+<li>在下一个pass渲染正面，剔除背面</li>
+<li>可用于头发渲染</li>
+</ul>
+</li>
+</ul>
+<h4 id="4-3-其他问题"><a href="#4-3-其他问题" class="headerlink" title="4.3 其他问题"></a><strong>4.3 其他问题</strong></h4><h5 id="计算消耗"><a href="#计算消耗" class="headerlink" title="计算消耗"></a>计算消耗</h5><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822161643680.png" alt="image-20220822161643680"></p>
+<p>权衡片元计算复杂性&#x2F;overdraw与Z-Prepass的消耗，根据实际情况采用</p>
+<h3 id="五、Early-Z与Z-Prepass的实例应用"><a href="#五、Early-Z与Z-Prepass的实例应用" class="headerlink" title="五、Early-Z与Z-Prepass的实例应用"></a><strong>五、Early-Z与Z-Prepass的实例应用</strong></h3><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/jaffhan/p/7382106.html">https://www.cnblogs.com/jaffhan/p/7382106.html</a></p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822161834083.png" alt="image-20220822161834083" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822161855886.png" alt="image-20220822161855886" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822162042913.png" style="zoom:67%;" />
+
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a><strong>作业</strong></h3><ol>
+<li><strong>做下preZ的效果测试</strong></li>
+</ol>
+<p>左边的狮子是preZ，右边的狮子是普通的Alpha。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220823202352241.png" alt="image-20220823202352241" style="zoom:80%;" />
+
+<p>因为是透明渲染，所以自然而然会想到preZ的方法能否应用到之前深度测试的透视效果。</p>
+<p>因为preZ记录了最前面的一个深度。透视，也就是说透明物体前面被遮挡住了，并且已经绘制了这个遮挡物体，那么就是遮挡物体的深度写入了深度缓冲。我们也就没有了被遮挡物体最近面的深度了。而之后要绘制出来，也要用Greater的判定方式，最终透明物体无法表现出自遮挡。</p>
+<p>并且如果没有遮挡物的时候，物体自身最近片元就写入了深度。那么物体自己对自己形成遮挡，最后会发生没有遮挡时，绘制出了物体自身重叠部分。这种没有对透视效果做特殊处理，所以最后一次绘制物体自身的时候会覆盖（这是深度缓冲依然是物体自身最近距离，测试规则为LEqual）但是如果透视部分有特殊效果，那么正常的物体渲染可能会漏出这一部分。</p>
+<p>总之结论就是，这个效果同一物体多pass的实现方法，无法用preZ来完成。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220823203258886(1).png" alt="image-20220823203258886(1)"></p>
+<ol start="2">
+<li><strong>总结earlyZ的限制</strong></li>
+</ol>
+<ul>
+<li><p>EarlyZ-失效</p>
+<ul>
+<li>开启ALpha Test或Clip&#x2F;discard等手动丢弃片元操作<ul>
+<li>如果手动丢弃片元，导致如果前面的片元丢弃了，深度仍然存在，后续的像素也会被丢弃。</li>
+</ul>
+</li>
+<li>手动修改GPU插值得到的深度</li>
+<li>开启Alpha Blend<ul>
+<li>开启Alpha Blend的物体一般不会开启深度写入ZWrite off</li>
+</ul>
+</li>
+<li>关闭深度测试Depth Test</li>
+<li>开启Multi-Sampling：多重采样会影响周边像素，而EarlyZ无法得知周边像素是否被裁剪，无法提前剔除</li>
+<li>以及其他任何导致需要混合后面颜色的操作</li>
+</ul>
+</li>
+<li><p>导致深度数据冲突</p>
+</li>
+<li><p>为了最大利用EarlyZ按照从近到远顺序渲染，但CPU阶段排序耗时，且严格按照从近到远渲染不能同时搭配合批优化手段</p>
+</li>
+</ul>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a><strong>参考资料</strong></h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1FK4y1u7iw">https://www.bilibili.com/video/BV1FK4y1u7iw</a></p>
+<p>【技术美术百人计划】图形 3.5 Early-z和Z-prepass</p>
+<p>[2] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1aM4y1g75f">https://www.bilibili.com/video/BV1aM4y1g75f</a></p>
+<p>【技术美术百人计划】图形 2.7.2 GPU硬件架构概述</p>
+<p>[3] <a target="_blank" rel="noopener" href="https://www.cnblogs.com/timlly/p/11471507.html">https://www.cnblogs.com/timlly/p/11471507.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.5%20Early-z%E5%92%8CZ-prepass/" data-id="cmfe1kyb0002hykuh0q150p3o" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.4%20%E5%BB%B6%E8%BF%9F%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF%E4%BB%8B%E7%BB%8D/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.6%20%E7%BA%B9%E7%90%86%E5%8E%8B%E7%BC%A9/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

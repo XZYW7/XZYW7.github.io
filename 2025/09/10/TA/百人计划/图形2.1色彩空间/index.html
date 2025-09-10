@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形2.1色彩空间" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.1%E8%89%B2%E5%BD%A9%E7%A9%BA%E9%97%B4/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.022Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="图形2-1色彩空间"><a href="#图形2-1色彩空间" class="headerlink" title="图形2.1色彩空间"></a>图形2.1色彩空间</h2><p>发送器-接收者-色彩空间-常用色彩空间、色彩模型-色彩空间转换-总结</p>
+<h3 id="一、发送器"><a href="#一、发送器" class="headerlink" title="一、发送器"></a>一、发送器</h3><p>光源是出生点，光源发射出光线，光线通过直射反射折射等路径最终进入人眼。</p>
+<p>人眼接收到光线后，人眼细胞产生一系列化学反应，把产生的信号传入大脑，大脑对颜色产生认知。</p>
+<ul>
+<li><p>光源</p>
+<ul>
+<li>产生光的物体</li>
+</ul>
+</li>
+<li><p>波长</p>
+<ul>
+<li>光的波长分布理论上是无限大的，人眼可见光是局限的</li>
+</ul>
+</li>
+<li><p>能量分布</p>
+<ul>
+<li>分光光度计<ul>
+<li>描述光线的具体能量强度</li>
+<li>拆分光线，形成单一波长光</li>
+<li>测量单一波长光的实际所含能量</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>光的传播</p>
+<ul>
+<li>光每次经过反射、投射都会对光的能量分布产生影响</li>
+</ul>
+</li>
+</ul>
+<h3 id="二、接收者"><a href="#二、接收者" class="headerlink" title="二、接收者"></a>二、接收者</h3><p>人眼接受色彩的特性</p>
+<ul>
+<li>相对亮度感知<ul>
+<li>在暗的环境下看亮的东西会更亮</li>
+</ul>
+</li>
+<li>人眼HDR<ul>
+<li>人眼可以自动调整曝光</li>
+<li>能够分辨高亮度当中的层次区别、阴影中物体的异同</li>
+</ul>
+</li>
+<li>人眼感光细胞分布<ul>
+<li>杆状细胞<ul>
+<li>感知亮度，对亮度敏感</li>
+</ul>
+</li>
+<li>锥状细胞<ul>
+<li>感知色彩</li>
+<li>L细胞（红色）、M细胞（绿色）、S细胞（蓝色）</li>
+<li>根据这三种细胞分布可以得出，人眼对红色感知度最高，对蓝色感知度最低</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723141425478.png" alt="image-20220723141425478" style="zoom:50%;" />
+
+<ul>
+<li>接收公式<ul>
+<li>$C&#x3D;\int S(\lambda)\cdot I(\lambda) \cdot R(\lambda)d\lambda$</li>
+<li>C是人眼输出到大脑的神经电信号</li>
+<li>S表示LMS三个感光细胞的感知分布</li>
+<li>I表示光源的功率谱分布</li>
+<li>R表示反射物体的吸收功率分布</li>
+</ul>
+</li>
+</ul>
+<h3 id="三、色彩空间"><a href="#三、色彩空间" class="headerlink" title="三、色彩空间"></a>三、色彩空间</h3><p>历史上人们对人眼感知色彩的猜测</p>
+<ul>
+<li>人们有100多种感受色彩的细胞</li>
+<li>人眼有RGB三种感知细胞</li>
+<li>人眼有黑白、红绿、黄蓝三种感知细胞</li>
+</ul>
+<h4 id="1905-Munsell色彩系统（美术角度）"><a href="#1905-Munsell色彩系统（美术角度）" class="headerlink" title="1905 Munsell色彩系统（美术角度）"></a><strong>1905 Munsell色彩系统</strong>（美术角度）</h4><p>（HSL色相饱和亮度）</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723142131075.png" alt="image-20220723142131075" style="zoom:67%;" />
+
+
+
+<h4 id="1931-CIE色彩系统（科学角度）"><a href="#1931-CIE色彩系统（科学角度）" class="headerlink" title="1931 CIE色彩系统（科学角度）"></a>1931 CIE色彩系统（科学角度）</h4><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723143907732.png" alt="image-20220723143907732" style="zoom:67%;" />
+
+
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723144232530.png" alt="image-20220723144232530" style="zoom:67%;" />
+
+<p>曲线覆盖的面积相等<br>$$<br>\int_0^\infin \bar r(\lambda)d\lambda&#x3D;\int_0^\infin \bar g(\lambda)d\lambda &#x3D; \int_0^\infin \bar b(\lambda)d\lambda<br>$$</p>
+<p>红色基色强度有负数部分，虽然物理正确，但很不直观，不便使用，因此进行归一化，保证色彩在-1~1之间</p>
+<p>归一化后，r’g’b’都在-1~1之间，r’+g’+b’&#x3D;1，可以通过其中两个计算另一个</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723144809678.png" alt="image-20220723144809678" style="zoom:34%;" />
+
+<h4 id="1931-XYZ-色彩系统"><a href="#1931-XYZ-色彩系统" class="headerlink" title="1931 XYZ 色彩系统"></a>1931 XYZ 色彩系统</h4><ul>
+<li>Color matching function</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723144427061.png" alt="image-20220723144427061" style="zoom:50%;" /></li>
+</ul>
+<p>XYZ与CIE 1931RGB的转换</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723145521683.png" alt="image-20220723145521683" style="zoom:50%;" />
+
+
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723145726749.png" alt="image-20220723145726749" style="zoom:50%;" />
+
+<p>在该图像上无法体现出亮度，于是在归一化的基础上把XYZ的Y拿出来与xy组成Yxy色彩空可能感觉，Y表示亮度，xy表示色彩</p>
+<ul>
+<li>问题<ul>
+<li>色彩分布不均匀</li>
+</ul>
+</li>
+</ul>
+<h4 id="定义色彩空间"><a href="#定义色彩空间" class="headerlink" title="定义色彩空间"></a>定义色彩空间</h4><p>色彩空间满足的指标</p>
+<ul>
+<li>色域（三个基色的坐标，由此形成三角形）</li>
+<li>Gamma（如何对三角形内进行切分）</li>
+<li>白点（色域三角形中心）<ul>
+<li>又称为E点或者D55点。白点用于定义色域的白色。相关关键词，白平衡。组成白点的各色能量频谱一致，因此白点的频谱是最平坦的。</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723150148332.png" alt="image-20220723150148332" style="zoom:34%;" />
+
+<p>sRGB的构成：在sRGB的色域与色域中心下，gamma&#x3D;2.2</p>
+<h3 id="四、常用的色彩模型与色彩空间"><a href="#四、常用的色彩模型与色彩空间" class="headerlink" title="四、常用的色彩模型与色彩空间"></a>四、常用的色彩模型与色彩空间</h3><ul>
+<li>色彩模型<ul>
+<li>使用一定规则描述、排列颜色的方法</li>
+<li>RGB、CMYK、LAB</li>
+</ul>
+</li>
+<li>色彩空间<ul>
+<li>需要至少满足三个指标<ul>
+<li>色域、白点、Gamma</li>
+</ul>
+</li>
+<li>CIE XYZ，Adobe RGB，sRGB，Japan Color 2001 Uncoated，US web Coated（后两个基于CMYK）</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220723150723307.png" alt="image-20220723150723307"></p>
+<h3 id="五、色彩空间转换"><a href="#五、色彩空间转换" class="headerlink" title="五、色彩空间转换"></a>五、色彩空间转换</h3><p>这里直接复制一段几年前写的色彩模型转换的笔记</p>
+<h5 id="HSV-RGB"><a href="#HSV-RGB" class="headerlink" title="HSV-RGB"></a>HSV-RGB</h5><p>在实际使用中，以$photoshop$为例，其色彩模型数值取值为：</p>
+<p>​	$H取0-360，S，V取0-100%（实际用户输入调整数值范围为0-100）,此处计算取0-1较方便$</p>
+<p>​	$RGB均取0-255$</p>
+<p>$$<br>C&#x3D;V\times S<br>\X&#x3D;C\times(1-|(H&#x2F;60^\circ)mod\ 2-1|)<br>\m&#x3D;V-C\<br>(R’,G’,B’)&#x3D;\left{\begin{array}{}<br>(C,X,0)&amp;,0^\circ\leq H&lt;60^\circ\<br>(X,C,0)&amp;,60^\circ\leq H&lt;120^\circ\<br>(0,C,x)&amp;,120^\circ\leq H&lt;180^\circ\<br>(0,X,C)&amp;,180^\circ\leq H&lt;240^\circ\<br>(X,0,C)&amp;,240^\circ\leq H&lt;300^\circ\<br>(C,0,X)&amp;,300^\circ\leq H&lt;360^\circ\<br>\end{array}{}\right.<br>\(R,G,B)&#x3D;\frac{(R’+m,G’+m,B’+m)}{255}<br>$$<br>该式子理解如下：</p>
+<p>将红(R),黄(Y),绿(G),青(M),蓝(B),品红(C),红(R)</p>
+<p>均匀放在一条轴上，采用<strong>线性插值</strong>的方式画出色相,如图</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/%E8%89%B2%E5%BD%A9%E7%BA%BF%E6%80%A7%E6%8F%92%E5%80%BC2.png" alt="色彩线性插值2"></p>
+<p>如图，横坐标分布$H$，纵坐标的最低值$V(1-S)$即是$m$，因为是线性插值计算，所以RGB呈折线式分布，根据图理解，可以如下改进原公式<br>$$<br>C&#x3D;V(最高阈值)\<br>m&#x3D;V(1-S)(最低阈值)\<br>在图像处理应用中提取图像亮部或暗部，若想要改变容差，则只需要改变阈值<br>\<br>X&#x3D;V\times S\times (1-|H&#x2F;60| mod 2-1)+m\(该式可以直接表达线性插值混合部分的折线（锯齿状线条）)<br>\(R,G,B)&#x3D;255\times \left{\begin{array}{}<br>(C,X,m)&amp;,0^\circ\leq H&lt;60^\circ\<br>(X,C,m)&amp;,60^\circ\leq H&lt;120^\circ\<br>(m,C,x)&amp;,120^\circ\leq H&lt;180^\circ\<br>(m,X,C)&amp;,180^\circ\leq H&lt;240^\circ\<br>(X,m,C)&amp;,240^\circ\leq H&lt;300^\circ\<br>(C,m,X)&amp;,300^\circ\leq H&lt;360^\circ\<br>\end{array}{}\right.<br>$$</p>
+<h5 id="RGB-HSV"><a href="#RGB-HSV" class="headerlink" title="RGB-HSV"></a>RGB-HSV</h5><p>$$<br>R’,G’,B’&#x3D;\frac{R,G,B}{255}\<br>Cmax&#x3D;max(R,G,B)<br>\Cmin&#x3D;min(R,G,B)<br>\\Delta&#x3D;Cmax-Cmin<br>$$</p>
+<p>$H(hue)$<br>$$<br>H&#x3D;\left{\begin{array}{}0^\circ&amp; \Delta &#x3D;0\60^\circ \times(\frac{G’-B’}{\Delta}mod\ 6)&amp;,Cmax&#x3D;R’\60^\circ \times(\frac{B’-R’}{\Delta}+2)&amp;,Cmax&#x3D;G’\60^\circ \times(\frac{R’-G’}{\Delta}+4)&amp;,Cmax&#x3D;B’\end{array}{}\right.<br>$$<br>$S(saturation)$<br>$$<br>S&#x3D;\left{\begin{array}{}0&amp;,Cmax&#x3D;0\\frac{\Delta}{Cmax}&amp;,Cmax\neq0\end{array}{}\right.<br>$$<br>$V(value)$<br>$$<br>V&#x3D;Cmax<br>$$</p>
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a>作业</h3><ul>
+<li><p>色彩空间的定义</p>
+<ul>
+<li>基于CIE XYZ色彩空间，确定一定的色域、白点，以及特定的gamma采样方式，所决定出的色彩区域。</li>
+</ul>
+</li>
+<li><p>人眼可见光范围</p>
+<ul>
+<li>390nm~760nm</li>
+</ul>
+</li>
+</ul>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Qb4y1S7CC">https://www.bilibili.com/video/BV1Qb4y1S7CC</a> 【技术美术百人计划】图形 2.1 色彩空间介绍</p>
+<p>[2] <a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_43280713/article/details/84133949">https://blog.csdn.net/weixin_43280713/article/details/84133949</a></p>
+<p>[3] <a target="_blank" rel="noopener" href="https://www.cnblogs.com/freshair_cnblog/p/11493706.html">https://www.cnblogs.com/freshair_cnblog/p/11493706.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.1%E8%89%B2%E5%BD%A9%E7%A9%BA%E9%97%B4/" data-id="cmfe1kyau001rykuhe52e8mhb" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A21.4PC%E6%89%8B%E6%9C%BA%E5%9B%BE%E5%BD%A2API%E4%BB%8B%E7%BB%8D/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.2%E6%A8%A1%E5%9E%8B%E4%B8%8E%E6%9D%90%E8%B4%A8%E5%9F%BA%E7%A1%80/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

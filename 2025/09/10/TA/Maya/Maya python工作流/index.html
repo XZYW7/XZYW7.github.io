@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/Maya/Maya python工作流" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/Maya/Maya%20python%E5%B7%A5%E4%BD%9C%E6%B5%81/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.015Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="Git-Vscode-Maya-Python-工作流"><a href="#Git-Vscode-Maya-Python-工作流" class="headerlink" title="Git-Vscode-Maya Python 工作流"></a>Git-Vscode-Maya Python 工作流</h2><h3 id="Maya-Python-Vscode"><a href="#Maya-Python-Vscode" class="headerlink" title="Maya Python - Vscode"></a>Maya Python - Vscode</h3><p>在maya python当中的脚本编写与运行都十分麻烦。在vscode中编写则更容易。</p>
+<p>也可以搜到一些关于maya python在vscode中使用的教程，但是本文会完善一些细节以及整合更优的工作流选择。</p>
+<h4 id="安装VScode"><a href="#安装VScode" class="headerlink" title="安装VScode"></a>安装VScode</h4><p>首先我们要有一个Vscode，嗯，如果没有的话。</p>
+<p>这一步很简单，直接在官网上下载就好了。</p>
+<p>然后我们要在Vscode中安装python的扩展。第一个就是。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706231339098.png" alt="image-20220706231339098"></p>
+<p>因为我们其实没有办法在Vscode中直接执行使用了maya api的python脚本，所以倒也不用指定python路径，但是如果要为了其他的项目写python程序的话，倒也可以设置一下。</p>
+<h4 id="安装Maya相关扩展"><a href="#安装Maya相关扩展" class="headerlink" title="安装Maya相关扩展"></a>安装Maya相关扩展</h4><p>接下来我们安装Maya相关的插件</p>
+<p>在Vscode的扩展商店中搜索maya，出现以下结果</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706231704583.png" alt="image-20220706231704583"></p>
+<p>这里有三个插件，简单说，MayaPy &gt;&#x3D; MayaCode + MayaPort</p>
+<p>安装MayaPy的同时，另外两个扩展就自动安装了。</p>
+<p>但其实如果只安装MayaCode也够用。但懒得思考那么多，直接安装MayaPy好了，然后三个扩展都会安装好。</p>
+<h4 id="扩展设置"><a href="#扩展设置" class="headerlink" title="扩展设置"></a>扩展设置</h4><p>首先我们来看MayaCode</p>
+<p>安装好这个插件后，点击这个插件查看主页，从小齿轮进入它的扩展设置</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706225222529.png" alt="image-20220706225222529"></p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706225253173.png" alt="image-20220706225253173" style="zoom: 67%;" />
+
+<p>默认提供了两个端口，一个是Mel的端口7001，一个是Python的端口7002。我就用默认端口了。</p>
+<p>在MayaPort插件里的设置也是一模一样的。</p>
+<p>然后我们打开Maya，在一个空白的脚本窗口输入：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> maya.cmds <span class="keyword">as</span> cmds</span><br><span class="line"></span><br><span class="line">cmds.commandPort(name=<span class="string">&quot;:7001&quot;</span>, sourceType=<span class="string">&quot;mel&quot;</span>)</span><br><span class="line">cmds.commandPort(name=<span class="string">&quot;:7002&quot;</span>, sourceType=<span class="string">&quot;python&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>并运行。这个时候就建立好了Maya和Vscode的通信了。</p>
+<h4 id="执行方法"><a href="#执行方法" class="headerlink" title="执行方法"></a>执行方法</h4><p>接下来如果我们在Vscode中随意打开一个python脚本文件</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706232441023.png" alt="image-20220706232441023" style="zoom: 80%;" />
+
+<p>按住ctrl+shift+p，Vscode会弹出一个输入栏，输入Maya，会看到以下命令</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706232641057.png" alt="image-20220706232641057"></p>
+<p>我们直接点击Maya: Send Python Code to Maya，再返回到maya的脚本窗口，如果顺利，就可以看到</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706232754568.png" alt="image-20220706232754568"></p>
+<p>并且命令提示栏也说了，Shift+Alt+M就可以执行最近使用的命令，所以下次执行直接用这个快捷键就好了，当然点击旁边这个小齿轮也是可以更改快捷键的。</p>
+<p>这是不是比Maya里面先全选还要在ctrl+enter方便很多呢？</p>
+<h4 id="通信的自动初始化"><a href="#通信的自动初始化" class="headerlink" title="通信的自动初始化"></a>通信的自动初始化</h4><p>但是基于上面的设置你会发现，在下一次重新打开maya时，这个端口没了，除非重新在maya里运行一遍上面的端口设置代码</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> maya.cmds <span class="keyword">as</span> cmds</span><br><span class="line"></span><br><span class="line">cmds.commandPort(name=<span class="string">&quot;:7001&quot;</span>, sourceType=<span class="string">&quot;mel&quot;</span>)</span><br><span class="line">cmds.commandPort(name=<span class="string">&quot;:7002&quot;</span>, sourceType=<span class="string">&quot;python&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>我们当然不想每次打开maya都先运行一遍。</p>
+<p>这时Maya官网为我们提供了解决方案。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706234227465.png" alt="image-20220706234227465"></p>
+<p>因此，我们只需要把上面这段代码保存到userSetup.py文件中，就可以在maya启动时自动执行了。注意userSetup.py文件放置的位置，MAYA_APP_DIR的获取需要在MEL脚本窗口执行getenv(“MAYA_APP_DIR”)，一般这个位置默认为“文档”夹中的maya，因此只需要放在：…&#x2F;文档&#x2F;maya&#x2F;20xx&#x2F;scripts 就好了。</p>
+<p>这样所有设置就基本完成了。插件甚至具备代码提示、以及直接查看文档的功能，非常好用。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706235243445.png" alt="image-20220706235243445"></p>
+<p>如果出现Vscode和Maya通信正常，但Vscode中使用maya API的代码未能识别（未定义、无代码提示）等问题，则需要按住ctrl+shift+p调出命令栏后，输入settings打开设置的json文件</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707030157538.png" alt="image-20220707030157538"></p>
+<p>检查这两段代码是否在其中</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707030349083.png" alt="image-20220707030349083"></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;python.autoComplete.extraPaths&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    path<span class="punctuation">,</span></span><br><span class="line"><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line"><span class="attr">&quot;python.analysis.extraPaths&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    path</span><br><span class="line"><span class="punctuation">]</span><span class="punctuation">,</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="其他执行方法"><a href="#其他执行方法" class="headerlink" title="其他执行方法"></a>其他执行方法</h4><p>除了上面的命令执行，我们还可以右键点击代码的编辑栏，我们也可以看到这个命令，直接点击就能运行</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706233141949.png" alt="image-20220706233141949"></p>
+<p>如果在Vscode中打开项目文件夹，在资源管理器窗口，右键点击这个python文件，同样可以找到执行的命令。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706233418285.png" alt="image-20220706233418285" style="zoom:67%;" />
+
+<p>然后是最后一种执行方法，比较复杂，没有特别的用处，可以跳过。</p>
+<p>这个功能是MayaPy插件里的，前几天才发现，这个插件的开发者正是我之前关注过的一个TA前辈</p>
+<p><a target="_blank" rel="noopener" href="https://blog.l0v0.com/">https://blog.l0v0.com/</a></p>
+<p>当然，从他的描述可以看到，他也是基于另外两个插件做的开发。</p>
+<p>这次我们主要会用到下面这个命令。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706233921163.png" alt="image-20220706233921163"></p>
+<p>执行后，如果顺利的话，我们应该在maya中看到这样的输出</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706235620477.png" alt="image-20220706235620477"></p>
+<p>如果不顺利，那么可能就会一直卡在运行阶段</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706235656773.png" alt="image-20220706235656773"></p>
+<p>当然，如果这个时候点击红色方框来中断运行的话，maya中依然可以得到输出。会发现这次只有前面两行</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706235751957.png" alt="image-20220706235751957"></p>
+<p>同时在控制台出现了这样一些问题。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220706235828788.png" alt="image-20220706235828788"></p>
+<p>对于第三个reload的未定义问题很好理解，因为我这里用的是Maya2023，对于reload方法，Maya2023使用的python版本进行了一个封装，需要</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> importlib.reload <span class="keyword">as</span> reload</span><br></pre></td></tr></table></figure>
+
+<p>才能使用，但是低版本的Maya是没有这个问题的。所以合理猜想sys这个库所出现的问题可能也是由于我使用的Maya版本问题所引起的，如果大家使用低一点的Maya版本也许是能正常使用。</p>
+<p>毕竟，用这个执行方法的话，是可以在Vscode的代码中设置断点的，能方便很多调试。</p>
+<p>那么到这里Maya python到Vscode的工作流就结束了，大家也可以愉快地写代码了</p>
+<h3 id="Vscode-Git"><a href="#Vscode-Git" class="headerlink" title="Vscode - Git"></a>Vscode - Git</h3><p>这一部分主要用于项目管理。</p>
+<h4 id="Git安装"><a href="#Git安装" class="headerlink" title="Git安装"></a>Git安装</h4><p>Git安装不是github安装。git是一个工具，而github是一个网站。</p>
+<p>要使用git，我们首先电脑上要有一个git。直接在官网下载就好了</p>
+<p><a target="_blank" rel="noopener" href="https://git-scm.com/downloads/">https://git-scm.com/downloads/</a></p>
+<p>这里我们下载Standalone的版本，选择合适的32位或64位环境就好了（我也没有用过Portable版，不知道这是干嘛的）</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707000633874.png" alt="image-20220707000633874"></p>
+<p>安装过程中会出现一大堆选项，其实都不需要看，直接全部确认跳过就好了。当然，这里会出现一些关于GUI和git bash以及桌面图标这样的选择，其实大多用不上，想装就装，不想装也没影响。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707000937349.png" alt="image-20220707000937349"></p>
+<p>然后这里我们选择默认编辑器的时候当然已经有了一个VScode编辑器，就不选别的了。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707001033292.png" alt="image-20220707001033292"></p>
+<p>然后等待安装就好了。</p>
+<p>安装完成后，我们按住键盘 win+R, 输入cmd打开命令提示符窗口，然后输入git，如果顺利，就会看到一些帮助信息了</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707001647831.png" alt="image-20220707001647831"></p>
+<h4 id="在项目中使用Git"><a href="#在项目中使用Git" class="headerlink" title="在项目中使用Git"></a>在项目中使用Git</h4><p>因为我这两段写完了才想起来要用Vscode，因此如果对这个不感兴趣可以直接看后面的<strong>Vscode中的git</strong></p>
+<p>但是把这里的内容看完的话也有助于理解git的使用。</p>
+<h5 id="项目初始化"><a href="#项目初始化" class="headerlink" title="项目初始化"></a>项目初始化</h5><p>Git的用途是项目管理，那肯定要有一个项目。</p>
+<p>既然有项目，我们肯定还要有一个项目文件夹。git管理项目都是以项目文件夹为单位的。</p>
+<p>假设我们建立好了一个空文件夹准备用于我们的项目。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707001858456.png" alt="image-20220707001858456"></p>
+<p>点击上面的文件资源地址，或者直接按alt+D，然后输入cmd回车运行</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707002323304.png" alt="image-20220707002323304"></p>
+<p>我们就可以从当前的文件夹打开命令窗口。（当然也可以win+R输入cmd后从默认环境进入，然后通过cd 命令进入文件夹）</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707002441106.png" alt="image-20220707002441106"></p>
+<p>然后在这里输入git init </p>
+<p>我们就完成了一个本地仓库的初始化。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707002652658.png" alt="image-20220707002652658"></p>
+<p>新生成的这个.git 文件夹是一个隐藏文件夹，一般来说，项目里的所有本地仓库管理都是在这个.git文件夹中进行的。每个项目都会有自己的.git 文件夹。</p>
+<p>如果把这个文件夹删掉，本地的仓库也就没了，项目的所有git设置也就没了。</p>
+<h5 id="代理设置"><a href="#代理设置" class="headerlink" title="代理设置"></a>代理设置</h5><p>由于git的服务器不在国内，访问git是非常不稳定的。为了舒适地访问git，想必大家都会使用代理服务器。</p>
+<p>开启代理服务以后，打开网络和Internet设置，在最底部的代理设置中可以看到代理服务器的地址和端口</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707003407079.png" alt="image-20220707003407079" style="zoom: 67%;" />
+
+<p>在命令提示符中输入下面这两行代码，当然地址和端口就是用上面的设置。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git config --global https.proxy http://127.0.0.1:端口</span><br><span class="line">git config --global https.proxy https://127.0.0.1:端口</span><br></pre></td></tr></table></figure>
+
+<p>git的代理设置就完成了。</p>
+<p>可以注意到这上面的代码中有一段 –global，它表示全局的意思。</p>
+<p>因为每一个项目都有一个git本地仓库。加上–global，那么表示所有的项目都是用了这个设置，如果只希望当前的项目使用这个设置，那就不要加–global。</p>
+<h5 id="远程仓库"><a href="#远程仓库" class="headerlink" title="远程仓库"></a>远程仓库</h5><p>除了本地仓库，还有许多远程仓库，如最熟知的github，就是一个远程仓库管理平台。事实上，除了github还有很多远程git仓库管理网站，国内熟知的gitee，好处是不会卡，也不用开代理。</p>
+<p>我们已经有了远程仓库的账号（github账号），那么接下来需要让本地仓库知道这个账号</p>
+<p>所以我们注册这个项目的使用者名称和邮箱，也就是你的github的名称和邮箱。这里的–global当然与前面是一个道理</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.name “李三”</span><br><span class="line">git config --global user.email &quot;xxxx@xx&quot;</span><br></pre></td></tr></table></figure>
+
+<p>这个过程中，还可能在浏览器中弹出窗口需要你输入密码提供权限，这个时候顺着做就行了。</p>
+<p>然后我们还要让git知道，这个本地仓库管理的项目，是远程仓库上的哪个项目。</p>
+<p>我们打开github上的项目网站，点击右边的小按钮把地址复制下来。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707002057771.png" alt="image-20220707002057771" style="zoom: 67%;" />
+
+
+
+<p>然后在命令提示符中输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git remote add origin https://xxx/xxx.git</span><br></pre></td></tr></table></figure>
+
+<p>这样本地仓库和远程仓库就关联上了。</p>
+<h5 id="Pulls"><a href="#Pulls" class="headerlink" title="Pulls"></a>Pulls</h5><p>首先我们的远程仓库已经有了项目内容，我们就先把它拉取（pull）到我们的本地仓库上</p>
+<p>输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git pull origin main</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707004740536.png" alt="image-20220707004740536"></p>
+<p>再打开我们的项目，就可以看到项目的所有内容都出现在我们的项目文件夹里了。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707004749157.png" alt="image-20220707004749157"></p>
+<h5 id="Push"><a href="#Push" class="headerlink" title="Push"></a>Push</h5><p>我们在本地编写或者修改了代码，当然要把它上传到远程仓库。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git add .</span><br><span class="line">git commit -m &quot;对当前修改的描述&quot;</span><br><span class="line">git push -u origin main</span><br></pre></td></tr></table></figure>
+
+<p>这三行代码就可以搞定了。注意add后面是空格加小点，表示把当前所有修改的文件添加到git本地仓库中，commit命令确认这次修改。只add不commit是不行的。最后的push会将本地仓库上传到远程仓库。</p>
+<h5 id="Vscode中的Git"><a href="#Vscode中的Git" class="headerlink" title="Vscode中的Git"></a>Vscode中的Git</h5><p>实际上Vscode里面就可以写命令行，所以上面的内容也可以在Vscode中直接写。</p>
+<p><strong>代理设置这一步建议还是做一下</strong></p>
+<p>但是Vscode也提供了很好的git管理工具，我们只需要可视化的操作就可以完成git管理。</p>
+<p>首先在Vscode中还是打开我们的项目文件夹</p>
+<p>可以看到这里的源代码管理栏。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707010649073.png" alt="image-20220707010649073"></p>
+<p>点击这个初始化储存库就能进行git仓库的初始化（相当于git init）</p>
+<p>然后在源代码管理这里点击右边的三个小点可以看到这个操作界面，所有的按钮都相当于一个git命令。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707011051015.png" alt="image-20220707011051015"></p>
+<p>我们点击添加远程仓库，（在弹出的输入栏中他让我们提供存储库URL，当然可以参照上面<strong>远程仓库</strong>的做法，复制地址然后粘贴到这里），我们也可以选择更直观的方式，可以看到下面有一行小字，从GitHub添加远程存储库</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707011553673.png" alt="image-20220707011553673"></p>
+<p>我们点击它，会弹出一个网页，让我们登录输入github的密码，并提供权限，我们直接照做。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707011827029.png" alt="image-20220707011827029" style="zoom:50%;" />
+
+<p>当这些完成后，我们就可以在Vscode刚才的这个输入栏看到让我们选择远程仓库，列出了所有我们的github仓库，我们直接选择PythonInMaya这个项目</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707012018881.png" alt="image-20220707012018881"></p>
+<p>点击后它让我们输入远程仓库名字，直接输PythonInMaya就好了</p>
+<p>然后还是在这个命令面板，我们选择拉取（git pull）</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707012347590.png" alt="image-20220707012347590"></p>
+<p>可以发现这是不行的。会出现这样的问题</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707012432977.png" alt="image-20220707012432977"></p>
+<p>这是因为，git的主分支是main</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707012509461.png" alt="image-20220707012509461" style="zoom:50%;" />
+
+<p>而Vscode默认的主分支叫master，如果我在github上建项目的时候就把github的主分支名字叫做master，也就不存在这个问题了。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707012532283.png" alt="image-20220707012532283"></p>
+<p>这个问题有很多解决方法</p>
+<h6 id="治标"><a href="#治标" class="headerlink" title="治标"></a>治标</h6><p>最直接的方法，是我们让git知道，从远程的main仓库拉取到本地master仓库，我们在这里找到拉取自…命令，</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707012743905.png" alt="image-20220707012743905" style="zoom: 67%;" />
+
+<p>选择我们项目的远程位置</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707012834615.png" alt="image-20220707012834615"></p>
+<p>当然也只有一个main分支</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707012900834.png" alt="image-20220707012900834"></p>
+<p>选择完成后，我们就可以在我们的项目文件夹中看到，已经下载好了远程仓库的所有文件。</p>
+<h6 id="治本"><a href="#治本" class="headerlink" title="治本"></a>治本</h6><p>这个问题的根源是本地仓库和远程仓库的分支不同，远程仓库我们改不了了，但是本地仓库的分支还是可以改的。</p>
+<p>解决的手段有很多</p>
+<p>最简单的是我们选择这个签出到命令</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707014246495.png" alt="image-20220707014246495"></p>
+<p>然后就完成了。</p>
+<h6 id="Vscode中的push"><a href="#Vscode中的push" class="headerlink" title="Vscode中的push"></a>Vscode中的push</h6><p>当我们在本地的代码中做了一些修改后，我们用Vscode来进行push，把代码上传到远程仓库就非常简单了。</p>
+<p>我们可以在更改栏中看到我们的修改过的文件，点击它还会在工作树中展示我们修改的内容</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707014918194.png" alt="image-20220707014918194"></p>
+<p>右键点击这个绿色的更改提示，也可以看到一些git的快捷功能。比如暂存就相当于git add 和commit，添加到本地仓库，只不过这里并不是添加所有文件的修改，而是选择的范围中的修改而已。当然也可还原，这样修改就清除掉变成左边的了。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707014951219.png" alt="image-20220707014951219"></p>
+<p>而“更改”后面的加号按钮则可以暂存更改目录下的所有文件，或者使用文件旁边的加号按钮暂存这一个文件。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707015833709.png" alt="image-20220707015833709"></p>
+<p>可以看到暂存后，git将文件从更改目录移到了暂存更改，点击旁边的减号，可以把它再移回去。</p>
+<p>暂存完毕后就可以上面的小勾提交，提交完毕，就可以去github的项目地址看看远程仓库上有没有更新自己的代码了。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707020125680.png" alt="image-20220707020125680"></p>
+<p>当然也可以在更改后直接点小勾进行提交</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707020257480.png" alt="image-20220707020257480"></p>
+<p>它会很贴心地问你是否暂存所有更改直接提交。选总是固然很方便，但为保险起见，我们还是每次都选一次是，防止出现意外。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220707020313485.png" alt="image-20220707020313485"></p>
+<p>这种关于修改的快捷操作在项目合并的时候是非常有用的。比如B在本地对一段代码进行了修改并推送push到远程后，A将远程的代码再拉取pull下来，就可以看到B所做的修改。并且如果A同时也有修改，<strong>只要A将修改暂存进本地仓库</strong>，A的修改就能和B合并。即便有冲突，在修改代码高亮的帮助下，也能非常快速地解决。</p>
+<p>如果A在pull之前没有把他的工作暂存，那么很不幸，A的工作就被覆盖掉了。</p>
+<p>因为git会在pull的时候，将远程仓库和本地仓库进行比较。把本地仓库和远程仓库不一样的地方换掉。如果没有把工作内容存进本地仓库那就惨了……很多人刚接触git时都会有这样的经历……包括我……</p>
+<p>好了，到这里我们的Git-Vscode-Maya Python工作流的整个教程就完全结束了，由于不是专门的Git教程，还有很多内容，在这里就不讲解了，有兴趣可以自行学习。</p>
+<p>感谢浏览！</p>
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/Maya/Maya%20python%E5%B7%A5%E4%BD%9C%E6%B5%81/" data-id="cmfe1kyao000rykuh2f6y8amv" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/Graphics/Sampling/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/Graphics/GAMES/%E8%BF%87%E7%A8%8B%E8%AE%B0%E5%BD%95PRT/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

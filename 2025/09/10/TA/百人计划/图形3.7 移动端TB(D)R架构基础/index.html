@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形3.7 移动端TB(D)R架构基础" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.7%20%E7%A7%BB%E5%8A%A8%E7%AB%AFTB(D)R%E6%9E%B6%E6%9E%84%E5%9F%BA%E7%A1%80/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.027Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="图形-3-7-移动端TB-D-R架构基础"><a href="#图形-3-7-移动端TB-D-R架构基础" class="headerlink" title="图形 3.7 移动端TB(D)R架构基础"></a>图形 3.7 移动端TB(D)R架构基础</h2><h3 id="一、当前移动端GPU概况"><a href="#一、当前移动端GPU概况" class="headerlink" title="一、当前移动端GPU概况"></a><strong>一、当前移动端GPU概况</strong></h3><h4 id="1-1-移动端和桌面端功耗对比"><a href="#1-1-移动端和桌面端功耗对比" class="headerlink" title="1.1 移动端和桌面端功耗对比"></a><strong>1.1 移动端和桌面端功耗对比</strong></h4><p>对于移动端我们通常用soc芯片名称来代指CPU</p>
+<p>移动端GPU生产厂商主要是高通adreno，Mali和PowerVR</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822235329719.png" alt="image-20220822235329719"></p>
+<h4 id="1-2-移动端和桌面端带宽对比"><a href="#1-2-移动端和桌面端带宽对比" class="headerlink" title="1.2 移动端和桌面端带宽对比"></a><strong>1.2 移动端和桌面端带宽对比</strong></h4><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220822235406315.png" alt="image-20220822235406315"></p>
+<h3 id="二、名词解释"><a href="#二、名词解释" class="headerlink" title="二、名词解释"></a><strong>二、名词解释</strong></h3><ul>
+<li>System on Chip（Soc）<ul>
+<li>Soc是把CPU、GPU、内存、通信基带、GPS模块等等整合在一起的芯片的称呼。常见的有A系Soc（苹果），骁龙Soc（高通），麒麟Soc（华为），联发科Soc，猎户座Soc（三星），2020年苹果推出M系Soc，暂用于Mac，这说明手机、笔记本、PC的通用芯片已经出现了。</li>
+</ul>
+</li>
+<li>System Memory<ul>
+<li>Soc中GPU和CPU共用一块片内LPDDR物理内存，就是常说的手机内存，也叫System Memory，大概几个G。</li>
+<li>此外CPU和GPU还分别有自己的高速SRAM的Cache，也叫On-chip Memory，一般几百k-几M。不同距离的内存访问存在不同时间消耗，距离越近消耗越低，读取System Memory的时间消耗大概是On-chip Memory的几倍到几十倍</li>
+<li>（soc上gpu和cpu共享一个（虚拟）内存地址空间）</li>
+</ul>
+</li>
+<li>On-Chip Memory<ul>
+<li>在TB(D)R架构下会存储Tile的颜色、深度和模板缓冲，读写修改都非常快。</li>
+</ul>
+</li>
+<li>Stall停滞<ul>
+<li>当一个GPU核心的两次计算结果之间有依赖关系而必须串行时，等待的过程便是Stall。</li>
+</ul>
+</li>
+<li>FillRate<ul>
+<li>像素填充率 &#x3D; ROP运行的时钟频率 * ROP的个数 * 每个时钟ROP可以处理的像素个数</li>
+</ul>
+</li>
+<li>TB(D)R<ul>
+<li>Tile-Based  (Deferred) Rendering</li>
+<li>是目前主流的移动GPU渲染架构，对应一般PC上的GPU渲染架构则是IMR（Immediate Mode Rendering）</li>
+<li>指屏幕被分块（16*16或32*32像素）渲染</li>
+<li>TBR：VS - Defer - Rasterize - PS</li>
+<li>TBDR：VS - Defer - Rasterize - Defer - PS</li>
+<li>Defer字面是延迟，但从渲染数据的角度来看，Defer就是“阻塞+批处理”GPU的“一帧”的多个数据，然后一起处理</li>
+</ul>
+</li>
+</ul>
+<h3 id="三、立即渲染IMR"><a href="#三、立即渲染IMR" class="headerlink" title="三、立即渲染IMR"></a><strong>三、立即渲染IMR</strong></h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> draw <span class="keyword">in</span> renderPass:</span><br><span class="line">    <span class="keyword">for</span> primitive <span class="keyword">in</span> draw:</span><br><span class="line">        <span class="keyword">for</span> vertex <span class="keyword">in</span> primitive:</span><br><span class="line">            execute_vertex_shader(vertex)</span><br><span class="line">        <span class="keyword">if</span> primitive <span class="keyword">not</span> culled:</span><br><span class="line">            <span class="keyword">for</span> fragment <span class="keyword">in</span> primitive:</span><br><span class="line">                execute_fragment_shader(fragment)</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220823000924957.png" alt="image-20220823000924957"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220823001016993.png" alt="image-20220823001016993"></p>
+<h3 id="四、基于块元的渲染TB-D-R"><a href="#四、基于块元的渲染TB-D-R" class="headerlink" title="四、基于块元的渲染TB(D)R"></a><strong>四、基于块元的渲染TB(D)R</strong></h3><p>TB(D)R宏观上分为2阶段</p>
+<ol>
+<li>第一阶段执行所有与几何相关的处理，并生成Primitive List，并且确定每个tile上面有哪些primitive</li>
+<li>第二阶段将逐块执行光栅化及其后续处理，并在完成后将Frame Buffer从Tile Buffer写回到System Memory中。</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Pass one</span></span><br><span class="line"><span class="keyword">for</span> draw <span class="keyword">in</span> renderPass:</span><br><span class="line">    <span class="keyword">for</span> primitive <span class="keyword">in</span> draw:</span><br><span class="line">        <span class="keyword">for</span> vertex <span class="keyword">in</span> primitive:</span><br><span class="line">            execute_vertex_shader(vertex)</span><br><span class="line">        <span class="keyword">if</span> primitive <span class="keyword">not</span> culled:</span><br><span class="line">            append_tile_list(primitive)</span><br><span class="line"><span class="comment"># Pass two</span></span><br><span class="line"><span class="keyword">for</span> tile <span class="keyword">in</span> renderPass:</span><br><span class="line">    <span class="keyword">for</span> primitive <span class="keyword">in</span> tile:</span><br><span class="line">        <span class="keyword">for</span> fragment <span class="keyword">in</span> primitive:</span><br><span class="line">            execute_fragment_shader(fragment)</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220823001450220.png" alt="image-20220823001450220"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220823001533374.png" alt="image-20220823001533374"></p>
+<h3 id="五、TB-D-R的硬件渲染顺序"><a href="#五、TB-D-R的硬件渲染顺序" class="headerlink" title="五、TB(D)R的硬件渲染顺序"></a><strong>五、TB(D)R的硬件渲染顺序</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220823001818885.png" alt="image-20220823001818885"></p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a><strong>总结</strong></h4><p><strong>TBR的核心目的是降低带宽，减少功耗，但渲染帧率上并不比IMR块</strong></p>
+<ul>
+<li>优点<ul>
+<li>TBR给消除Overdraw提供了机会，PowerVR用了HSR技术，Mali用了Forward Pixel Killing技术，目标一样，就是要最大限度减少被遮挡Pixel的texturing和shading。</li>
+<li>TBR主要是cached friendly，在cache里读写的速度要比全局内存的速度快得多，以降低render rate的代价，降低带宽，省电</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>Binning过程是在vertex阶段之后，将输出的几何数据写入到DDR，然后才被fs读取。几何数据过多的管线，容易在此处有性能瓶颈。</li>
+<li>如果某些三角形叠加在数个tile上，需要绘制数次。意味着总渲染时间将高于即时渲染模式。</li>
+</ul>
+</li>
+</ul>
+<h3 id="六、Binning过程"><a href="#六、Binning过程" class="headerlink" title="六、Binning过程"></a><strong>六、Binning过程</strong></h3><p>Binning过程（类似四叉树）&#x2F;第一个Defer</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220823002346662.png" alt="image-20220823002346662"></p>
+<p>确定哪些块元渲染哪些图元</p>
+<h3 id="七、不同GPU的Early-Depth-Test"><a href="#七、不同GPU的Early-Depth-Test" class="headerlink" title="七、不同GPU的Early-Depth-Test"></a><strong>七、不同GPU的Early-Depth-Test</strong></h3><p>第二个Defer</p>
+<ul>
+<li><p>Android</p>
+<ul>
+<li>Qualcomm Adreno采用外置模块LRZ。在正常渲染管线前，多执行一次vs生成低精度depth texture，提前剔除不可见的triangles。直接用硬件做occlusion culling，功能类似软光栅遮挡剔除&#x2F;pre-Z</li>
+<li>Arm Mali的FPK（Forward Pixel Killing）<ul>
+<li>发生在Early-Z之后</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220823002835382.png" alt="image-20220823002835382"></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>IOS</p>
+<ul>
+<li><p>PowerVR的HSR</p>
+</li>
+<li><p>TBDR的HSR实现</p>
+<ul>
+<li>HSR&#x3D;Hidden Surface Removal</li>
+<li>对每个被投影光束交接的对象进行排序处理（使用分块减少数据集大小）</li>
+<li>只有最近的不透明和最近的透明对象需要被渲染</li>
+<li>余下的片元被剔除</li>
+</ul>
+</li>
+<li><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220823003102289.png" alt="image-20220823003102289"></p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="八、优化建议"><a href="#八、优化建议" class="headerlink" title="八、优化建议"></a><strong>八、优化建议</strong></h3><ul>
+<li>不使用FrameBuffer的时候clear或者discard<ul>
+<li>主要是清空积存在tile buffer上的中间数据，所以在unity里面对render texture的使用也特别说明了一下，当不再使用这个rt之前，调用一次Discard。在Opengl ES上善用glClear，glInvalidateFrameBuffer避免不必要的Resolve（Resolve就是tile buffer刷新到system memory）行为</li>
+</ul>
+</li>
+<li>不要在一帧里面频繁切换FrameBuffer的绑定<ul>
+<li>本质上就是减少tile buffer和system memory之间的stall操作</li>
+</ul>
+</li>
+<li>对于移动平台，建议使用alpha blend而非alpha test<ul>
+<li>在实际使用中，你应该分析并比较alpha test和alpha blend的表现，因为这取决于具体内容，通常在移动平台上应避免使用alpha混合来实现透明。需要进行alpha blend时，尝试缩小混合区域的覆盖范围。</li>
+</ul>
+</li>
+<li>手机上必须要做Alpha Test，先做一遍preZ</li>
+<li>图片尽量压缩，例如：ASTC，ETC2</li>
+<li>图片尽量走mipmap</li>
+<li>尽量使用从Vertex shader传来的Varying变量UV值采样贴图（连续的），不要在FragmentShader里动态计算贴图的UV值（非连续的），否则CacheMiss</li>
+<li>在延迟渲染尽量利用Tile Buffer</li>
+<li>如果你在unity里面调整ProjectSetting&#x2F;Quality&#x2F;Rendering&#x2F;Texture Quality不同的设置，或者不同分辨率下，帧率有很多变化，那么多半是带宽出问题。</li>
+<li>MSAA在TBDR下反而是非常快速的。</li>
+<li>少在fs中使用discard，调用gl_FragDepth从而打断Early-DT(HLSL中为Clip，GLSL中为discard)</li>
+<li>在shader里面浮点数精度，有目的区分使用float，half；<ul>
+<li>带宽用量减少</li>
+<li>GPU中使用的周期数减少，因为着色器编译器可以优化你的代码以提高并行化程度。</li>
+<li>要求的统一变量寄存器数量减少，这反过来又降低了寄存器数量溢出风险</li>
+</ul>
+</li>
+<li>在移动端TB(D)R架构中，顶点处理部分容易成为瓶颈，避免使用曲面细分shader，置换贴图等负操作，提倡使用模型lod，本质上减少FrameData的压力，Unity中尽早在应用阶段借助umbra遮挡剔除。</li>
+</ul>
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a><strong>作业</strong></h3><p>结合今天的课程，将最近做的demo继续安卓平台<strong>打包</strong>，<strong>对比</strong>使用课上的优化点前后的性能变化。</p>
+<p>这是第一次接触安卓平台的打包与性能分析。。关于性能分析使用了Unity的UPR工具。由于没有什么比较完整的demo，之前所有作业都是塞在一个项目里做的，就直接使用这个场景了，虽然感觉也很难触碰到性能瓶颈什么的。而且能够针对上面优化建议处理的点也不太多。于是选择了最直接的图片纹理压缩的部分（正好下一章节就会讲纹理压缩），应该也算非常适合了。</p>
+<p>ASTC和ETC2两种压缩格式都非常接近</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824014740272.png" alt="image-20220824014740272"></p>
+<p>而当我手动地取消所有纹理的压缩，改为8位浮点精度储存后，发现对性能的影响比想象中大得多。。。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824014834325.png" alt="image-20220824014834325"></p>
+<p>首先是apk文件的大小就增大了一些。其次是最明显的纹理资源峰值这一项，UPR还贴心地提供了说明和优化建议。而且，这里Mipmap甚至已经关掉了。（其实这里做法是相反的，应该关闭压缩开启mip，这样这两个功能在纹理和渲染效率上的作用才是协同的）</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824015319329.png" alt="image-20220824015319329"></p>
+<p>那么在手机内存占用上，也发生了相应的变化</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824020406052.png" alt="image-20220824020406052"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824020414939.png" alt="image-20220824020414939"></p>
+<ul>
+<li><p>ReservedTotal峰值</p>
+<ul>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824020439183.png" alt="image-20220824020439183"></li>
+</ul>
+</li>
+<li><p>ReservedGFX峰值</p>
+<ul>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824020513219.png" alt="image-20220824020513219"></li>
+</ul>
+</li>
+</ul>
+<p>其次就是帧率也发生了下降。这当然也是由于纹理资源数据变大，计算的速度也就下降了。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220824015213541.png" alt="image-20220824015213541"></p>
+<p>性能分析工具本身还有很多需要去研究的地方，当然这也需要项目内容的支撑。。。鉴于现在也没有什么合适的内容，这里也只能到此为止了，算是一次小小的尝试。当打包出来的项目在手机上成功渲染出画面的时候，还是非常激动的。。。</p>
+<p>（此外，曲面细分与几何着色器生成的草地没能在手机上绘制出来，想必也是手机平台不支持这两个着色器的缘故了。）</p>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Bb4y167zU">https://www.bilibili.com/video/BV1Bb4y167zU</a></p>
+<p>【技术美术百人计划】图形 3.7 移动端TB(D)R架构基础</p>
+<p>[2] <a target="_blank" rel="noopener" href="https://blog.imaginationtech.com/a-look-at-the-powervr-graphics-architecture-tile-based-rendering/">https://blog.imaginationtech.com/a-look-at-the-powervr-graphics-architecture-tile-based-rendering/</a></p>
+<p>[3] <a target="_blank" rel="noopener" href="https://upr.unity.cn/instructions/desktop">https://upr.unity.cn/instructions/desktop</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.7%20%E7%A7%BB%E5%8A%A8%E7%AB%AFTB(D)R%E6%9E%B6%E6%9E%84%E5%9F%BA%E7%A1%80/" data-id="cmfe1kyb1002lykuhbzz6dhsc" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.6%20%E7%BA%B9%E7%90%86%E5%8E%8B%E7%BC%A9/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A23.2%20%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%E5%8F%8A%E5%89%94%E9%99%A4/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/Maya/cmds（一）" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/Maya/cmds%EF%BC%88%E4%B8%80%EF%BC%89/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.017Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="【Maya】Python-For-Maya（Cmds）（一）Introduction"><a href="#【Maya】Python-For-Maya（Cmds）（一）Introduction" class="headerlink" title="【Maya】Python For Maya（Cmds）（一）Introduction"></a>【Maya】Python For Maya（Cmds）（一）Introduction</h2><h3 id="从零开始"><a href="#从零开始" class="headerlink" title="从零开始"></a>从零开始</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> maya <span class="keyword">import</span> cmds</span><br><span class="line">cmds.polyCube()</span><br></pre></td></tr></table></figure>
+
+<p>maya创建了一个物体，但是其实在这里maya脚本并没有获取到这个创建的物体</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cmds.polyCube()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>本身是一个命令command，其实返回了这个物体作为一个list</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cube = cmds.polyCube()</span><br><span class="line"><span class="built_in">print</span>(cube)</span><br><span class="line"><span class="comment">#[&#x27;pCube1&#x27;, &#x27;polyCube1&#x27;]</span></span><br></pre></td></tr></table></figure>
+
+<p>在之前的&#x3D;&#x3D;过期教程&#x3D;&#x3D;我们了解到，一个属于Transform Node，一个属于Shape Node</p>
+<p>实际上pCube1是这个立方体的名字，在大纲可以看到，而polyCube1是创建这个立方体的Maya Node的名字</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cubeShape = cube[<span class="number">0</span>]<span class="comment">#这样就把pCube1取出来了</span></span><br><span class="line">circle = cmds.circle()</span><br><span class="line">circleShape = circle[<span class="number">0</span>]</span><br><span class="line">cmds.parent(cubeShape,circleShape)<span class="comment">#child,parent</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220628225129047.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cmds.setAttr(<span class="string">&quot;pCube1.tx&quot;</span>,lock = <span class="literal">True</span>)<span class="comment">#锁定立方体的TranslateX属性</span></span><br><span class="line">cmds.setAttr(cubeShape +<span class="string">&quot;.ty&quot;</span>,lock = <span class="literal">True</span>)</span><br><span class="line">cmds.setAttr(cubeShape +<span class="string">&quot;.translate&quot;</span>,lock = <span class="literal">True</span>)<span class="comment">#同时锁定所有translate属性</span></span><br><span class="line">cmds.setAttr(cubeShape +<span class="string">&quot;.rotate&quot;</span>,lock = <span class="literal">True</span>)<span class="comment">#同时锁定所有translate属性</span></span><br><span class="line">cmds.setAttr(cubeShape +<span class="string">&quot;.scale&quot;</span>,lock = <span class="literal">True</span>)<span class="comment">#同时锁定所有translate属性</span></span><br></pre></td></tr></table></figure>
+
+<p>这样子物体的立方体被锁定了，但是父物体的circle还是正常的，依然会带动子物体变化</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmds.select(circleShape)</span><br></pre></td></tr></table></figure>
+
+<h3 id="MayaAPI"><a href="#MayaAPI" class="headerlink" title="MayaAPI"></a>MayaAPI</h3><ul>
+<li><p>cmds</p>
+<ul>
+<li>MEL<ul>
+<li>可交互性</li>
+<li>会在窗口中打印命令</li>
+</ul>
+</li>
+<li>只能用于脚本</li>
+<li>只能在maya中使用</li>
+</ul>
+</li>
+<li><p>OpenMaya</p>
+<ul>
+<li>C++ &#x2F; C#(only for windows)<ul>
+<li>不可交互</li>
+<li>需要编译</li>
+<li>可以在maya外使用</li>
+<li>只能用于插件</li>
+<li>性能更优</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Python</p>
+<ul>
+<li>两种API均可以使用</li>
+<li>可以用于插件或脚本</li>
+<li>可以在maya外使用</li>
+<li>性能不如C++&#x2F;C#</li>
+<li>简单，有社区</li>
+</ul>
+</li>
+</ul>
+<p>Maya-python API</p>
+<ul>
+<li>cmds<ul>
+<li>原本是为MEL设计的</li>
+<li>语法风格不太python化</li>
+<li>性能不错</li>
+<li>过于繁杂</li>
+<li>物体通过name来处理</li>
+</ul>
+</li>
+<li>OpenMaya<ul>
+<li>两种版本<ul>
+<li>version1 built for C++</li>
+<li>version 2 built for python</li>
+</ul>
+</li>
+<li>原本是为C++设计</li>
+<li>语法风格不太python化</li>
+<li>非常繁杂</li>
+<li>更难使用</li>
+<li>高性能</li>
+<li>直接处理物体</li>
+</ul>
+</li>
+<li>PyMEL<ul>
+<li>warps both cmds and OpenMaya</li>
+<li>语法更符合python</li>
+<li>不太稳定</li>
+<li>直接处理物体</li>
+</ul>
+</li>
+</ul>
+<h5 id="Nodes-in-maya"><a href="#Nodes-in-maya" class="headerlink" title="Nodes in maya"></a>Nodes in maya</h5><p>maya主要影响物体属性，属性通过名称获得</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">polyCube1.input</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220628232113093.png" alt="image-20220628232113093"></p>
+<p>在api中，attributes被称作plugs，可以给plug赋值</p>
+<p>也可以和其他plug进行连接</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/Maya/cmds%EF%BC%88%E4%B8%80%EF%BC%89/" data-id="cmfe1kyao000uykuhfjem9o2h" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/OpenGL/C++%20learning_01/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/Maya/cmds%EF%BC%88%E4%B8%89%EF%BC%89/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

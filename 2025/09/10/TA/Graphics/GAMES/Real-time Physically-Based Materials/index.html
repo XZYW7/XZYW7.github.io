@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/Graphics/GAMES/Real-time Physically-Based Materials" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/Graphics/GAMES/Real-time%20Physically-Based%20Materials/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.013Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="Real-time-Physically-Based-Materials-Surface-models"><a href="#Real-time-Physically-Based-Materials-Surface-models" class="headerlink" title="Real-time Physically-Based Materials(Surface models)"></a><strong>Real-time Physically-Based Materials(Surface models)</strong></h2><h3 id="PBR"><a href="#PBR" class="headerlink" title="PBR"></a><strong>PBR</strong></h3><h4 id="PBR与PBR材质"><a href="#PBR与PBR材质" class="headerlink" title="PBR与PBR材质"></a><strong>PBR与PBR材质</strong></h4><ul>
+<li><p>PBR</p>
+<ul>
+<li>一切基于物理，如材质、光照、相机、light transport等</li>
+<li>不仅限于材质，但通常指材质</li>
+</ul>
+</li>
+<li><p>RTR中的PBR</p>
+<ul>
+<li>实时渲染的材质种类、准确度等是不如离线的</li>
+<li>实时渲染的PB通常并不真的physically based</li>
+</ul>
+</li>
+</ul>
+<h4 id="RTR中的PBR材质"><a href="#RTR中的PBR材质" class="headerlink" title="RTR中的PBR材质"></a><strong>RTR中的PBR材质</strong></h4><ul>
+<li>Surface<ul>
+<li>大部分是微表面模型（使用错误，所以不太PBR）与Disney原则的BRDF（美术友好，但也不太PBR）</li>
+</ul>
+</li>
+<li>Volumes<ul>
+<li>大部分关注性能和近似的single&#x2F;multiple scattering（云、头发、皮肤等）</li>
+</ul>
+</li>
+<li>通常在使用上会使用很多hacks，并且非常关注性能</li>
+</ul>
+<h3 id="Microfacet-BRDF微表面BRDF"><a href="#Microfacet-BRDF微表面BRDF" class="headerlink" title="Microfacet BRDF微表面BRDF"></a><strong>Microfacet BRDF微表面BRDF</strong></h3><p>在GAMES101中根据微表面模型提出了以下的BRDF模型吧<br>$$<br>f(i,o)&#x3D;\frac{F(i,h)G(i,o,h)D(h)}{4(n,i)(n,o)}<br>$$</p>
+<h4 id="Fresnel"><a href="#Fresnel" class="headerlink" title="Fresnel"></a><strong>Fresnel</strong></h4><ul>
+<li>反射随着grazing angle（掠射角）增加会增多</li>
+</ul>
+<p>在物理上需要考虑光线的极化-s极化与p极化</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220928111429350.png" alt="image-20220928111429350"></p>
+<ul>
+<li>近似-Schlick’s approx<br>$$<br>R(\theta)&#x3D;R_0+(1-R_0)(1-\cos\theta)^5<br>\R_0&#x3D;(\frac{n_1-n_2}{n_1+n_2})^2<br>$$</li>
+</ul>
+<h4 id="Normal-Distribution-Function"><a href="#Normal-Distribution-Function" class="headerlink" title="Normal Distribution Function"></a><strong>Normal Distribution Function</strong></h4><p>描述微表面的法线分布</p>
+<ul>
+<li><p>法线集中</p>
+<ul>
+<li>Glossy-specular</li>
+</ul>
+</li>
+<li><p>法线分散</p>
+<ul>
+<li>Diffuse</li>
+</ul>
+</li>
+<li><p>常用的法线分布函数模型</p>
+<ul>
+<li>Bechmann</li>
+<li>GGX</li>
+<li>其他Detailed Model</li>
+</ul>
+</li>
+</ul>
+<h5 id="Bechmann-NDF"><a href="#Bechmann-NDF" class="headerlink" title="Bechmann NDF"></a><strong>Bechmann NDF</strong></h5><p>$$<br>D(h)&#x3D;\frac{e^{-\frac{\tan^2\theta_h}{\alpha^2}}}{\pi\alpha^2\cos^4\theta_h}<br>$$</p>
+<ul>
+<li>$\alpha$: roughness</li>
+<li>$\theta_h$ : 半程向量h与法线夹角</li>
+<li>近似于用高斯函数来建立模型，alpha描述了标准差，也即光滑程度</li>
+<li>分母归一化保证了projected solid angle的积分域为1</li>
+<li>定义在slope space（坡度空间）上<ul>
+<li>高斯函数的surpport（支撑集） 是无限大的，但可以映射到-90~90度的空间</li>
+</ul>
+</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220928114334006.png" alt="image-20220928114334006"></li>
+<li>描述的是各向同性的结果</li>
+</ul>
+<h5 id="GGX（Trowbridge-Reitz）"><a href="#GGX（Trowbridge-Reitz）" class="headerlink" title="GGX（Trowbridge-Reitz）"></a><strong>GGX（Trowbridge-Reitz）</strong></h5><ul>
+<li>Long tail(拖尾表现更好)</li>
+<li>过渡渐变看起来更自然</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001172957712.png" alt="image-20221001172957712" style="zoom:50%;" />
+
+
+
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001174745586.png" alt="image-20221001174745586"></p>
+<h5 id="Extending-GGX-GTR"><a href="#Extending-GGX-GTR" class="headerlink" title="Extending GGX(GTR)"></a><strong>Extending GGX(GTR)</strong></h5><ul>
+<li>GTR（Generalized Trowbridge-Reitz）</li>
+<li>更长的拖尾</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001175309985.png" alt="image-20221001175309985"></p>
+<h4 id="Shadowing-Masking-Term"><a href="#Shadowing-Masking-Term" class="headerlink" title="Shadowing-Masking Term"></a><strong>Shadowing-Masking Term</strong></h4><ul>
+<li>Geometry term G（几何遮蔽项）</li>
+<li>表示微表面自遮挡的数量，表现为入射光线被遮挡产生shadow，反射到眼睛的光线被遮挡为mask<ul>
+<li>Shadowing-light</li>
+<li>Masking-eye</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001180224677.png" alt="image-20221001180224677"></p>
+<ul>
+<li>为什么需要几何遮蔽项<ul>
+<li>考虑如果没有G项，掠射角的入射和出射会发生什么？</li>
+<li>根据Fresnel，在掠射部分的反射会变成1，</li>
+<li>BRDF分母接近0，最后的结果是在边缘部分接近白色，这是不合理的。</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001181331248.png" alt="image-20221001181331248"></li>
+</ul>
+</li>
+</ul>
+<h5 id="Smith-Shadowing-masking-term"><a href="#Smith-Shadowing-masking-term" class="headerlink" title="Smith Shadowing-masking term"></a><strong>Smith Shadowing-masking term</strong></h5><p>假设法线为一种统计学分布模型，</p>
+<ul>
+<li>将shadowing和masking的部分分开考虑</li>
+<li>假设$G(i,o,m)\simeq G_1(i,m)G_1(o,m)$</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001182858495.png" alt="image-20221001182858495"></p>
+<h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a><strong>问题</strong></h4><ul>
+<li>在Multiple Bounces（多次弹射）中产生的能量损失（在粗糙度高时更明显）</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001183353105.png" alt="image-20221001183353105" style="zoom:50%;" />
+
+<p>（如下图）在仅有的Uniform的全局光照下去照亮物体，对于specular的物体发生的正确反射，导致和背景融为一体。(<strong>白炉测试</strong>)</p>
+<p>Roughness的部分会使反射光更容易被遮挡。因此在实际光线多次发生Bounce的过程中，只考虑一次Bounce，会导致能量损失</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001183951640.png" alt="image-20221001183951640"></p>
+<ul>
+<li>Accurate methods[Heitz et al. 206]</li>
+<li>在实时渲染中较慢</li>
+<li>Basic idea<ul>
+<li>Being occluded &#x3D; next bounce happening</li>
+<li>被遮挡代表着下一次弹射发生</li>
+</ul>
+</li>
+</ul>
+<h4 id="Kulla-county-Approx"><a href="#Kulla-county-Approx" class="headerlink" title="Kulla-county Approx"></a><strong>Kulla-county Approx</strong></h4><p><a target="_blank" rel="noopener" href="https://fpsunflower.github.io/ckulla/data/s2017_pbs_imageworks_slides_v2.pdf">https://fpsunflower.github.io/ckulla/data/s2017_pbs_imageworks_slides_v2.pdf</a></p>
+<ul>
+<li><p>依据经验来补全多次反射的能量</p>
+</li>
+<li><p>2D BRDF lobe中出射的总能量<br>$$<br>E(\mu_0)&#x3D;\int^{2\pi}_0\int^1_0f(\mu_o,\mu_i,\phi)\mu_id\mu_id\phi<br>\\mu&#x3D;\sin\theta<br>$$</p>
+</li>
+</ul>
+<p>在上式中注意$\mu d\mu d\phi$ 的部分，换成$\sin\theta$ ，即$\cos\theta\sin\theta d\theta d\phi$ ，也即球面参数化（$\theta$, $\phi$）的表达。</p>
+<ul>
+<li>丢失的能量<ul>
+<li>我们可以设计一个 additiional lobe，使得这部分积分为$1-E(\mu_o)$ </li>
+<li>出射的BRDF lobe和入射方向是不同的</li>
+<li>考虑交换性，可以是如下形式$c(1-E(\mu_i))(1-E(\mu_o))$</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>f_{ms}(\mu_o,\mu_i)&#x3D;\frac{(1-E(\mu_i))(1-E(\mu_o))}{\pi(1-E_{avg})}<br>\E_{avg}&#x3D;2\int_0^1E(\mu)\mu d\mu<br>$$</p>
+<ul>
+<li>$E_{avg}$ 的处理<ul>
+<li>对于复杂的积分，在split sum中，我们的处理方式是——precompute&#x2F;tabulate预计算或制表</li>
+<li>$E_{avg}$ 的维度是多少 &#x2F; $E_{avg}$ 有多少参数<ul>
+<li>只需考虑$\mu_0$ 和roughness</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001194632992.png" alt="image-20221001194632992"></p>
+<ul>
+<li>验证</li>
+</ul>
+<p>$$<br>E_{ms}(\mu_o)&#x3D;\int^{2\pi}<em>0\int^1_0f</em>{ms}(\mu_o,\mu_i,\phi)\mu_id\mu_id\phi<br>\&#x3D;2\pi\int^1_0\frac{(1-E(\mu_i))(1-E(\mu_o))}{\pi(1-E_{avg})}\mu_id\mu_i<br>\&#x3D;2\frac{1-E(\mu_o)}{1-E_{avg}}\int_0^1(1-E(\mu_i))\mu_id\mu_i<br>\&#x3D;\frac{1-E(\mu_o)}{1-E_{avg}}(1-E_{avg})<br>\&#x3D;1-E(\mu_o)<br>$$</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001194824094.png" alt="image-20221001194824094"></p>
+<ul>
+<li>以上的内容基于没有颜色（白色）的BRDF</li>
+<li>但如果考虑其他颜色，也就代表着光线能量的吸收，也即能量的减少（损失）<ul>
+<li>因此我们只需要计算整体的能量损失</li>
+</ul>
+</li>
+<li>定义Average Fresnel平均菲涅尔<ul>
+<li>忽略入射角每次反射平均反射的能量</li>
+</ul>
+</li>
+</ul>
+<p>$$<br>F_{avg}&#x3D;\frac{f_0^1F(\mu)\mu d\mu}{f_0^1\mu d\mu}&#x3D;2\int_0^1F(\mu)\mu d\mu<br>$$</p>
+<p>而$E_{avg}$ 代表我们能看到的能量（不参与多次bounce）</p>
+<p>所以最后的能量可以分类为：</p>
+<ul>
+<li>直接看到的能量$F_{avg}E_{avg}$</li>
+<li>一次弹射后被看到的能量$F_{avg}(1-E_{avg})F_{avg}E_{avg}$</li>
+<li>….</li>
+<li>k次弹射后被看到的能量$F_{avg}^k(1-E_{avg})^kF_{avg}E_{avg}$</li>
+</ul>
+<p>相加起来的级数求和（这一部分直接和没有颜色的BRDF相乘）<br>$$<br>\frac{F_{avg}E_{avg}}{1-F_{avg}(1-E_{avg})}<br>$$</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001200140171.png" alt="image-20221001200140171"></p>
+<p>再来解释一遍带颜色的多次弹射的能量损失。</p>
+<p>我们之间所做的计算都是基于没有颜色，也就是白色，也就是不吸收能量，所得到的结果。但是，如果物体存在颜色，也即会吸收能量，那么，在multi-bounces的过程中，每次弹射，都会吸收对应的能量，而我们用平均的菲涅尔来定义，这样就能忽略弹射的角度，而把所有的弹射加起来后，把这一部分由于颜色吸收能量带来的损失，和前面的乘起来，就是最后的结果。</p>
+<h5 id="Undesirable-Hack"><a href="#Undesirable-Hack" class="headerlink" title="Undesirable Hack"></a><strong>Undesirable Hack</strong></h5><ul>
+<li>将Microfacet BRDF和一个diffuse lobe结合起来（在CV中的材质识别普遍使用）</li>
+<li>这是不科学的（Cook-Torrance BRDF就是这么干的）</li>
+<li>微表面已经将表面解释成表面的某种分布了，又怎么会加上一部分的理想漫反射呢<ul>
+<li>物理不正确，且能量不守恒</li>
+<li>（但也有加上diffuse后保证能量守恒的处理方式，这肯定也是存在的）</li>
+</ul>
+</li>
+</ul>
+<h3 id="Linearly-Transformed-Cosines（LTC）"><a href="#Linearly-Transformed-Cosines（LTC）" class="headerlink" title="Linearly Transformed Cosines（LTC）"></a><strong>Linearly Transformed Cosines（LTC）</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001213010346.png" alt="image-20221001213010346"></p>
+<p>线性变换余弦方法——多边形光照下的微表面BRDF着色</p>
+<ul>
+<li><p>解决microfacet model 的shading问题</p>
+</li>
+<li><p>主要基于GGX法线分布（其他模型也是可以的）</p>
+</li>
+<li><p>不考虑shadows</p>
+</li>
+<li><p>多边形光源</p>
+</li>
+<li><p>想法</p>
+<ul>
+<li>任意2D的BRDF lobe可以被线性变换为余弦</li>
+<li>光源的形状也可以被变换</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001213451716.png" alt="image-20221001213451716" style="zoom:50%;" /></li>
+</ul>
+</li>
+</ul>
+<p>在cosine lobe上积分变换后的光源是有解析解的</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001213822511.png" alt="image-20221001213822511"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221001213659851.png" alt="image-20221001213659851"></p>
+<h4 id="做法"><a href="#做法" class="headerlink" title="做法"></a><strong>做法</strong></h4><p>认为多边形光源内部发出的光是uniform的，即Li是相同的，即从任意位置观察的多边形光源的Li是相同的<br>$$<br>\omega_i&#x3D;\frac{M\omega_i’}{||M\omega_i’||}<br>\L(\omega_o)&#x3D;L_i\cdot \int_PF(\omega_i)d\omega_i<br>\&#x3D;L_i\cdot \int_P\cos(\omega_i’)d\frac{M\omega_i’}{||M\omega_i’||}<br>\&#x3D;L_i\cdot \int_{P’}\cos(\omega_i’)Jd \omega_i’<br>$$</p>
+<h3 id="Disney-Principled-BRDF迪士尼原则的BRDF"><a href="#Disney-Principled-BRDF迪士尼原则的BRDF" class="headerlink" title="Disney Principled BRDF迪士尼原则的BRDF"></a><strong>Disney Principled BRDF迪士尼原则的BRDF</strong></h3><ul>
+<li>微表面模型的缺陷<ul>
+<li>微表面模型不适合表现真实的物理材质</li>
+<li>微表面模型缺少diffuse项</li>
+<li>解释不了多层的材质</li>
+<li>基于物理的参数艺术上不好用<ul>
+<li>反射率n-ik（复数）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Disney Principled BRDF<ul>
+<li>Art directable, 不要求物理上正确</li>
+<li>实时渲染中认为是PBR的</li>
+<li>需要使用更直接的参数，使用尽可能少的参数</li>
+<li>参数最好是0-1的。如果有必要，也最好允许能够超出这个范围</li>
+<li>所有有关联的参数应该鲁棒且合理</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002112204105.png" alt="image-20221002112204105" style="zoom:50%;" />
+
+<ul>
+<li>sheen<ul>
+<li>类似天鹅绒的光泽效果</li>
+</ul>
+</li>
+<li>clearcoat<ul>
+<li>清漆</li>
+</ul>
+</li>
+</ul>
+<h2 id="Non-Photorrealistic-rendering-NPR"><a href="#Non-Photorrealistic-rendering-NPR" class="headerlink" title="Non-Photorrealistic rendering(NPR)"></a><strong>Non-Photorrealistic rendering(NPR)</strong></h2><p>NPR——stylization（fast and reliable）</p>
+<ul>
+<li>来源于真实感渲染</li>
+<li>利用抽象</li>
+<li>强化重点</li>
+</ul>
+<p>应用</p>
+<ul>
+<li>艺术</li>
+<li>可视化</li>
+<li>指示说明</li>
+<li>教育</li>
+<li>娱乐</li>
+</ul>
+<p>风格化</p>
+<ul>
+<li>描边</li>
+<li>阴影</li>
+<li>色块</li>
+<li>。。。</li>
+</ul>
+<h3 id="Outline-Rendering"><a href="#Outline-Rendering" class="headerlink" title="Outline Rendering"></a><strong>Outline Rendering</strong></h3><ul>
+<li>描边不只是轮廓</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002121116909.png" alt="image-20221002121116909"></p>
+<ul>
+<li><p>Boundary</p>
+</li>
+<li><p>Crease</p>
+<ul>
+<li>折痕</li>
+</ul>
+</li>
+<li><p>Material edge</p>
+</li>
+<li><p>Silhouette</p>
+<ul>
+<li>在物体外部轮廓上，要求有多个面共享的边界</li>
+</ul>
+</li>
+</ul>
+<h4 id="shading方法"><a href="#shading方法" class="headerlink" title="shading方法"></a><strong>shading方法</strong></h4><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002121509079.png" alt="image-20221002121509079"></p>
+<ul>
+<li>描边粗细不一致</li>
+</ul>
+<h4 id="Geometry方法"><a href="#Geometry方法" class="headerlink" title="Geometry方法"></a><strong>Geometry方法</strong></h4><p>背面渲染成黑色沿顶点法线外扩</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002121836905.png" alt="image-20221002121836905"></p>
+<h4 id="postprocess方法"><a href="#postprocess方法" class="headerlink" title="postprocess方法"></a><strong>postprocess方法</strong></h4><p>图像边缘检测的方法</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002132828971.png" alt="image-20221002132828971" style="zoom:50%;" />
+
+<h3 id="Color-blocks色块"><a href="#Color-blocks色块" class="headerlink" title="Color blocks色块"></a><strong>Color blocks色块</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002133535272.png" alt="image-20221002133535272"></p>
+<ul>
+<li>Hard shading： thresholding on shading</li>
+<li>posterization： thresholding on final image</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002133741767.png" alt="image-20221002133741767"></p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002133857329.png" alt="image-20221002133857329" style="zoom: 67%;" />
+
+<h3 id="Strokes-Surfaces-Stylization"><a href="#Strokes-Surfaces-Stylization" class="headerlink" title="Strokes Surfaces Stylization"></a><strong>Strokes Surfaces Stylization</strong></h3><ul>
+<li>sketch</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002134051191.png" alt="image-20221002134051191" style="zoom:50%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002135210430.png" alt="image-20221002135210430" style="zoom:50%;" />
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/Graphics/GAMES/Real-time%20Physically-Based%20Materials/" data-id="cmfe1kyb3002zykuhct225or5" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/Graphics/GAMES/Real-time%20Global%20Illumination/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/Graphics/GAMES/A%20Glimpse%20of%20Industrial%20Solutions/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/OpenGL/C++ learning_03" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/OpenGL/C++%20learning_03/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.019Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h3 id="Templates模板"><a href="#Templates模板" class="headerlink" title="Templates模板"></a><strong>Templates模板</strong></h3><p>模板就像一个蓝图</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">Print</span><span class="params">(<span class="type">int</span> value)</span> </span>&#123;</span><br><span class="line">	std::cout&lt;&lt;value&lt;&lt;std::endl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Print</span><span class="params">(std::string value)</span> </span>&#123;</span><br><span class="line">	std::cout&lt;&lt;value&lt;&lt;std::endl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="built_in">print</span>(<span class="number">5</span>)</span><br><span class="line">	<span class="built_in">print</span>(<span class="string">&quot;Hellow&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="number">5.0f</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种不断重复重载的函数可以用一个函数包裹，</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Print</span><span class="params">(T value)</span> </span>&#123;</span><br><span class="line">	std::cout&lt;&lt;value&lt;&lt;std::endl;</span><br><span class="line">&#125;<span class="comment">//这个函数是一个模板，只有当调用时，它才创建一个对应的函数</span></span><br><span class="line"><span class="comment">//它不参与编译，只有它创建的函数才参与编译</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="built_in">print</span>(<span class="number">5</span>)</span><br><span class="line">    <span class="built_in">print</span>&lt;<span class="type">int</span>&gt;(<span class="number">5</span>)</span><br><span class="line">	<span class="built_in">print</span>(<span class="string">&quot;Hellow&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="number">5.0f</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>c++的标准模板库STL就是templates</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="type">int</span> N&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Array</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    T m_Array[N];</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">GetSize</span><span class="params">()</span> <span class="type">const</span> </span>&#123;<span class="keyword">return</span> N;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Array&lt;<span class="type">int</span>,<span class="number">5</span>&gt; array;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Stack-vs-Heap-Memory堆内存与栈内存"><a href="#Stack-vs-Heap-Memory堆内存与栈内存" class="headerlink" title="Stack vs Heap Memory堆内存与栈内存"></a><strong>Stack vs Heap Memory堆内存与栈内存</strong></h3><p>stack和heap地址都是RAM上的两部分区域</p>
+<p>stack定好了区域大小 2MegaBytes</p>
+<p>heap的大小是动态改变的</p>
+<p>区别在于他们如何分配内存</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Vector3</span> &#123;</span><br><span class="line">    <span class="type">float</span> x,y,z;</span><br><span class="line">    <span class="built_in">Vector3</span>()</span><br><span class="line">        : <span class="built_in">x</span>(<span class="number">10</span>),<span class="built_in">y</span>(<span class="number">5</span>),<span class="built_in">z</span>(<span class="number">1</span>) &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//stack分配</span></span><br><span class="line">    <span class="type">int</span> value = <span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span> array[<span class="number">5</span>];</span><br><span class="line">    array[<span class="number">0</span>] = <span class="number">1</span>;</span><br><span class="line">    array[<span class="number">1</span>] = <span class="number">2</span>;</span><br><span class="line">    array[<span class="number">2</span>] = <span class="number">3</span>;</span><br><span class="line">    array[<span class="number">3</span>] = <span class="number">4</span>;</span><br><span class="line">    array[<span class="number">4</span>] = <span class="number">5</span>;</span><br><span class="line">    Vector3 vector;</span><br><span class="line">    <span class="comment">//观察内存可以发现，stack所有的分配，都在stack的指针位置进行，分配出多少，stack指针就往后移多少，并返回这个指针</span></span><br><span class="line">    <span class="comment">//scope结束，栈内存销毁</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">//heap分配</span></span><br><span class="line">    <span class="type">int</span>* hvalue = <span class="keyword">new</span> <span class="type">int</span>;</span><br><span class="line">    *hvalue = <span class="number">5</span>;</span><br><span class="line">    <span class="type">int</span>* harray = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">5</span>];</span><br><span class="line">    harray[<span class="number">0</span>] = <span class="number">1</span>;</span><br><span class="line">    harray[<span class="number">1</span>] = <span class="number">2</span>;</span><br><span class="line">    harray[<span class="number">2</span>] = <span class="number">3</span>;</span><br><span class="line">    harray[<span class="number">3</span>] = <span class="number">4</span>;</span><br><span class="line">    harray[<span class="number">4</span>] = <span class="number">5</span>;</span><br><span class="line">    Vector3* hvector = <span class="keyword">new</span> <span class="built_in">Vector3</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">delete</span> havlue;</span><br><span class="line">    <span class="keyword">delete</span>[] harray;</span><br><span class="line">    <span class="keyword">delete</span> hvector;</span><br><span class="line">    <span class="comment">//heap分配</span></span><br><span class="line">    <span class="comment">//new其实就是调用malloc</span></span><br><span class="line">    <span class="comment">//当malloc分配内存时，会根据所需要的内存大小，在内存上寻找足够的一块大小的位置分配，并提供这个地址的指针</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用堆分配可能造成Cache Miss缓存丢失，少数的缓存丢失没有影响</p>
+<p>堆栈分配最大的区别就是在分配方式上。</p>
+<p>堆分配会更慢。</p>
+<p>只有无法在栈上分配，如需要更多的生命周期、更大的数据，再使用堆分配，一般没事最好栈分配，毕竟快很多。</p>
+<p>（所以内存碎片大概就是指堆上各个内存之间存在的小间隙？）</p>
+<h3 id="Macros宏指令"><a href="#Macros宏指令" class="headerlink" title="Macros宏指令"></a><strong>Macros宏指令</strong></h3><p>预处理过程的宏</p>
+<p>编译C++时</p>
+<ul>
+<li>首先是预处理pass<ul>
+<li>带#符号的语句</li>
+<li>实际是文本编辑阶段，进行文本替换</li>
+<li>控制哪些程序语句进入编译器</li>
+</ul>
+</li>
+</ul>
+<p>并不是总是要用宏</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> WAIT std::cin.get()<span class="comment">//只在当前文档中生效</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LOG(x) std::cout&lt;&lt; x &lt;&lt; std::endl</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">LOG</span>(<span class="string">&quot;Hello&quot;</span>)</span><br><span class="line">    WAIT;<span class="comment">// 根据define进行文本替换</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>你可以在项目设置的预处理命令看到一些定义</p>
+<p>Debug </p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220701143548474.png" alt="image-20220701143548474"></p>
+<p>Release</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220701143602730.png" alt="image-20220701143602730"></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> WAIT std::cin.get()</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> _DEBUG<span class="comment">//也可以在预处理命令上赋值，#ifdef _DEBUG == 1,</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LOG(x) std::cout&lt;&lt; x &lt;&lt; std::endl</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span><span class="comment">//也有elif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LOG(x)</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAIN int main() \<span class="comment">//反斜杠可以在宏命令中换行</span></span></span><br><span class="line">&#123;\</span><br><span class="line">	std::cin.<span class="built_in">get</span>();\</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//这样只有debug模式才会log</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">LOG</span>(<span class="string">&quot;Hello&quot;</span>)</span><br><span class="line">    WAIT;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="待补充："><a href="#待补充：" class="headerlink" title="待补充："></a><strong>待补充：</strong></h3><h3 id="auto关键字"><a href="#auto关键字" class="headerlink" title="auto关键字"></a>auto关键字</h3><h3 id="Static-Arrays（std-array）静态数组"><a href="#Static-Arrays（std-array）静态数组" class="headerlink" title="Static Arrays（std::array）静态数组"></a>Static Arrays（std::array）静态数组</h3><h3 id="Functions-Pointers函数指针"><a href="#Functions-Pointers函数指针" class="headerlink" title="Functions Pointers函数指针"></a>Functions Pointers函数指针</h3><h3 id="Lambdas"><a href="#Lambdas" class="headerlink" title="Lambdas"></a>Lambdas</h3><h3 id="using-namespace-std"><a href="#using-namespace-std" class="headerlink" title="using namespace std"></a>using namespace std</h3><h3 id="Namespaces命名空间"><a href="#Namespaces命名空间" class="headerlink" title="Namespaces命名空间"></a>Namespaces命名空间</h3><h3 id="Threads线程"><a href="#Threads线程" class="headerlink" title="Threads线程"></a>Threads线程</h3><h3 id="Timing计时器"><a href="#Timing计时器" class="headerlink" title="Timing计时器"></a>Timing计时器</h3><h3 id="Multidimensional-Arrays（2D-arrays）多维数组"><a href="#Multidimensional-Arrays（2D-arrays）多维数组" class="headerlink" title="Multidimensional Arrays（2D arrays）多维数组"></a>Multidimensional Arrays（2D arrays）多维数组</h3><h3 id="Sorting"><a href="#Sorting" class="headerlink" title="Sorting"></a>Sorting</h3><h3 id="Type-Punning类型双关"><a href="#Type-Punning类型双关" class="headerlink" title="Type Punning类型双关"></a>Type Punning类型双关</h3>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/OpenGL/C++%20learning_03/" data-id="cmfe1kyar0017ykuhaxh4ev97" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/OpenGL/Opengl%20learning_04/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/OpenGL/C++%20learning_04/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

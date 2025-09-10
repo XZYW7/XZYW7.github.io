@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/Graphics/GAMES/Real-time Shadows" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/Graphics/GAMES/Real-time%20Shadows/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.014Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="Real-time-Shadows"><a href="#Real-time-Shadows" class="headerlink" title="Real-time Shadows"></a>Real-time Shadows</h2><h3 id="Shadow-Mapping"><a href="#Shadow-Mapping" class="headerlink" title="Shadow Mapping"></a>Shadow Mapping</h3><p>2-pass Algorithm</p>
+<ul>
+<li>The light pass generates the SM</li>
+<li>The camera pass uses the SM</li>
+</ul>
+<p>Image-space algorithm</p>
+<ul>
+<li>不需要场景的几何信息</li>
+<li>自遮挡、走样</li>
+</ul>
+<p>Pass1:Render from Light</p>
+<p>Pass2:Render from Eye</p>
+<h4 id="Issues-Self-occlusion"><a href="#Issues-Self-occlusion" class="headerlink" title="Issues: Self occlusion"></a>Issues: Self occlusion</h4><p>一个像素内记录一个深度，在场景中，属于一个像素的一片区域，光源深度并不相同，更远的就被认为成阴影了。</p>
+<h5 id="解决方式：Bias"><a href="#解决方式：Bias" class="headerlink" title="解决方式：Bias"></a>解决方式：Bias</h5><p>Adding a bias to reduce self occlusion，</p>
+<p>比较深度时，增加bias，距离“明显”更远时才记为阴影。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220501231928346.png" alt="image-20220501231928346"></p>
+<h5 id="新的问题：Bias引发的悬浮Peter-Panning"><a href="#新的问题：Bias引发的悬浮Peter-Panning" class="headerlink" title="新的问题：Bias引发的悬浮Peter Panning"></a>新的问题：Bias引发的悬浮Peter Panning</h5><p>（找一个合适的Bias）或：</p>
+<h5 id="Second-depth-shadow-mapping"><a href="#Second-depth-shadow-mapping" class="headerlink" title="Second-depth shadow mapping"></a>Second-depth shadow mapping</h5><p>用最小深度和次小深度的中间深度做最终的比较。（可用性不高）</p>
+<h4 id="Issues-Aliasing"><a href="#Issues-Aliasing" class="headerlink" title="Issues: Aliasing"></a>Issues: Aliasing</h4><h3 id="Math-behind-shadow-mapping数学解释"><a href="#Math-behind-shadow-mapping数学解释" class="headerlink" title="Math behind shadow mapping数学解释"></a>Math behind shadow mapping数学解释</h3><p>$$<br>\int_{\Omega}f(x)g(x)dx \simeq\frac{\int_{\Omega}f(x)dx}{\int_{\Omega}dx}\cdot \int_{\Omega}g(x)dx<br>$$</p>
+<p>当g(x)足够光滑，g(x)的support较小，二者满足一个，该近似比较准确。</p>
+<p>在Esp的IBL-Specular中讲述了同样的&#x3D;&#x3D;split sum approximate&#x3D;&#x3D;，<br>$$<br>L_o(p,\omega_o) &#x3D; \int_{\Omega^+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos \theta_iV(p,\omega_i)d\omega_i<br>\\simeq\frac{\int_{\Omega^+}V(p,\omega_i)d\omega_i}{\int_{\Omega^+}d\omega_i}\cdot\int_{\Omega^+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos \theta_id\omega_i<br>$$<br>右边代表正常的着色，左边的可见项代表阴影，分开来算再乘起来，正是shadow mapping的思想。</p>
+<p>Small support: point &#x2F; directional lighting</p>
+<p>Smooth integrand: diffuse bsdf &#x2F; constant radiance area lighting</p>
+<p>面光源、环境光照、glossy会不太准确</p>
+<h3 id="Percentage-closer-soft-shadows-PCSS"><a href="#Percentage-closer-soft-shadows-PCSS" class="headerlink" title="Percentage closer soft shadows(PCSS)"></a>Percentage closer soft shadows(PCSS)</h3><h4 id="Percentage-Closer-Filtering-PCF"><a href="#Percentage-Closer-Filtering-PCF" class="headerlink" title="Percentage Closer Filtering(PCF)"></a>Percentage Closer Filtering(PCF)</h4><ul>
+<li><p>用于阴影边缘的反走样，并不适用于软阴影</p>
+</li>
+<li><p>阴影比较的结果进行滤波</p>
+</li>
+<li><p>不能将shadow map滤波，因为记录的是深度。</p>
+</li>
+</ul>
+<p>对于世界空间的点，判断比较深度不光查找shadow map对应的一个像素，而是周围的局部区域的像素，每一个深度都进行比较，将这些值作平均</p>
+<p>（如果是在阴影边缘，那么对应深度图上有阴影部分，也有照亮部分，这样能达到滤波效果）</p>
+<p>Filter Size:</p>
+<ul>
+<li>Small-&gt;sharper</li>
+<li>Large-&gt;softer</li>
+</ul>
+<p>将一个较大的PCF应用于硬阴影，就类似于软阴影效果 </p>
+<h4 id="Percentage-closer-soft-shadows"><a href="#Percentage-closer-soft-shadows" class="headerlink" title="Percentage closer soft shadows"></a>Percentage closer soft shadows</h4><p>Filter size &lt;-&gt; blocker distance</p>
+<p>阴影的软硬和遮挡物距离有关,也将决定filter size的不同。<br>$$<br>w_{Penumbra} &#x3D;(d_{Receiver}-d_{Blocker})\cdot w_{Light}&#x2F;d_{Blocker}<br>$$<br><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502002132527.png" alt="image-20220502002132527"></p>
+<p>$w_{Penumbra}$ 即衡量了软阴影的范围</p>
+<ul>
+<li>blocker size</li>
+<li>light size</li>
+</ul>
+<h5 id="完整流程"><a href="#完整流程" class="headerlink" title="完整流程"></a>完整流程</h5><p>Tips: W_light是指定的，Shadow mapping需要用点光源。</p>
+<ul>
+<li>Step1：Blocker search(Slow)<ul>
+<li>对于一个着色点，在特定区域计算平均blocker深度（类似PCF）</li>
+<li>这个区域可以是常量，也可以是启发式:<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502003207293.png" alt="image-20220502003207293"></li>
+</ul>
+</li>
+<li>Step2: Penumbra estimation<ul>
+<li>使用平均blocker深度，决定filter size</li>
+</ul>
+</li>
+<li>Step3：Percentage Closer Filtering(Slow)</li>
+<li>可以减少sample的数量来加速，但是会有噪声</li>
+</ul>
+<h4 id="Deeper-Look-at-PCF"><a href="#Deeper-Look-at-PCF" class="headerlink" title="Deeper Look at PCF"></a>Deeper Look at PCF</h4><p>$V(x) &#x3D; \sum_{q\in N(p)} w(p,q)\cdot\chi^+[D_{SM}(q)-D_{scene}(x)]$ </p>
+<p>而不是filter shadow map：</p>
+<p>$V(x)\neq\chi^+{<a href="q">w*D_{SM}</a>-D_{scene}(x)}$ </p>
+<p>也不是在图像上filter</p>
+<p>$V(x)\neq\sum_{q\in N(p)}w(p,q)V(q)$ </p>
+<h3 id="Variance-soft-shadow-mapping（VSSM）"><a href="#Variance-soft-shadow-mapping（VSSM）" class="headerlink" title="Variance soft shadow mapping（VSSM）"></a>Variance soft shadow mapping（VSSM）</h3><p>解决PCSS在step1和step3慢的问题</p>
+<p>PCSS中做平均，其实就是知道区域内阴影和照亮的比例</p>
+<h4 id="Accelerate-PCF"><a href="#Accelerate-PCF" class="headerlink" title="Accelerate PCF"></a>Accelerate PCF</h4><p>将shading point对应周围的点的最近深度看作正态分布</p>
+<ul>
+<li>计算该区域深度的均值和方差<ul>
+<li>均值<ul>
+<li>MipMap</li>
+<li>Summed Area Tables(SAT)</li>
+</ul>
+</li>
+<li>方差<ul>
+<li>$Var(X) &#x3D; E(X^2) - E^2(X)$ </li>
+<li>$E(X^2)$ 项需要另外一个shadow map(square-depth map) 记录（总共只需要两个通道）</li>
+</ul>
+</li>
+<li>如果假设是正态分布CDF(x)(只有数值解，没有解析解)<ul>
+<li>切比雪夫不等式 $P(x&gt;t)\leq \frac{\sigma^2}{\sigma^2+(t-\mu)^2}$ （甚至不需要知道分布函数）</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502131303998.png" alt="image-20220502131303998"></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Accelerate-PCSS"><a href="#Accelerate-PCSS" class="headerlink" title="Accelerate PCSS"></a>Accelerate PCSS</h4><p>计算遮挡物的平均深度</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502132700742.png" alt="image-20220502132700742" style="zoom: 67%;" />
+
+ 
+<p>$$<br>\frac{N_1}{N}z_{unocc}+\frac{N_2}{N}z_{occ}&#x3D;z_{Avg}<br>$$<br>Approximation:N1&#x2F;N &#x3D; P(x&gt;t) -&gt; Chebyshev</p>
+<p>需要 $Z_{unocc}$ 将其假设为t（shading point的深度-&gt;导致只有阴影接收物为平面时效果比较好）</p>
+<h4 id="MipMap-and-Summed-Area-Variance-Shadow-Maps"><a href="#MipMap-and-Summed-Area-Variance-Shadow-Maps" class="headerlink" title="MipMap and Summed-Area Variance Shadow Maps"></a>MipMap and Summed-Area Variance Shadow Maps</h4><h5 id="构建SAT范围查询"><a href="#构建SAT范围查询" class="headerlink" title="构建SAT范围查询"></a>构建SAT范围查询</h5><p>前缀和算法</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502134821180.png" alt="image-20220502134821180"> </p>
+<p>2D情况：</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502135327231.png" alt="image-20220502135327231"></p>
+<h3 id="Moment-shadow-mapping"><a href="#Moment-shadow-mapping" class="headerlink" title="Moment shadow mapping"></a>Moment shadow mapping</h3><p>VSSM：在一些特定的遮挡物场景，分布与假设差别太大，可能偏黑，也可能过亮</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502140118793.png" alt="image-20220502140118793" style="zoom: 67%;" />
+
+<p>切比雪夫不等式只有t&gt;z_avg时有效</p>
+<p>解决方式：Moment（矩） Shadow Mapping</p>
+<p>VSSM只用了前二阶矩</p>
+<p>用前m阶矩描述，可以恢复有m&#x2F;2个阶跃的CDF</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502140821983.png" alt="image-20220502140821983" style="zoom:67%;" />
+
+<p>4阶也正好可以用4个通道存储。</p>
+<p>问题：主要在于利用Moment的Reconstruction需要比较大的开销，至于如何reconstruction，比较复杂，如果要深入了解，去看论文。</p>
+<h3 id="Distance-field-soft-shadows距离场阴影"><a href="#Distance-field-soft-shadows距离场阴影" class="headerlink" title="Distance field soft shadows距离场阴影"></a>Distance field soft shadows距离场阴影</h3><ul>
+<li>Distance functions：（Optimal transform）<ul>
+<li>空间任何一个点到物体表面的最小距离</li>
+</ul>
+</li>
+</ul>
+<h4 id="Usage1：Ray-marching"><a href="#Usage1：Ray-marching" class="headerlink" title="Usage1：Ray marching"></a>Usage1：Ray marching</h4><ul>
+<li>Ray marching（sphere tracing） to perform ray-SDF intersection<ul>
+<li>在任意一点，到物体最小距离之内，不会和物体相交</li>
+<li>因此在任何一点P，都可以走SDF(P)的距离</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502154558204.png" alt="image-20220502154558204"></p>
+<h4 id="Usage2：Approximate-percentage-of-occlusion"><a href="#Usage2：Approximate-percentage-of-occlusion" class="headerlink" title="Usage2：Approximate percentage of occlusion"></a>Usage2：Approximate percentage of occlusion</h4><p>软阴影始终定义在面光源下</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502160104196.png" alt="image-20220502160104196" style="zoom:67%;" />
+
+<ul>
+<li><p>During ray marching</p>
+<ul>
+<li>任意一点的SDF，能够提供一个“safe angle”<ul>
+<li>Safe angle越小，能够看到的东西越少</li>
+</ul>
+</li>
+<li>在每一个step，计算眼睛出发的safe angle<ul>
+<li>$\arcsin \frac{SDF(p)}{p-o}$ 运算量较大</li>
+<li>$min{\frac{k\cdot SDF(p)}{p-o},1.0}$ ，k越大，earlier cutoff of penumbra，阴影越硬</li>
+<li><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502155552433.png" alt="image-20220502155552433"></li>
+</ul>
+</li>
+<li>保留最小的safe angle，用来决定阴影软硬</li>
+</ul>
+</li>
+<li><p>特点</p>
+<ul>
+<li>快速</li>
+<li>高质量</li>
+</ul>
+</li>
+<li><p>问题</p>
+<ul>
+<li>需要预计算</li>
+<li>大量的存储空间</li>
+<li>Artifact</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/Graphics/GAMES/Real-time%20Shadows/" data-id="cmfe1kyba004uykuh2zpadchs" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/Graphics/GAMES/Real-time%20Ray%20Tracing/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/Graphics/GAMES/%E4%BD%9C%E4%B8%9A%E8%BF%87%E7%A8%8B%E8%AE%B0%E5%BD%95/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

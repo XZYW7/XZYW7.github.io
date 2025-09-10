@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/Graphics/GAMES/A Glimpse of Industrial Solutions" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/Graphics/GAMES/A%20Glimpse%20of%20Industrial%20Solutions/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.012Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="A-Glimpse-of-Industrial-Solutions"><a href="#A-Glimpse-of-Industrial-Solutions" class="headerlink" title="A Glimpse of Industrial Solutions"></a><strong>A Glimpse of Industrial Solutions</strong></h2><h3 id="Anti-aliasing"><a href="#Anti-aliasing" class="headerlink" title="Anti-aliasing"></a><strong>Anti-aliasing</strong></h3><h4 id="Temporal-Anti-Aliasing-TAA"><a href="#Temporal-Anti-Aliasing-TAA" class="headerlink" title="Temporal Anti-Aliasing(TAA)"></a><strong>Temporal Anti-Aliasing(TAA)</strong></h4><ul>
+<li><p>Why aliasing</p>
+<ul>
+<li>光栅化中逐像素采样率不足</li>
+<li>因此，终极解决方案是使用更多样本</li>
+</ul>
+</li>
+<li><p>TAA</p>
+<ul>
+<li>复用上一帧的样本</li>
+<li>Almost exactly the same as in RTRT</li>
+</ul>
+</li>
+<li><p>Notes on AA</p>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002193628481.png" alt="image-20221002193628481"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002194058432.png" alt="image-20221002194058432"></p>
+<h4 id="Temporal-Super-Resolution"><a href="#Temporal-Super-Resolution" class="headerlink" title="Temporal Super Resolution"></a><strong>Temporal Super Resolution</strong></h4><ul>
+<li>Super resolution(super sampling)<ul>
+<li>Literal understanding: increasing resolution</li>
+<li>Source 1(DLSS 1.0): out of nowhere&#x2F;completely guessed</li>
+<li>Source 2(DLSS 2.0): from temporal information</li>
+<li>Key idea of DLSS 2.0<ul>
+<li>TAA-like application</li>
+<li>Temporally reuse samples to increase resolution</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="Super-sampling-and-DLSS"><a href="#Super-sampling-and-DLSS" class="headerlink" title="Super sampling and DLSS"></a><strong>Super sampling and DLSS</strong></h3><ul>
+<li>DLSS2.0 Main Problem<ul>
+<li>Upon temporal failure, clamping is no longer an option</li>
+<li>Because we need a clear value for each smaller pixel</li>
+<li>Key is <strong>how to use temporal info</strong> smarter than clamping</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002195029254.png" alt="image-20221002195029254"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002195128656.png" alt="image-20221002195128656"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002195713542.png" alt="image-20221002195713542"></p>
+<h3 id="Deferred-Shading"><a href="#Deferred-Shading" class="headerlink" title="Deferred Shading"></a><strong>Deferred Shading</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002200002876.png" alt="image-20221002200002876"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002200406831.png" alt="image-20221002200406831"></p>
+<h3 id="Tiled-Shading"><a href="#Tiled-Shading" class="headerlink" title="Tiled Shading"></a><strong>Tiled Shading</strong></h3><ul>
+<li>Improvement: tiled shading<ul>
+<li>subdivide the screen into tiles</li>
+</ul>
+</li>
+<li>Key observation<ul>
+<li>Not all lights can illuminate a specific tile</li>
+<li>Mostly due to the <strong>square falloff with distance</strong></li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002200639721.png" alt="image-20221002200639721"></p>
+<h4 id="Clustered-Shading"><a href="#Clustered-Shading" class="headerlink" title="Clustered Shading"></a><strong>Clustered Shading</strong></h4><p>除了屏幕空间的分块，还要在深度上分割</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002200758956.png" alt="image-20221002200758956"></p>
+<h3 id="LoD-solutions"><a href="#LoD-solutions" class="headerlink" title="LoD solutions"></a><strong>LoD solutions</strong></h3><ul>
+<li>Choosing the right lod to use can save computation</li>
+<li>The use of multiple lod<ul>
+<li>Called “Cascaded” by the RTR industry</li>
+</ul>
+</li>
+<li>EX:<ul>
+<li>Cascaded shadow maps</li>
+<li>Cascaded LPV</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002201617049.png" alt="image-20221002201617049"></p>
+<ul>
+<li>Key challenge<ul>
+<li>Transition between different Levels</li>
+<li>Usually need some &#x3D;&#x3D;overlapping and blending&#x3D;&#x3D; near boundaries</li>
+</ul>
+</li>
+<li>Another Example: Geometric LOD<ul>
+<li>生成一套不同三角面数的简化的模型</li>
+<li>基于相机距离选择合适的物体(or part of obj, s.t. no triangle  will be larger than a pixel)</li>
+<li>Popping artifacts（突然出现）——leave it to TAA</li>
+<li>Nanite in UE5（动态选取Lod）</li>
+<li>Technical difficulties<ul>
+<li>不同的部位使用不同层级，如何处理接缝cracks?</li>
+<li>动态加载(load)和调度(schedule)不同层级，如何最好地利用缓存(cache)和带宽(bandwidth)？</li>
+<li>Representing geometry using triangles or geometry textures(几何纹理)</li>
+<li>Clipping and culling for faster performance</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="GI-Solutions"><a href="#GI-Solutions" class="headerlink" title="GI Solutions"></a><strong>GI Solutions</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002202736585.png" alt="image-20221002202736585"></p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002202944302.png" alt="image-20221002202944302"></p>
+<h3 id="Uncovered-Topic"><a href="#Uncovered-Topic" class="headerlink" title="Uncovered Topic"></a><strong>Uncovered Topic</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20221002203533485.png" alt="image-20221002203533485"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/Graphics/GAMES/A%20Glimpse%20of%20Industrial%20Solutions/" data-id="cmfe1kyb2002tykuhb4i797cs" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/Graphics/GAMES/Real-time%20Physically-Based%20Materials/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/hello-world/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title">Hello World</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/百人计划/图形2.6 伽马校正" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.6%20%E4%BC%BD%E9%A9%AC%E6%A0%A1%E6%AD%A3/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.024Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h1 id="图形-2-6-伽马校正"><a href="#图形-2-6-伽马校正" class="headerlink" title="图形 2.6  伽马校正"></a>图形 2.6  伽马校正</h1><h3 id="Gamma矫正"><a href="#Gamma矫正" class="headerlink" title="Gamma矫正"></a><strong>Gamma矫正</strong></h3><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730122434969.png" alt="image-20220730122434969"></p>
+<h4 id="传递函数"><a href="#传递函数" class="headerlink" title="传递函数"></a><strong>传递函数</strong></h4><ul>
+<li>OETF<ul>
+<li>光转电传递函数 ，负责把场景线性光转到非线性视频信号值</li>
+</ul>
+</li>
+<li>EOTF<ul>
+<li>电转光传递函数，负责把非线性视频信号值转换成显示光亮度</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730122710864.png" alt="image-20220730122710864" style="zoom:50%;" />
+
+<h4 id="Gamma矫正-1"><a href="#Gamma矫正-1" class="headerlink" title="Gamma矫正"></a>Gamma矫正</h4><ul>
+<li>Gamma是指对线性三色值和非线性视频信号之间进行编码和解码的操作</li>
+<li>图像经过gamma编码储存在硬盘中，将获取到的物理数据做一次gamma值约为0.45(1&#x2F;2.2)的映射，这样的过程叫做gamma编码（此时的图像像素比实际物理像素要更亮——线性空间）</li>
+<li>在显示图像时，需要将每个像素做一次gamma值约为2.2的矫正，使最终的结果为正确的物理数据（经过显示的gamma矫正后，之前偏亮的图像亮度降低——gamma空间）</li>
+</ul>
+<p>$$<br>V_{out}&#x3D;V_{in}^{gamma}<br>$$</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730144948798.png" alt="image-20220730144948798" style="zoom:80%;" />
+
+<h4 id="为什么需要gamma矫正"><a href="#为什么需要gamma矫正" class="headerlink" title="为什么需要gamma矫正"></a><strong>为什么需要gamma矫正</strong></h4><ul>
+<li>非线性转换的目的主要是为了优化储存空间和带宽，传递函数能够更好地利用编码空间</li>
+<li>显示图像的数据都是8bit，但是人眼对暗部变化更敏感，为了充分利用带宽，那么需要使用更多空间去存储暗部值，也就是说暗部使用更高精度保存，亮部使用更低精度保存。</li>
+</ul>
+<p>以这张图来说明，对于人眼来说，上面的图像变化更均匀，但实际下面的图像才是物理上亮度均匀变化的。</p>
+<p>（上面这张的中间灰度叫做美术中灰，下面的中间灰度叫做物理中灰）</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730145336723.png" alt="image-20220730145336723" style="zoom:50%;" />
+
+<p>将这两种变化进行一个映射，就是gamma曲线 </p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730145547142.png" alt="image-20220730145547142" style="zoom:50%;" />
+
+
+
+<h4 id="韦伯定律"><a href="#韦伯定律" class="headerlink" title="韦伯定律"></a><strong>韦伯定律</strong></h4><ul>
+<li>感觉的差别阈限随原来刺激量的变化而变化，而且表现为一定的规律性，用公式表达就是$\Delta\Phi&#x2F;\Phi &#x3D; C$ ，其中$\Phi$ 为原刺激量，$\Delta\Phi$ 为此时的差别阈限，C为常数，又称为韦伯率。（所受刺激越大，需要增加的刺激也要足够大才会让人感觉到明显变化，但是只适用于中等强度的刺激）</li>
+</ul>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a><strong>总结</strong></h4><ul>
+<li>人眼对暗部变化更敏感</li>
+<li>我们目前使用的真彩格式RGBA32，每个通道只有8位用于记录信息，为了合理使用带宽和存储空间，需要进行非线性转换</li>
+<li>目前我们所普遍使用的sRGB颜色空间标准，他的传递函数gamma值位2.2（2.4）</li>
+</ul>
+<h3 id="CRT与gamma矫正"><a href="#CRT与gamma矫正" class="headerlink" title="CRT与gamma矫正"></a><strong>CRT与gamma矫正</strong></h3><ul>
+<li>CRT<ul>
+<li>早期使用的CRT显示器（阴极射线显像管），设备的亮度与电压并不成线性关系，而是gamma值约为2.2类似幂律的关系</li>
+<li>这种硬件特性与gamma矫正的需求正好是一种巧合</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730150841828.png" alt="image-20220730150841828" style="zoom: 67%;" />
+
+<p>人眼对于中灰的感受取决于环境</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730151319961.png" alt="image-20220730151319961" style="zoom:50%;" />
+
+<ul>
+<li>线性工作流<ul>
+<li>在生产各个环境，需要正确使用gamma编码与解码，使最终得到的颜色数据与最初输入的物理数据一致</li>
+<li>如果是使用gamma空间的贴图，在传给着色器前需要从gamma空间转到线性空间</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730154948879.png" alt="image-20220730154948879" style="zoom:67%;" />
+
+<p> <img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730155223847.png" alt="image-20220730155223847"></p>
+<h3 id="Unity中的颜色空间"><a href="#Unity中的颜色空间" class="headerlink" title="Unity中的颜色空间"></a><strong>Unity中的颜色空间</strong></h3><p>Edit-Project Settings-Player-Other Settings下的Rendering部分，修改Color Space</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730155540487.png" alt="image-20220730155540487"></p>
+<ul>
+<li>选择Gamma Space，Unity不会做任何处理</li>
+<li>选择Linear Space，引擎的渲染流程在线性空间计算，理想情况下项目使用线性空间的贴图，不需要勾选sRGB，勾选sRGB的贴图会通过硬件特性采样时进行线性转换。</li>
+</ul>
+<h4 id="硬件支持"><a href="#硬件支持" class="headerlink" title="硬件支持"></a><strong>硬件支持</strong></h4><p>线性空间需要图形API的硬件支持，目前支持的平台</p>
+<ol>
+<li>Windows，Mac OS x和Linux（Standalone）</li>
+<li>Xbox One</li>
+<li>PS 4</li>
+<li>Android（Opengl ES 3.0）</li>
+<li>iOS（Metal）</li>
+<li>WebGL</li>
+</ol>
+<h4 id="硬件特性支持"><a href="#硬件特性支持" class="headerlink" title="硬件特性支持"></a><strong>硬件特性支持</strong></h4><p>主要由两个硬件特性来支持</p>
+<ul>
+<li><p>sRGB Frame Buffer</p>
+<ul>
+<li>将Shader的计算结果输出到显示器前做Gamma矫正</li>
+<li>作为纹理被读取时会自动把储存的颜色从sRGB空间转换到线性空间</li>
+<li>调用ReadPixels()、ReadBackImage()时，会直接返回sRGB空间下的颜色</li>
+<li>sRGB Frame Buffer只支持每通道8bit的格式，不支持浮点格式</li>
+<li>HDR开启后会先把渲染结果绘制到浮点格式的FB中，最后绘制到sRGB FB上</li>
+</ul>
+</li>
+<li><p>sRGB Sampler</p>
+<ul>
+<li>将sRGB的贴图进行线性采样的转换</li>
+</ul>
+</li>
+</ul>
+<p>使用硬件完成sRGB贴图的线性采样和shader计算结果的gamma矫正，比起在shader里对贴图采样和计算结果的矫正要快</p>
+<h3 id="贴图制作导出的处理"><a href="#贴图制作导出的处理" class="headerlink" title="贴图制作导出的处理"></a><strong>贴图制作导出的处理</strong></h3><h4 id="Substance-Painter"><a href="#Substance-Painter" class="headerlink" title="Substance Painter"></a><strong>Substance Painter</strong></h4><p>sp贴图导出时，线性的颜色经过gamma变换，颜色被提亮了，所以需要在Unity中勾选sRGB选项，让它在采样时能还原回线性值。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730160341610.png" alt="image-20220730160341610"></p>
+<h4 id="Photoshop"><a href="#Photoshop" class="headerlink" title="Photoshop"></a><strong>Photoshop</strong></h4><p>如果使用线性空间，一般来说Photoshop可以什么都不改，导出的贴图只要在Unity中勾上sRGB就可以了。</p>
+<p>如果调整Photoshop的gamma值为1，导出的贴图在Unity中也不需要勾选sRGB</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730160653259.png" alt="image-20220730160653259"></p>
+<ul>
+<li><p>ps对颜色管理特别精确，Unity里看到的颜色要经过显示器的Gamma变换，而ps不会，ps会读取显示器的Color Profile，反向补偿回去。</p>
+</li>
+<li><p>ps中有第二个Color Profile，叫做Document Color Profile。通常默认为sRGB Color Profile，和显示器的Color Profile一致，颜色被压暗了，所以ps中看到的结果才和Unity一样。</p>
+</li>
+</ul>
+<h5 id="混合"><a href="#混合" class="headerlink" title="混合"></a><strong>混合</strong></h5><p>Unity中的混合是线性的（线性空间模式下），ps图层与图层之间混合时，每个上层图层都经过了gamma变换，才做了混合。需要在设置中更改选择“用灰度系数混合rgb颜色”，参数设置为1，这样图层才是直接混合的结果。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730161152441.png" alt="image-20220730161152441"></p>
+<h3 id="作业"><a href="#作业" class="headerlink" title="作业"></a><strong>作业</strong></h3><h4 id="手动尝试伽马校正的几种方法"><a href="#手动尝试伽马校正的几种方法" class="headerlink" title="手动尝试伽马校正的几种方法"></a><strong>手动尝试伽马校正的几种方法</strong></h4><h5 id="1-Unity线性空间"><a href="#1-Unity线性空间" class="headerlink" title="1.Unity线性空间"></a><strong>1.Unity线性空间</strong></h5><p>项目设置使用Linear空间，并且albedo贴图勾选sRGB</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730165247570.png" alt="image-20220730165247570"></p>
+<h5 id="2-Unity-Gamma空间"><a href="#2-Unity-Gamma空间" class="headerlink" title="2.Unity Gamma空间"></a><strong>2.Unity Gamma空间</strong></h5><p>在项目设置里选择gamma空间</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730170411814.png" alt="image-20220730170411814"></p>
+<p>可以观察到输出的颜色中，高光更亮、范围更大，因为光照是线性计算的，而且直接按照gamma空间输出了；但是直接输出的颜色更暗了。</p>
+<h6 id="手动Gamma矫正"><a href="#手动Gamma矫正" class="headerlink" title="手动Gamma矫正"></a><strong>手动Gamma矫正</strong></h6><p>对于输出的radiance，我们进行gamma矫正</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> fixed4(LinearToGammaSpace(color),<span class="number">1.0</span>);</span><br></pre></td></tr></table></figure>
+
+<p>以及采样贴图时，变换到线性空间计算</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fixed3 albedo = GammaToLinearSpace(tex2D(_Albedo, i.uv).rgb) * _Diffuse.rgb;</span><br></pre></td></tr></table></figure>
+
+<p>（理论上来说，albedo这种属性是线性空间的，但是这也关乎到贴图导出的设置，一般制作的都是sRGB的图片，所以还是需要转换一下。）</p>
+<p>这两个封装好的函数，也可以手动地去使用2.2次方去计算。</p>
+<p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220730171629559.png" alt="image-20220730171629559"></p>
+<p>可以看到法线颜色球正常了，中间的我写的shader高光也压下来一些，但是这个Standard的着色器就改不了了。</p>
+<p>所以引擎还是很方便的，我们在线性空间工作模式下，很多事情都帮我们做好了。但是需要在贴图的设置上多加注意。</p>
+<ul>
+<li>麻烦的地方<ul>
+<li>在需要手动gamma矫正的平台上，在混合这一步会出现问题（因为在混合之前就进行gamma矫正了）</li>
+<li>所以一个解决方法是：在fs颜色输出时不进行gamma矫正，但是需要一步后处理来完成gamma矫正，也造成了一些性能损耗。</li>
+</ul>
+</li>
+</ul>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a><strong>参考资料</strong></h3><p>[1] <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1cU4y1b7UF">https://www.bilibili.com/video/BV1cU4y1b7UF</a> 【技术美术百人计划】图形 2.6  伽马校正</p>
+<p>[2] Unity Shader 入门精要 p356-363.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.6%20%E4%BC%BD%E9%A9%AC%E6%A0%A1%E6%AD%A3/" data-id="cmfe1kyax001zykuh6mvvfima" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A22.5%20BUMP%E5%9B%BE%E6%94%B9%E8%BF%9B/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/%E7%99%BE%E4%BA%BA%E8%AE%A1%E5%88%92/%E5%9B%BE%E5%BD%A21.4PC%E6%89%8B%E6%9C%BA%E5%9B%BE%E5%BD%A2API%E4%BB%8B%E7%BB%8D/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    
+    XZYW7&#39;s Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-TA/Graphics/GAMES/Real-time Environment Mapping" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/09/10/TA/Graphics/GAMES/Real-time%20Environment%20Mapping/" class="article-date">
+  <time datetime="2025-09-10T13:18:14.013Z" itemprop="datePublished">2025-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <h2 id="Real-time-Environment-Mapping实时环境光照"><a href="#Real-time-Environment-Mapping实时环境光照" class="headerlink" title="Real-time Environment Mapping实时环境光照"></a>Real-time Environment Mapping实时环境光照</h2><p>环境光照：认为来自无限远的（低频）光照</p>
+<ul>
+<li>spherical map</li>
+<li>cube map</li>
+</ul>
+<h3 id="Shading-from-environment-lighting（IBL）"><a href="#Shading-from-environment-lighting（IBL）" class="headerlink" title="Shading from environment lighting（IBL）"></a>Shading from environment lighting（IBL）</h3><p>不考虑visibility的shading<br>$$<br>\int_{\Omega^+}L_i(p,\omega_i)f_r(p,\omega_i,\omega_o)\cos \theta_id\omega_i<br>$$</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502161513389.png" alt="image-20220502161513389" style="zoom:67%;" />
+
+
+
+<p>当BRDF是glossy时，积分域较小</p>
+<p>当BRDF是diffuse时，积分域光滑</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502161654849.png" alt="image-20220502161654849" style="zoom: 67%;" />
+
+<h4 id="the-split-sum-approximation-step1"><a href="#the-split-sum-approximation-step1" class="headerlink" title="the split sum approximation-step1"></a>the split sum approximation-step1</h4><p>$$<br>L_0(p,w_o)\simeq\frac{\int_{\Omega_{fr}}L_i(p,w_i)dw_i}{\int_{\Omega_{fr}}dw_i}\cdot \int_{\Omega^+}f_r(p,w_i,w_o)\cos\theta_idw_i<br>$$</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502162610965.png" alt="image-20220502162610965" style="zoom:67%;" />
+
+<p>相当于Prefiltering of the environment lighting，滤波的大小取决于brdf的范围。</p>
+<p>对环境贴图生成预计算的Mipmap，中间的filter size使用三线性插值。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502162130291.png" alt="image-20220502162130291" style="zoom:67%;" />
+
+
+
+<h4 id="the-split-sum-approximation-step2"><a href="#the-split-sum-approximation-step2" class="headerlink" title="the split sum approximation-step2"></a>the split sum approximation-step2</h4><p>对BRDF积分的部分：</p>
+<p>预计算，所有可能的变量参数。但是这样参数变量很多，参数空间维度非常大。</p>
+<p>关注BRDF中的F项和NDF项</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502163841478.png" alt="image-20220502163841478" style="zoom:67%;" />
+
+<ul>
+<li><p>Fresnel Term</p>
+<ul>
+<li>Schlick‘s approximation</li>
+<li>$R(\theta) &#x3D; R_0+ (1-R_0)(1-\cos\theta)^5$</li>
+</ul>
+</li>
+<li><p>NDF Term</p>
+<ul>
+<li>Beckmann distribution</li>
+<li>$D(h)&#x3D;\frac{e^{-\frac{\tan^2\theta_h}{\alpha^2}}}{\pi\alpha^2\cos^4\theta_h}$</li>
+</ul>
+</li>
+</ul>
+<p>反射率、粗糙度、角度($n\cdot v$ )这些参数，再次分离变量</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502164106506.png" alt="image-20220502164106506" style="zoom:67%;" />
+
+<p>这种变形将反射率$R_0$拆分出来了</p>
+<p>只需要对两个参数Roughness和$\cos\theta$ 储存到参数空间</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502164321504.png" alt="image-20220502164321504" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502164618363.png" alt="image-20220502164618363" style="zoom:67%;" />
+
+<h3 id="Shadow-from-environment-lighting环境光照中的阴影"><a href="#Shadow-from-environment-lighting环境光照中的阴影" class="headerlink" title="Shadow from environment lighting环境光照中的阴影"></a>Shadow from environment lighting环境光照中的阴影</h3><p>Difficult</p>
+<p>多光源问题：SM的耗费和光源数量是线性关系</p>
+<p>采样问题：可见项V很复杂，V不能从环境中分离出来。</p>
+<p>工业界的解决方案：从最亮的几个光源生成阴影</p>
+<p>Related research：</p>
+<ul>
+<li>Imperfect shadow maps</li>
+<li>Light cuts（解决offline的多光源问题）</li>
+<li>RTRT(Realtime ray tracing)</li>
+<li>PRT</li>
+</ul>
+<h3 id="Real-time-environment-lighting-global-illumination"><a href="#Real-time-environment-lighting-global-illumination" class="headerlink" title="Real-time environment lighting(&amp; global illumination)"></a>Real-time environment lighting(&amp; global illumination)</h3><h4 id="Background-knowledge"><a href="#Background-knowledge" class="headerlink" title="Background knowledge"></a>Background knowledge</h4><h5 id="Frequency-and-filtering"><a href="#Frequency-and-filtering" class="headerlink" title="Frequency and filtering"></a>Frequency and filtering</h5><p>函数乘积的积分可以看作滤波 $\int_{\Omega}f(x)g(x)dx$ </p>
+<p>低频信息：光滑函数、变化较慢</p>
+<p>积分的频率是是由f(x)或g(x)中频率最低的决定的。</p>
+<h5 id="Basis-function"><a href="#Basis-function" class="headerlink" title="Basis function"></a>Basis function</h5><p>一系列函数可以通用地表示其他函数。<br>$$<br>f(x)&#x3D;\sum_ic_i\cdot B_i(x)<br>$$<br>傅里叶级数是一组基函数</p>
+<p>Polynomial series多项式系列也可以表示一组基函数</p>
+<h4 id="Spherical-Harmonics-SH-球谐函数"><a href="#Spherical-Harmonics-SH-球谐函数" class="headerlink" title="Spherical Harmonics(SH)球谐函数"></a>Spherical Harmonics(SH)球谐函数</h4><ul>
+<li><p>定义在球面上的一组二维基函数 $\theta,\phi$ </p>
+</li>
+<li><p>Analogous to Fourier series in 1D类似傅里叶级数在一维的情况</p>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502221255549.png" alt="image-20220502221255549" style="zoom:67%;" />
+
+<p>第l阶SH有2l+1个</p>
+<p>SH适用于直接分析球面上的性质。像如果把球面参数化映射到平面上，用Fourier series去展开，有一样的效果，但是像边缘的地方，重映射到球面时很可能出现裂缝，做不到Harmonic。</p>
+<ul>
+<li><p>每个基函数$B_i(\omega)$ 由Legendre polynomial(勒让德多项式)组成</p>
+</li>
+<li><p>Projection投影（投影到SH空间）：获取每个基函数的系数<br>$$<br>c_i &#x3D; \int_{\Omega}f(\omega)B_i(\omega)d\omega<br>$$</p>
+</li>
+<li><p>Reconstruction</p>
+</li>
+</ul>
+<h4 id="Prefiltered-env-lighting"><a href="#Prefiltered-env-lighting" class="headerlink" title="Prefiltered env. lighting"></a>Prefiltered env. lighting</h4><p>Prefiltering + single query &#x3D; no filtering + multiple queries(模糊后沿一个方向采样，相当于不滤波，在多个方向采样)</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502224119631.png" alt="image-20220502224119631" style="zoom:67%;" />
+
+<p>Lighting是球面上的函数，BRDF也是球面上的函数</p>
+<p>diffuse BRDF表现为低通滤波，那么任意频率的环境光照亮diffuse BRDF的结果(product integral)，都是低频的</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502224902989.png" alt="image-20220502224902989" style="zoom:67%;" />
+
+<ul>
+<li>仍然没有考虑shadow</li>
+</ul>
+<h4 id="Precomputed-Radiance-Transfer-PRT-预计算辐射度传递"><a href="#Precomputed-Radiance-Transfer-PRT-预计算辐射度传递" class="headerlink" title="Precomputed Radiance Transfer(PRT)预计算辐射度传递"></a>Precomputed Radiance Transfer(PRT)预计算辐射度传递</h4><p>Handles shadows and global illumination</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502225226205.png" alt="image-20220502225226205" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502225724366.png" alt="image-20220502225724366" style="zoom:67%;" />
+
+<p>认为场景其他部分不变，只有光照发生变化。</p>
+<ul>
+<li><p>对于每个着色点（vertex）预计算light和light transport</p>
+</li>
+<li><p>将lighting用basis functions表示 $L(i)&#x3D;\sum l_iB_i(i)$ </p>
+</li>
+<li><p>light transport 是可以预计算的，投影到基函数空间</p>
+<ul>
+<li>确定观察方向V，BRDF，ndotL都是一个与i有关的球面函数</li>
+</ul>
+</li>
+</ul>
+<h5 id="DiffuseCase"><a href="#DiffuseCase" class="headerlink" title="DiffuseCase"></a>DiffuseCase</h5><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502230413737.png" alt="image-20220502230413737" style="zoom:67%;" />
+
+<p>预计算light transport，代表着场景是静态的。光源可以是预计算动态的</p>
+<ul>
+<li>SH的优秀性质<ul>
+<li>正交</li>
+<li>容易投影&#x2F;重建</li>
+<li>易于旋转<ul>
+<li>旋转SH基函数，等于同阶SH基函数的线性组合</li>
+</ul>
+</li>
+<li>易于卷积</li>
+<li>基函数少：低频</li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502231709479.png" alt="image-20220502231709479" style="zoom:67%;" />
+
+<h6 id="light-transport预计算"><a href="#light-transport预计算" class="headerlink" title="light transport预计算"></a>light transport预计算</h6><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502231730780.png" alt="image-20220502231730780" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220502231919672.png" alt="image-20220502231919672" style="zoom:67%;" />
+
+<h6 id="另一种途径"><a href="#另一种途径" class="headerlink" title="另一种途径"></a>另一种途径</h6><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503123735337.png" alt="image-20220503123735337" style="zoom:67%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503123849095.png" alt="image-20220503123849095" style="zoom:67%;" />
+
+<p>积分内部，两个SHbasis相乘，p不等于q时，是正交的。</p>
+<p>最终只需要对p求和，和前面的结果是相同的。</p>
+<h5 id="GlossyCase"><a href="#GlossyCase" class="headerlink" title="GlossyCase"></a>GlossyCase</h5><p>在light transport 投影到SH时，给定任何一个观察方向o，light transport是不同的向量（BRDF）   （diffuse情况不受到o的影响）</p>
+<p>因此需要对每一个o方向进行预计算。（在工业化的应用场景中，是光照探针插值？）</p>
+<p>将$T_i(o)$ 这个与o相关的二维函数再次投影到o方向的SHbasis。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503124712129.png" alt="image-20220503124712129" style="zoom:67%;" />
+
+<h5 id="不足"><a href="#不足" class="headerlink" title="不足"></a>不足</h5><ul>
+<li><p>比较适用于描述低频函数（高频需要更多的SH）</p>
+</li>
+<li><p>动态光照，静态场景、材质：改变场景、材质会使预计算的light transport 无效</p>
+</li>
+<li><p>大量的预计算数据</p>
+</li>
+</ul>
+<h5 id="Wavelet"><a href="#Wavelet" class="headerlink" title="Wavelet"></a>Wavelet</h5><p><img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503171333786.png" alt="image-20220503171333786"></p>
+<p>不同的小波定义域不同。支持全频率的表示。</p>
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503171719115.png" alt="image-20220503171719115" style="zoom: 33%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503171744708.png" alt="image-20220503171744708" style="zoom: 33%;" />
+
+<img src="https://raw.githubusercontent.com/XZYW7/PicGo/main/img/image-20220503171753212.png" alt="image-20220503171753212" style="zoom: 33%;" />
+
+<p>留下高频信息，低频信息放在左上角。</p>
+<ul>
+<li>不足：不支持光照旋转</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/09/10/TA/Graphics/GAMES/Real-time%20Environment%20Mapping/" data-id="cmfe1kyb3002vykuh51u7041z" class="article-share-link">
+        Share
+      </a>
+      
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2025/09/10/TA/Graphics/GAMES/Ray%20Tracing%20Note/" class="article-nav-link">
+    <strong class="article-nav-caption">Newer</strong>
+    <div class="article-nav-title">
+      
+      (no title)
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2025/09/10/TA/Graphics/GAMES/Real-time%20Global%20Illumination/" class="article-nav-link">
+    <strong class="article-nav-caption">Older</strong>
+    <div class="article-nav-title"></div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>XZYW7&#39;s Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="XZYW7&#39;s Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">Home</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">Archives</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">Gallery</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>
